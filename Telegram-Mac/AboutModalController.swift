@@ -35,7 +35,7 @@ fileprivate class AboutModalView : Control {
         formatter.dateFormat = "yyyy"
         
         
-        let copyrightLayout = TextViewLayout(.initialize(string: "Copyright © 2016 - \(formatter.string(from: Date(timeIntervalSinceReferenceDate: Date.timeIntervalSinceReferenceDate))) CASMOS", color: theme.colors.grayText, font: .normal(.text)), alignment: .center)
+        let copyrightLayout = TextViewLayout(.initialize(string: "Copyright © 2016 - \(formatter.string(from: Date(timeIntervalSinceReferenceDate: Date.timeIntervalSinceReferenceDate))) Casmos", color: theme.colors.grayText, font: .normal(.text)), alignment: .center)
         copyrightLayout.measure(width:frameRect.width - 40)
         
         
