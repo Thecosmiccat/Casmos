@@ -1,0 +1,17 @@
+//
+//  Beta.xcconfig
+//  Telegram
+//
+//  Created by keepcoder on 14/03/2017.
+//  Copyright © 2017 Telegram. All rights reserved.
+//
+
+#include "common.xcconfig"
+
+DSA_PEM_FILE = dsa_pub.pem
+APPCENTER_SECRET = 4ff72ee6-40ca-438b-a068-7ba14a53e288
+SFEED_URL = https:$(SIMPLE_SLASH)/mac-updates.telegram.org/beta/versions.xml
+SOURCE = BETA
+
+TYPE = -D'BETA'
+OTHER_SWIFT_FLAGS = $(TYPE)

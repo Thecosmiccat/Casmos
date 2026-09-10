@@ -1,0 +1,321 @@
+//
+//  GeneralRowView.swift
+//  Telegram-Mac
+//
+//  Created by keepcoder on 12/10/2016.
+//  Copyright © 2016 Telegram. All rights reserved.
+//
+
+import Cocoa
+import TGUIKit
+
+
+class GeneralContainableRowView : TableRowView {
+    let containerView = GeneralRowContainerView(frame: NSZeroRect)
+    let borderView: View = View()
+    required init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        super.addSubview(self.containerView)
+        containerView.addSubview(borderView)
+    }
+    
+    override var firstResponder: NSResponder? {
+        return nil
+    }
+    
+    deinit {
+        self.containerView.removeAllSubviews()
+    }
+    
+    override func addSubview(_ view: NSView) {
+        self.containerView.addSubview(view)
+    }
+    
+    override func addSubview(_ view: NSView, positioned place: NSWindow.OrderingMode, relativeTo otherView: NSView?) {
+        self.containerView.addSubview(view, positioned: place, relativeTo: otherView)
+    }
+    
+    func addBasicSubview(_ view: NSView, positioned place: NSWindow.OrderingMode) {
+        subviews.insert(view, at: place == .below ? 0 : 1)
+    }
+    
+    override var backdorColor: NSColor {
+        return theme.colors.background
+    }
+    
+    override var mouseDownCanMoveWindow: Bool {
+        return false
+    }
+    
+    override var borderColor: NSColor {
+        return theme.colors.border
+    }
+    
+    override func updateColors() {
+        guard let item = item as? GeneralRowItem else {
+            return
+        }
+        self.backgroundColor = item.viewType.rowBackground
+        self.containerView.backgroundColor = backdorColor
+        self.borderView.backgroundColor = borderColor
+    }
+    
+    var maxBlockWidth: CGFloat {
+        return 600
+    }
+    var maxWidth: CGFloat {
+        return frame.width
+    }
+    var maxHeight: CGFloat {
+        return frame.height
+    }
+    
+    override func layout() {
+        super.layout()
+        self.updateLayout(size: self.frame.size, transition: .immediate)
+    }
+    
+    override func updateLayout(size: NSSize, transition: ContainedViewLayoutTransition) {
+        super.updateLayout(size: size, transition: transition)
+        
+        guard let item = item as? GeneralRowItem else {
+            return
+        }
+        let blockWidth = min(item.viewType == .legacy ? size.width : maxBlockWidth, size.width - item.inset.left - item.inset.right)
+        
+        let rect = NSMakeRect(floorToScreenPixels(backingScaleFactor, (size.width - blockWidth) / 2), item.inset.top, blockWidth, size.height - item.inset.bottom - item.inset.top)
+        transition.updateFrame(view: self.containerView, frame: rect)
+        
+        self.containerView.setCorners(item.viewType.corners, animated: transition.isAnimated, frame: rect)
+
+        transition.updateFrame(view: borderView, frame: NSMakeRect(item.viewType.innerInset.left + additionBorderInset, containerView.frame.height - .borderSize, containerView.frame.width - item.viewType.innerInset.left - item.viewType.innerInset.right - additionBorderInset, .borderSize))
+    }
+
+    var additionBorderInset: CGFloat {
+        return 0
+    }
+    
+    override func set(item: TableRowItem, animated: Bool = false) {
+        super.set(item: item, animated: animated)
+        
+        guard let item = item as? GeneralRowItem else {
+            return
+        }
+        
+        borderView.isHidden = !item.hasBorder
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+class GeneralRowContainerView : Control {
+    
+    var cornerRadius: CGFloat = 10
+    
+    private let maskLayer = CAShapeLayer()
+    private var newPath: CGPath?
+    required init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        layer?.mask = maskLayer
+        self.maskLayer.disableActions()
+    }
+    
+    private var corners: GeneralViewItemCorners? = nil
+    func setCorners(_ corners: GeneralViewItemCorners, animated: Bool = false, frame: NSRect? = nil) {
+        if animated && self.corners != nil {
+            let newPath = self.createMask(for: corners, frame: frame ?? self.frame)
+            
+            var oldPath: CGPath = self.maskLayer.path ?? CGMutablePath()
+            
+            if let presentation = self.maskLayer.presentation(), let _ = self.maskLayer.animation(forKey:"path") {
+                oldPath = presentation.path ?? oldPath
+                if newPath == self.newPath {
+                    self.corners = corners
+                    return
+                }
+            }
+            self.newPath = newPath
+            
+            self.maskLayer.animate(from: oldPath, to: newPath, keyPath: "path", timingFunction: .easeOut, duration: 0.18, removeOnCompletion: false, additive: false, completion: { [weak self] completed in
+                //if completed {
+                    self?.maskLayer.removeAllAnimations()
+               // }
+                self?.maskLayer.path = newPath
+            })
+            
+        } else {
+            self.maskLayer.path = createMask(for: corners, frame: frame ?? self.bounds)
+        }
+        self.corners = corners
+    }
+    private func createMask(for corners: GeneralViewItemCorners, frame: NSRect) -> CGPath {
+        let path = CGMutablePath()
+        
+        let minx:CGFloat = 0, midx = frame.width/2.0, maxx = frame.width
+        let miny:CGFloat = 0, midy = frame.height/2.0, maxy = frame.height
+        
+        path.move(to: NSMakePoint(minx, midy))
+        
+        var topLeftRadius: CGFloat = 0
+        var bottomLeftRadius: CGFloat = 0
+        var topRightRadius: CGFloat = 0
+        var bottomRightRadius: CGFloat = 0
+        
+        
+        if corners.contains(.topLeft)  {
+            bottomLeftRadius = cornerRadius
+        }
+        if corners.contains(.topRight) {
+            bottomRightRadius = cornerRadius
+        }
+        if corners.contains(.bottomLeft) {
+            topLeftRadius = cornerRadius
+        }
+        if corners.contains(.bottomRight) {
+            topRightRadius = cornerRadius
+        }
+        
+        path.addArc(tangent1End: NSMakePoint(minx, miny), tangent2End: NSMakePoint(midx, miny), radius: bottomLeftRadius)
+        path.addArc(tangent1End: NSMakePoint(maxx, miny), tangent2End: NSMakePoint(maxx, midy), radius: bottomRightRadius)
+        path.addArc(tangent1End: NSMakePoint(maxx, maxy), tangent2End: NSMakePoint(midx, maxy), radius: topRightRadius)
+        path.addArc(tangent1End: NSMakePoint(minx, maxy), tangent2End: NSMakePoint(minx, midy), radius: topLeftRadius)
+        
+        
+        return path
+    }
+    
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+    }
+    
+    func change(size: NSSize, animated: Bool, corners: GeneralViewItemCorners) {
+        super._change(size: size, animated: animated, animated, duration: 0.18)
+        setCorners(corners, animated: animated, frame: NSMakeRect(0, 0, size.width, size.height))
+    }
+    
+    override func scrollWheel(with event: NSEvent) {
+        superview?.scrollWheel(with: event)
+    }
+    
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+
+class GeneralRowView: TableRowView,ViewDisplayDelegate {
+    
+
+     private var errorTextView: TextView? = nil
+    
+    var general:GeneralRowItem? {
+        return self.item as? GeneralRowItem
+    }
+    
+    
+    
+    required init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        layerContentsRedrawPolicy = .onSetNeedsDisplay
+    }
+    
+    override var firstResponder: NSResponder? {
+        return nil
+    }
+    
+    
+    
+    override func set(item: TableRowItem, animated: Bool) {
+        super.set(item: item, animated: animated)
+        if let item = item as? GeneralRowItem {
+            self.border = item.border
+            
+            let minX = (frame.width - item.blockWidth) / 2
+
+            
+            if let errorLayout = item.errorLayout {
+                let alphaAnimated = animated && errorTextView == nil
+                let posAnimated = animated && errorTextView != nil
+                if errorTextView == nil {
+                    errorTextView = TextView()
+                    errorTextView?.isSelectable = false
+                    addSubview(errorTextView!)
+                }
+                errorTextView!.update(errorLayout)
+                switch item.viewType {
+                case .legacy:
+                    errorTextView!.change(pos: NSMakePoint(item.inset.left, frame.height - 6 - errorLayout.layoutSize.height), animated: posAnimated)
+                case let .modern(_, insets):
+                    errorTextView!.change(pos: NSMakePoint(minX + insets.left, frame.height - 2 - errorLayout.layoutSize.height), animated: posAnimated)
+                }
+                if alphaAnimated {
+                    errorTextView!.layer?.animateAlpha(from: 0, to: 1, duration: 0.2)
+                }
+            } else {
+                if let errorTextView = self.errorTextView {
+                    if animated {
+                        self.errorTextView = nil
+                        errorTextView.layer?.animateAlpha(from: 1, to: 0, duration: 0.2, completion: { [weak errorTextView] _ in
+                            errorTextView?.removeFromSuperview()
+                        })
+                    } else {
+                        errorTextView.removeFromSuperview()
+                        self.errorTextView = nil
+                    }
+                }
+                
+            }
+        }
+        self.needsDisplay = true
+        self.needsLayout = true
+    }
+
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        
+     //   let inset = general?.inset ?? NSEdgeInsets()
+      //  overlay.frame = NSMakeRect(inset.left, 0, newSize.width - (inset.left + inset.right), newSize.height)
+    }
+    
+    override func layout() {
+        
+        guard let item = item as? GeneralRowItem else {return}
+
+        let minX = (frame.width - item.blockWidth) / 2
+        
+        if let errorTextView = errorTextView {
+            switch item.viewType {
+            case .legacy:
+                errorTextView.setFrameOrigin(item.inset.left, frame.height - 6 - errorTextView.frame.height)
+            case let .modern(_, insets):
+                errorTextView.setFrameOrigin(minX + insets.left, frame.height - 2
+                    - errorTextView.frame.height)
+            }
+        }
+    }
+    
+    override var backdorColor: NSColor {
+        
+        guard let item = self.item as? GeneralRowItem else {
+            return .clear
+        }
+        return item.backgroundColor
+    }
+    
+    override var mouseDownCanMoveWindow: Bool {
+        if self.className == GeneralRowView.className() {
+            return item?.table?._mouseDownCanMoveWindow ?? super.mouseDownCanMoveWindow
+        } else {
+            return false
+        }
+    }
+    
+}
