@@ -1,21 +1,23 @@
 import Cocoa
 
 public final class ApiEnvironment {
+    /// Replace before building. Marker: CASMOS_PLACEHOLDER_API_ID
     public static var apiId:Int32 {
-        return 9
+        return 0
     }
     public static var apiHash:String {
-        return "3975f648bb682ee889f35483bc618d1c"
+        return "CASMOS_PLACEHOLDER_API_HASH"
     }
     
     public static var bundleId: String {
-        return "ru.keepcoder.Telegram"
+        return "app.casmos.macos"
     }
     public static var intentsBundleId: String {
         return teamId + "." + bundleId + ".FocusIntents"
     }
     public static var teamId: String {
-        return "6N38VWS5BX"
+        // CASMOS_PLACEHOLDER_TEAM_ID — set to your 10-character Apple Team ID
+        return "CASM0STEAM"
     }
     
     

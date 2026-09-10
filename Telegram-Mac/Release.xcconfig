@@ -6,8 +6,9 @@
 //  Copyright © 2017 Telegram. All rights reserved.
 //
 #include "common.xcconfig"
-DSA_PEM_FILE = dsa_pub_prod.pem
-SFEED_URL = https:$(SIMPLE_SLASH)/mac-updates.telegram.org/updates/versions.xml
+DSA_PEM_FILE =
+APPCENTER_SECRET =
+SFEED_URL =
 SOURCE = STABLE
 
 TYPE = -D'STABLE'

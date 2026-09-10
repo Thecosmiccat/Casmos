@@ -3,28 +3,28 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyAr7x4gM6lKeXXANsuGV_-usVMcfb2slLc</string>
+	<string>CASMOS_PLACEHOLDER_FIREBASE_API_KEY</string>
 	<key>GCM_SENDER_ID</key>
-	<string>296631105913</string>
+	<string>0</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>ru.keepcoder.Telegram</string>
+	<string>app.casmos.macos</string>
 	<key>PROJECT_ID</key>
-	<string>telegram-9c34c</string>
+	<string>casmos-placeholder</string>
 	<key>STORAGE_BUCKET</key>
-	<string>telegram-9c34c.firebasestorage.app</string>
+	<string>casmos-placeholder.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
 	<false></false>
 	<key>IS_APPINVITE_ENABLED</key>
-	<true></true>
+	<false></false>
 	<key>IS_GCM_ENABLED</key>
-	<true></true>
+	<false></false>
 	<key>IS_SIGNIN_ENABLED</key>
-	<true></true>
+	<false></false>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:296631105913:ios:7411dc3158c557d5d717a8</string>
+	<string>CASMOS_PLACEHOLDER_GOOGLE_APP_ID</string>
 </dict>
 </plist>

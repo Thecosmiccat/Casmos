@@ -141,6 +141,7 @@ private enum AccountInfoEntry : TableItemListNodeEntry {
     case appearance(index: Int, viewType: GeneralViewType)
     case privacy(index: Int, viewType: GeneralViewType, AccountPrivacySettings?, TwoStepVeriticationAccessConfiguration?, WebSessionsContextState)
     case dataAndStorage(index: Int, viewType: GeneralViewType)
+    case casmos(index: Int, viewType: GeneralViewType)
     case activeSessions(index: Int, viewType: GeneralViewType, activeSessions: Int)
     case passport(index: Int, viewType: GeneralViewType, peer: PeerEquatable)
     case update(index: Int, viewType: GeneralViewType, state: AnyUpdateStateEquatable)
@@ -180,6 +181,8 @@ private enum AccountInfoEntry : TableItemListNodeEntry {
             return .index(8)
         case .dataAndStorage:
             return .index(9)
+        case .casmos:
+            return .index(50)
         case .activeSessions:
             return .index(10)
         case .privacy:
@@ -252,6 +255,8 @@ private enum AccountInfoEntry : TableItemListNodeEntry {
         case let .privacy(index, _, _, _, _):
             return index
         case let .dataAndStorage(index, _):
+            return index
+        case let .casmos(index, _):
             return index
         case let .activeSessions(index, _, _):
             return index
@@ -405,6 +410,10 @@ private enum AccountInfoEntry : TableItemListNodeEntry {
         case let .dataAndStorage(_, viewType):
             return GeneralInteractedRowItem(initialSize, stableId: stableId, name: strings().accountSettingsDataAndStorage, icon: theme.icons.settingsStorage, activeIcon: theme.icons.settingsStorageActive, type: .next, viewType: viewType, action: {
                 arguments.presentController(DataAndStorageViewController(arguments.context), true)
+            }, border:[BorderType.Right], inset:NSEdgeInsets(left: 12, right: 12))
+        case let .casmos(_, viewType):
+            return GeneralInteractedRowItem(initialSize, stableId: stableId, name: "Casmos Settings", icon: theme.icons.settingsGeneral, activeIcon: theme.icons.settingsGeneralActive, type: .next, viewType: viewType, action: {
+                arguments.presentController(CasmosSettingsController(context: arguments.context), true)
             }, border:[BorderType.Right], inset:NSEdgeInsets(left: 12, right: 12))
         case let .activeSessions(_, viewType, count):
             return GeneralInteractedRowItem(initialSize, stableId: stableId, name: strings().privacySettingsActiveSessions, icon: theme.icons.settingsSessions, activeIcon: theme.icons.settingsSessionsActive, type: count > 0 ? .nextContext("\(count)") : .none, viewType: viewType, action: {
@@ -599,6 +608,8 @@ private func accountInfoEntries(peerView:PeerView, context: AccountContext, acco
     index += 1
     
     entries.append(.general(index: index, viewType: .singleItem))
+    index += 1
+    entries.append(.casmos(index: index, viewType: .singleItem))
     index += 1
     entries.append(.notifications(index: index, viewType: .singleItem, status: unAuthStatus))
     index += 1

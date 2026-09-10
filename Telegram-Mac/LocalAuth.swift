@@ -75,7 +75,7 @@ public struct LocalAuth {
     }
     
     private static func bundleSeedId() -> String? {
-        return "6N38VWS5BX"
+        return "CASM0STEAM"
     }
     
     public static func getOrCreatePrivateKey(baseAppBundleId: String, keyId: Data) -> PrivateKey? {

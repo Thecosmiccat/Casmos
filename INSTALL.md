@@ -1,37 +1,71 @@
-# How to Build Telegram for macOS
+# How to build Casmos for macOS
 
-1. Clone this repository with submodules:
-	```
-	git clone https://github.com/overtake/TelegramSwift.git --recurse-submodules
-	```
-2. Install Homebrew:
-	```
-	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-	```
-3. Install tools: 
-	```
-	brew install cmake ninja openssl@1.1 zlib autoconf libtool automake yasm pkg-config
- 	```
-4. Update ./scripts/rebuild file 
-	```
-	replace "no" to "yes"
-	```
-5. Run scripts to configurate framework: 
-	```
-	sh %project_dir%/scripts/configure_frameworks.sh
-	```
+Casmos is a branded fork of [TelegramSwift](https://github.com/overtake/TelegramSwift). Use a Mac with a recent Xcode. This environment does not compile the Mac app.
 
-6. Open `Telegram-Mac.xcworkspace` in [the latest Xcode](https://apps.apple.com/us/app/xcode/id497799835).  
-7. Setup codesign and **Build**!
+## 1. Clone with submodules
 
+```
+git clone https://github.com/Thecosmiccat/Casmos.git --recurse-submodules
+cd Casmos
+```
 
+If you already cloned without submodules:
 
-# If you want to develop a fork
+```
+git submodule update --init --recursive
+```
 
-1. For starters, you need [to build application](https://github.com/overtake/TelegramSwift/blob/master/INSTALL.md#how-to-build-telegram-for-macos).
-2. Change bundle Identifier and team-id. Easiest way is to search all mentions `ru.keepcoder.Telegram` and change it to your own. Team-id you can find on apple developer portal.
-3. Obtain your [API ID](https://core.telegram.org/api/obtaining_api_id). **Note:** The built-in `apiId` is highly limited for api usage. **Do not use it** in any circumstances except verify binaries.
-4. Open `Telegram-Mac/Config.swift` and repalce `apiId` and `apiHash` from previous step. **Note:** Do not forget to change `teamId` either.
-5. Replace or remove `SFEED_URL` and  `APPCENTER_SECRET`  in `*.xcconfig` files. (First uses for in-app updates and second for collecting crashes on [appcenter](https://appcenter.ms))
-6. Write new better code.
-7. If you still have a questions feel free to open new issue [here](https://github.com/overtake/TelegramSwift/issues/new).
+`.gitmodules` uses HTTPS. If a submodule still points at `git@`, switch that URL to HTTPS.
+
+## 2. Homebrew tools
+
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install cmake ninja openssl@1.1 zlib autoconf libtool automake yasm pkg-config
+```
+
+## 3. Configure frameworks
+
+In `scripts/rebuild`, set the rebuild flag from `no` to `yes`, then:
+
+```
+sh ./scripts/configure_frameworks.sh
+```
+
+## 4. API credentials (required)
+
+Open `packages/ApiCredentials/Sources/ApiCredentials/Config.swift`.
+
+- Replace `CASMOS_PLACEHOLDER_API_ID` (currently `apiId` returns `0`) with your own integer api_id.
+- Replace `CASMOS_PLACEHOLDER_API_HASH` with your own api_hash string.
+- Set `teamId` to your 10-character Apple Team ID so it matches Xcode application groups (`$(TeamIdentifierPrefix)` in entitlements).
+
+Get credentials at https://core.telegram.org/api/obtaining_api_id. Never commit real secrets.
+
+Also set the same Team ID in:
+
+- `Telegram-Mac/LocalAuth.swift` (`bundleSeedId`)
+- `submodules/BuildConfig/Sources/BuildConfig.m` (`bundleSeedId`)
+
+## 5. Open in Xcode
+
+Open `Telegram-Mac.xcworkspace` (not the `.xcodeproj` alone) in the latest Xcode.
+
+- Signing: select your team on the Casmos (Telegram) target, Share, and FocusIntents.
+- Bundle IDs are already `app.casmos.macos`, `app.casmos.macos.Share`, and `app.casmos.macos.FocusIntents`.
+- Display name is Casmos (`PRODUCT_NAME` / `CFBundleDisplayName`).
+- Sparkle `SFEED_URL` and `APPCENTER_SECRET` are blank on purpose.
+
+Build the **Telegram** target. The product name is Casmos.
+
+## Updates
+
+In-app Sparkle / App Center feeds that pointed at osx.telegram.org, mac-updates.telegram.org, and api.appcenter.ms are disabled. Do not restore those official endpoints for a Casmos build.
+
+## Fork notes from upstream
+
+1. Use your own API ID.
+2. Do not call the app Telegram.
+3. Do not use the official white paper-plane logo.
+4. Follow Telegram’s [security guidelines](https://core.telegram.org/mtproto/security_guidelines).
+5. GPL-2.0 requires you to publish your source.
