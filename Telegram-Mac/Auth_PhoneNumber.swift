@@ -218,15 +218,8 @@ final class Auth_LoginHeader : View {
     }
     
     private func updateLottie() {
-        if window != nil {
-            if let data = LocalAnimatedSticker.login_airplane.data {
-                let colors:[LottieColor] = []
-                self.logo.set(LottieAnimation(compressed: data, key: .init(key: .bundle("login_airplane"), size: Auth_Insets.logoSize, backingScale: Int(System.backingScale), fitzModifier: nil), playPolicy: .loop, colors: colors))
-            }
-        } else {
-            self.logo.set(nil)
-        }
-        
+        // Static Casmos mark (login_140) will land with the Option B asset pack.
+        self.logo.set(nil)
     }
     
     override func viewDidMoveToWindow() {

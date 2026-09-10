@@ -156,15 +156,8 @@ final class Auth_TokenView : View {
     }
     
     private func updateLottie() {
-        if window != nil {
-            if let data = LocalAnimatedSticker.login_airplane.data {
-                let colors:[LottieColor] = []
-                self.logoView.set(LottieAnimation(compressed: data, key: .init(key: .bundle("login_airplane"), size: NSMakeSize(40, 40), backingScale: Int(System.backingScale), fitzModifier: nil), playPolicy: .loop, colors: colors))
-            }
-        } else {
-            self.logoView.set(nil)
-        }
-        
+        // Static Casmos QR chip (qr_chip_40) will land with the Option B asset pack.
+        self.logoView.set(nil)
     }
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
