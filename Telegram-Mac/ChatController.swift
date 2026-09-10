@@ -17,6 +17,7 @@ import ObjcUtils
 import ThemeSettings
 import DustLayer
 import CodeSyntax
+import Casmos
 
 private func calculateAdjustedPoint(for point: CGPoint,
                             floatingPhotosView: NSView,
@@ -5421,6 +5422,9 @@ class ChatController: EditableViewController<ChatControllerView>, Notifable, Tab
             }
         }
         chatInteraction.doNotTranslate = { code in
+            var casmos = CasmosPreferences.doNotTranslate
+            casmos.insert(code.lowercased())
+            CasmosPreferences.doNotTranslate = casmos
             _ = updateBaseAppSettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
                 var current = settings.doNotTranslate
                 if !current.contains(code) {
@@ -5980,6 +5984,9 @@ class ChatController: EditableViewController<ChatControllerView>, Notifable, Tab
                     return state
                 }
             } else {
+                if CasmosPreferences.workersAiTranscriptionEnabled {
+                    _ = CasmosTranscription.skipLiveCall()
+                }
                 
                 let currentTime = Int32(Date().timeIntervalSince1970)
                 if !context.isPremium, message.audioTranscription == nil {

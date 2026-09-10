@@ -4,7 +4,7 @@
 
 - Casmos identity: display name, bundle IDs, icon that is not the official paper plane
 - API credentials as `CASMOS_PLACEHOLDER_*` only
-- Casmos Settings shell: General, Appearance, Chat, Translator, Passcode, Experimental (`casmos.pref.*`)
+- Casmos Settings shell: General, Appearance, Chat, Translator, Transcription, Passcode, Experimental (`casmos.pref.*`)
 - Modular `packages/Casmos`
 - Official Sparkle and App Center update endpoints blanked
 - Mac Xcode build notes in INSTALL.md (free Apple ID, Gatekeeper, recursive submodules, placeholders until Jeffrey provides keys)
@@ -26,7 +26,13 @@
 - Double-click action: `casmos.pref.chat.doubleTapAction` (`reply` default, plus none / reaction / edit / copy / forward / repeat / translate / details).
 - Hide channel bottom buttons: `casmos.pref.chat.hideChannelBottomButtons` collapses the Mute / Discuss input bar on broadcast channels. Mute and discussion stay in the chat header.
 - Message menu: Repeat (resend content in the current chat), Forward without Quote (`hideNames`), Details (JSON snapshot). Translate remains on the context menu when translator is enabled.
-- Config export/import: Casmos Settings → Config writes/reads a JSON file of `casmos.pref.*` keys. Export may include a local DeepL key if one is set.
+- Config export/import: Casmos Settings → Config writes/reads a JSON file of `casmos.pref.*` keys. Export may include a local DeepL key or Cloudflare token if one is set.
+
+## P2 (this tree)
+
+- Do not translate: `casmos.pref.translator.doNotTranslate` is a comma-separated language-code list in Casmos Settings → Translator. Combined with Language settings. Empty Casmos + empty official lists skip the app language.
+- Keep formatting: `casmos.pref.translator.keepFormatting` (default on). Local engines send HTML and restore bold / italic / underline / strike / code / links / spoilers / quotes. Poll and todo option entities stay plain.
+- Workers AI / Cloudflare transcription: Casmos Settings → Transcription stores account id, API token, and model locally (`CASMOS_PLACEHOLDER_CF_ACCOUNT_ID` / `CASMOS_PLACEHOLDER_CF_API_TOKEN`). Toggle off by default. There is no free anonymous Workers AI path; this tree does not upload voice audio and skips live Cloudflare calls.
 
 ## Later (needs Jeffrey / live API — not in this overnight branch)
 - A signed Mac build with real `api_id` / `api_hash` / Team ID (placeholders stay in this tree)

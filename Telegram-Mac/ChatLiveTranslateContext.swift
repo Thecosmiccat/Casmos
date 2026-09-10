@@ -381,18 +381,25 @@ final class ChatLiveTranslateContext {
                 if text.isEmpty {
                     continue
                 }
-                let chunks = cut_long_message(text, 1024)
-                var signal: Signal<(detect: String?, result: String), Translate.Error> = .single((detect: nil, result: ""))
-                for chunk in chunks {
-                    let part = chunk as String
-                    signal = signal |> mapToSignal { acc in
-                        casmosLocalTranslate(text: part, from: from, to: toLang) |> map { value in
-                            (detect: value.detect ?? acc.detect, result: acc.result + value.result)
+                let entities = msg.textEntities?.entities ?? []
+                let formattedSignal: Signal<(detect: String?, result: String, entities: [MessageTextEntity]), Translate.Error>
+                if CasmosHooks.keepTranslateFormatting, !entities.isEmpty {
+                    formattedSignal = casmosTranslateFormatted(text: text, entities: entities, from: from, to: toLang)
+                } else {
+                    let chunks = cut_long_message(text, 1024)
+                    var signal: Signal<(detect: String?, result: String), Translate.Error> = .single((detect: nil, result: ""))
+                    for chunk in chunks {
+                        let part = chunk as String
+                        signal = signal |> mapToSignal { acc in
+                            casmosLocalTranslate(text: part, from: from, to: toLang) |> map { value in
+                                (detect: value.detect ?? acc.detect, result: acc.result + value.result)
+                            }
                         }
                     }
+                    formattedSignal = signal |> map { (detect: $0.detect, result: $0.result, entities: []) }
                 }
-                actionsDisposable.add((signal |> deliverOnMainQueue).start(next: { [weak self] result in
-                    CasmosLocalTranslations.set(key: key, toLang: toLang, text: result.result)
+                actionsDisposable.add((formattedSignal |> deliverOnMainQueue).start(next: { [weak self] result in
+                    CasmosLocalTranslations.set(key: key, toLang: toLang, text: result.result, spans: casmosSpans(from: result.entities))
                     self?.updateState { current in
                         var current = current
                         current.result[.Key(id: messageId, toLang: current.to)] = .complete(toLang: current.to)
@@ -565,8 +572,9 @@ func chatTranslationState(context: AccountContext, peerId: EnginePeer.Id) -> Sig
         }
         
         var dontTranslateLanguages: [String] = []
-        if !settings.doNotTranslate.isEmpty {
-            dontTranslateLanguages = Array(settings.doNotTranslate)
+        let combined = settings.doNotTranslate.union(CasmosPreferences.doNotTranslate)
+        if !combined.isEmpty {
+            dontTranslateLanguages = Array(combined)
         } else {
             dontTranslateLanguages = [baseLang]
         }

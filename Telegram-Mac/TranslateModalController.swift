@@ -153,13 +153,13 @@ func casmosLocalTranslateParts(texts: [String], from: String?, to: String) -> Si
     return signal
 }
 
-func casmosLocalTranslate(text: String, from: String?, to: String) -> Signal<(detect: String?, result: String), Translate.Error> {
+func casmosLocalTranslate(text: String, from: String?, to: String, html: Bool = false) -> Signal<(detect: String?, result: String), Translate.Error> {
     switch CasmosPreferences.translatorEngine {
     case .extra:
         return Translate.translateText(text: text, from: from, to: to)
     case .yandex, .deepl:
         return Signal { subscriber in
-            let task = CasmosTranslator.translate(text: text, from: from, to: to) { result in
+            let task = CasmosTranslator.translate(text: text, from: from, to: to, html: html) { result in
                 switch result {
                 case let .success(value):
                     subscriber.putNext((detect: value.detect, result: value.text))
@@ -174,6 +174,27 @@ func casmosLocalTranslate(text: String, from: String?, to: String) -> Signal<(de
         }
     case .system:
         return Translate.translateText(text: text, from: from, to: to)
+    }
+}
+
+func casmosTranslateFormatted(text: String, entities: [MessageTextEntity], from: String?, to: String) -> Signal<(detect: String?, result: String, entities: [MessageTextEntity]), Translate.Error> {
+    let keep = CasmosHooks.keepTranslateFormatting && !entities.isEmpty
+    if !keep {
+        return casmosLocalTranslate(text: text, from: from, to: to) |> map {
+            (detect: $0.detect, result: $0.result, entities: [])
+        }
+    }
+    let wrapped = CasmosHtmlFormat.wrap(text: text, spans: casmosSpans(from: entities))
+    return casmosLocalTranslate(text: wrapped, from: from, to: to, html: true) |> map { value in
+        let formatted = CasmosHtmlFormat.unwrap(value.result)
+        if formatted.text.isEmpty {
+            return (detect: value.detect, result: value.result, entities: [])
+        }
+        return (detect: value.detect, result: formatted.text, entities: casmosEntities(from: formatted.spans))
+    } |> `catch` { _ in
+        casmosLocalTranslate(text: text, from: from, to: to) |> map {
+            (detect: $0.detect, result: $0.result, entities: [])
+        }
     }
 }
 
@@ -196,9 +217,7 @@ func translateBlocks(context: AccountContext, from: String?, to: String, blocks:
     }
     for block in blocks {
         if translatorOn, engine == .yandex || engine == .deepl {
-            signals.append(casmosLocalTranslate(text: block.0, from: from, to: to) |> map {
-                (detect: $0.detect, result: $0.result, entities: [])
-            })
+            signals.append(casmosTranslateFormatted(text: block.0, entities: block.1, from: from, to: to))
             continue
         }
         switch routedState {
@@ -216,6 +235,8 @@ func translateBlocks(context: AccountContext, from: String?, to: String, blocks:
             } |> mapToSignal { value in
                 if let value = value {
                     return .single((detect: nil, result: value.0, entities: value.1))
+                } else if CasmosHooks.keepTranslateFormatting, !block.1.isEmpty {
+                    return casmosTranslateFormatted(text: block.0, entities: block.1, from: from, to: to)
                 } else {
                     return Translate.translateText(text: block.0, from: from, to: to) |> map {
                         (detect: $0.detect, result: $0.result, entities: [])
@@ -223,9 +244,13 @@ func translateBlocks(context: AccountContext, from: String?, to: String, blocks:
                 }
             })
         case .alternative:
-            signals.append(Translate.translateText(text: block.0, from: from, to: to) |> map {
-                (detect: $0.detect, result: $0.result, entities: [])
-            })
+            if CasmosHooks.keepTranslateFormatting, !block.1.isEmpty {
+                signals.append(casmosTranslateFormatted(text: block.0, entities: block.1, from: from, to: to))
+            } else {
+                signals.append(Translate.translateText(text: block.0, from: from, to: to) |> map {
+                    (detect: $0.detect, result: $0.result, entities: [])
+                })
+            }
         case .disabled, .system:
             continue
         }

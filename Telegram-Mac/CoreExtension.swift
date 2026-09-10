@@ -556,6 +556,9 @@ public extension Message {
         if let attr = translationAttribute(toLang: toLang) {
             return (attr.text, attr.entities)
         }
+        if let formatted = CasmosLocalTranslations.formatted(for: casmosTranslationKey, toLang: toLang) {
+            return (formatted.text, casmosEntities(from: formatted.spans))
+        }
         if let text = CasmosLocalTranslations.text(for: casmosTranslationKey, toLang: toLang) {
             return (text, [])
         }

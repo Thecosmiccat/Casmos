@@ -2,11 +2,12 @@
 //  CasmosSettingsController.swift
 //  Casmos
 //
-//  Settings shell for Casmos (General / Appearance / Chat / Translator / Passcode / Experimental).
+//  Settings shell for Casmos (General / Appearance / Chat / Translator / Transcription / Passcode / Experimental).
 //  Preference keys live in the Casmos package (`casmos.pref.*`).
 //  P1 sticker size, extra translator routing, pause-video, multi-engine translator,
 //  leftover Settings toggles (file names, compact list, monochrome folders, verbose logging),
 //  double-click action, hide channel bottom buttons, preference JSON export/import,
+//  do-not-translate languages, keep-formatting, Workers AI transcription placeholders,
 //  hide stories (default on), hide own phone and @username (default on).
 //
 
@@ -16,6 +17,7 @@ import SwiftSignalKit
 import TelegramCore
 import Casmos
 import MtProtoKit
+import Translate
 
 func applyCasmosVerboseLogging() {
     let on = CasmosHooks.verboseLogging
@@ -39,14 +41,16 @@ private final class CasmosSettingsArguments {
     let cycleStickerSize: () -> Void
     let cycleTranslatorEngine: () -> Void
     let cycleDoubleTap: () -> Void
+    let toggleDoNotTranslate: (String) -> Void
     let exportPrefs: () -> Void
     let importPrefs: () -> Void
-    init(context: AccountContext, toggle: @escaping (String) -> Void, cycleStickerSize: @escaping () -> Void, cycleTranslatorEngine: @escaping () -> Void, cycleDoubleTap: @escaping () -> Void, exportPrefs: @escaping () -> Void, importPrefs: @escaping () -> Void) {
+    init(context: AccountContext, toggle: @escaping (String) -> Void, cycleStickerSize: @escaping () -> Void, cycleTranslatorEngine: @escaping () -> Void, cycleDoubleTap: @escaping () -> Void, toggleDoNotTranslate: @escaping (String) -> Void, exportPrefs: @escaping () -> Void, importPrefs: @escaping () -> Void) {
         self.context = context
         self.toggle = toggle
         self.cycleStickerSize = cycleStickerSize
         self.cycleTranslatorEngine = cycleTranslatorEngine
         self.cycleDoubleTap = cycleDoubleTap
+        self.toggleDoNotTranslate = toggleDoNotTranslate
         self.exportPrefs = exportPrefs
         self.importPrefs = importPrefs
     }
@@ -66,15 +70,34 @@ private struct CasmosSettingsState: Equatable {
     var translatorEnabled: Bool
     var translatorEngine: String
     var translatorAuto: Bool
+    var keepFormatting: Bool
+    var doNotTranslateTitle: String
     var autoLockOnSleep: Bool
     var hideContentInAppSwitcher: Bool
     var pauseVideoOnBackground: Bool
     var verboseLogging: Bool
     var deeplKey: String
+    var workersAiEnabled: Bool
+    var transcriptionAccountId: String
+    var transcriptionApiToken: String
+    var transcriptionModel: String
 
     static func load() -> CasmosSettingsState {
         let storedKey = CasmosPreferences.deeplKey
         let deeplKey = storedKey == "CASMOS_PLACEHOLDER_DEEPL_KEY" ? "" : storedKey
+        let skip = CasmosPreferences.doNotTranslate
+        let skipTitle: String
+        if skip.isEmpty {
+            skipTitle = "None"
+        } else {
+            let names = skip.compactMap { code -> String? in
+                if let value = Translate.find(code) {
+                    return value.language
+                }
+                return code
+            }.sorted()
+            skipTitle = names.isEmpty ? "None" : names.joined(separator: ", ")
+        }
         return CasmosSettingsState(
             keepOriginalFileNames: CasmosPreferences.bool(forKey: CasmosPrefKey.General.keepOriginalFileNames),
             confirmLinkOpens: CasmosPreferences.bool(forKey: CasmosPrefKey.General.confirmLinkOpens, default: true),
@@ -89,11 +112,17 @@ private struct CasmosSettingsState: Equatable {
             translatorEnabled: CasmosPreferences.bool(forKey: CasmosPrefKey.Translator.enabled),
             translatorEngine: CasmosPreferences.translatorEngine.rawValue,
             translatorAuto: CasmosPreferences.translatorAuto,
+            keepFormatting: CasmosPreferences.keepTranslateFormatting,
+            doNotTranslateTitle: skipTitle,
             autoLockOnSleep: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.autoLockOnSleep, default: true),
             hideContentInAppSwitcher: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.hideContentInAppSwitcher, default: true),
             pauseVideoOnBackground: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.pauseVideoOnBackground),
             verboseLogging: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.verboseLogging, default: false),
-            deeplKey: deeplKey
+            deeplKey: deeplKey,
+            workersAiEnabled: CasmosPreferences.workersAiTranscriptionEnabled,
+            transcriptionAccountId: CasmosTranscription.displayAccountId(),
+            transcriptionApiToken: CasmosTranscription.displayApiToken(),
+            transcriptionModel: CasmosTranscription.displayModel()
         )
     }
 }
@@ -113,7 +142,13 @@ private let _id_import = InputDataIdentifier("casmos.pref.config.import")
 private let _id_translator = InputDataIdentifier("casmos.pref.translator.enabled")
 private let _id_translator_engine = InputDataIdentifier("casmos.pref.translator.engine")
 private let _id_translator_auto = InputDataIdentifier("casmos.pref.translator.auto")
+private let _id_keep_formatting = InputDataIdentifier("casmos.pref.translator.keepFormatting")
+private let _id_do_not_translate = InputDataIdentifier("casmos.pref.translator.doNotTranslate")
 private let _id_deepl_key = InputDataIdentifier("casmos.pref.translator.deeplKey")
+private let _id_workers_ai = InputDataIdentifier("casmos.pref.transcription.workersAiEnabled")
+private let _id_cf_account = InputDataIdentifier("casmos.pref.transcription.accountId")
+private let _id_cf_token = InputDataIdentifier("casmos.pref.transcription.apiToken")
+private let _id_cf_model = InputDataIdentifier("casmos.pref.transcription.model")
 private let _id_autolock = InputDataIdentifier("casmos.pref.passcode.autoLockOnSleep")
 private let _id_hide_switcher = InputDataIdentifier("casmos.pref.passcode.hideContentInAppSwitcher")
 private let _id_pause_video = InputDataIdentifier("casmos.pref.experimental.pauseVideoOnBackground")
@@ -178,8 +213,44 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     index += 1
     entries.append(.input(sectionId: sectionId, index: index, value: .string(state.deeplKey), error: nil, identifier: _id_deepl_key, mode: .secure, data: .init(viewType: .innerItem), placeholder: nil, inputPlaceholder: "DeepL key (local)", filter: { $0 }, limit: 255))
     index += 1
+    toggleRow(id: _id_keep_formatting, name: "Keep Formatting", value: state.keepFormatting, key: CasmosPrefKey.Translator.keepFormatting, viewType: .innerItem)
+    let skipCodes = CasmosPreferences.doNotTranslate
+    let codes = Translate.codes.sorted(by: { lhs, rhs in
+        let lhsSelected = skipCodes.contains(where: { lhs.code.contains($0) })
+        let rhsSelected = skipCodes.contains(where: { rhs.code.contains($0) })
+        if lhsSelected && !rhsSelected {
+            return true
+        } else if !lhsSelected && rhsSelected {
+            return false
+        } else {
+            return lhs.language < rhs.language
+        }
+    })
+    let skipItems: [ContextMenuItem] = codes.map { code in
+        let selected = code.code.contains(where: { skipCodes.contains($0) })
+        return ContextMenuItem(code.language, handler: {
+            if let first = code.code.first {
+                arguments.toggleDoNotTranslate(first)
+            }
+        }, itemImage: selected ? MenuAnimation.menu_check_selected.value : nil)
+    }
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_do_not_translate, data: .init(name: "Do Not Translate", color: theme.colors.text, type: .contextSelector(state.doNotTranslateTitle, skipItems), viewType: .innerItem)))
+    index += 1
     toggleRow(id: _id_translator_auto, name: "Auto-translate Chats", value: state.translatorAuto, key: CasmosPrefKey.Translator.auto, viewType: .lastItem)
-    footer("System keeps the official path. Extra uses the existing web fallback. Yandex and DeepL are local engines. DeepL uses the key above when set (local only); otherwise the public web endpoint. Auto-translate applies the selected engine to chat messages, including polls and todo lists.")
+    footer("System keeps the official path. Extra uses the existing web fallback. Yandex and DeepL are local engines. DeepL uses the key above when set (local only); otherwise the public web endpoint. Keep Formatting sends HTML to local engines so bold, italic, links, and code survive. Do Not Translate skips those languages in auto-translate and the Translate menu (combined with Language settings). Auto-translate applies the selected engine to chat messages, including polls and todo lists.")
+
+    entries.append(.sectionId(sectionId, type: .normal))
+    sectionId += 1
+
+    header("TRANSCRIPTION")
+    toggleRow(id: _id_workers_ai, name: "Workers AI Transcription", value: state.workersAiEnabled, key: CasmosPrefKey.Transcription.workersAiEnabled, viewType: .firstItem)
+    entries.append(.input(sectionId: sectionId, index: index, value: .string(state.transcriptionAccountId), error: nil, identifier: _id_cf_account, mode: .plain, data: .init(viewType: .innerItem), placeholder: nil, inputPlaceholder: "Cloudflare account id (local)", filter: { $0 }, limit: 128))
+    index += 1
+    entries.append(.input(sectionId: sectionId, index: index, value: .string(state.transcriptionApiToken), error: nil, identifier: _id_cf_token, mode: .secure, data: .init(viewType: .innerItem), placeholder: nil, inputPlaceholder: "Cloudflare API token (local)", filter: { $0 }, limit: 255))
+    index += 1
+    entries.append(.input(sectionId: sectionId, index: index, value: .string(state.transcriptionModel), error: nil, identifier: _id_cf_model, mode: .plain, data: .init(viewType: .lastItem), placeholder: nil, inputPlaceholder: CasmosTranscription.defaultModel, filter: { $0 }, limit: 128))
+    index += 1
+    footer("No free Cloudflare Workers AI path in this tree. Live Workers AI calls are skipped. Account id and token stay on-device (CASMOS_PLACEHOLDER_CF_ACCOUNT_ID / CASMOS_PLACEHOLDER_CF_API_TOKEN). Never commit real secrets. Toggle stays off by default.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -205,7 +276,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     index += 1
     entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_import, data: .init(name: "Import Preferences", color: theme.colors.text, type: .next, viewType: .lastItem, action: arguments.importPrefs)))
     index += 1
-    footer("Writes or reads a JSON file of casmos.pref.* keys. Export may include a local DeepL key if one is set.")
+    footer("Writes or reads a JSON file of casmos.pref.* keys. Export may include a local DeepL key or Cloudflare token if set.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -222,7 +293,11 @@ func CasmosSettingsController(context: AccountContext) -> InputDataController {
     }
 
     let arguments = CasmosSettingsArguments(context: context, toggle: { key in
-        CasmosPreferences.toggle(key)
+        if CasmosPrefKey.trueDefaultKeys.contains(key) {
+            CasmosPreferences.set(!CasmosPreferences.bool(forKey: key, default: true), forKey: key)
+        } else {
+            CasmosPreferences.toggle(key)
+        }
         if key == CasmosPrefKey.Experimental.verboseLogging {
             applyCasmosVerboseLogging()
         }
@@ -248,6 +323,9 @@ func CasmosSettingsController(context: AccountContext) -> InputDataController {
         let next = all[(all.firstIndex(of: current)! + 1) % all.count]
         CasmosPreferences.doubleTapAction = next
         updateState { _ in CasmosSettingsState.load() }
+    }, toggleDoNotTranslate: { code in
+        CasmosPreferences.toggleDoNotTranslate(code)
+        updateState { _ in CasmosSettingsState.load() }
     }, exportPrefs: {
         casmosExportPreferences(window: context.window)
     }, importPrefs: {
@@ -268,6 +346,15 @@ func CasmosSettingsController(context: AccountContext) -> InputDataController {
         if let value = data[_id_deepl_key]?.stringValue {
             let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
             CasmosPreferences.deeplKey = trimmed == "CASMOS_PLACEHOLDER_DEEPL_KEY" ? "" : trimmed
+        }
+        if let value = data[_id_cf_account]?.stringValue {
+            CasmosPreferences.transcriptionAccountId = CasmosTranscription.sanitizeStored(value, placeholder: CasmosTranscription.placeholderAccountId)
+        }
+        if let value = data[_id_cf_token]?.stringValue {
+            CasmosPreferences.transcriptionApiToken = CasmosTranscription.sanitizeStored(value, placeholder: CasmosTranscription.placeholderApiToken)
+        }
+        if let value = data[_id_cf_model]?.stringValue {
+            CasmosPreferences.transcriptionModel = value.trimmingCharacters(in: .whitespacesAndNewlines)
         }
         return .none
     }

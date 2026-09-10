@@ -384,10 +384,14 @@ var globalLinkExecutor:TextViewInteractions {
                 }
             })
             
-            if language != toLang, let context = current {
-                return ContextMenuItem(strings().chatContextTranslate, handler: {
-                    showModal(with: TranslateModalController(context: context, from: language, toLang: toLang, text: text), for: context.window)
-                }, itemImage: MenuAnimation.menu_translate.value)
+            if let context = current {
+                let skip = casmosSkipTranslateLanguages(context)
+                if language == nil || !skip.contains(language!) {
+                    return ContextMenuItem(strings().chatContextTranslate, handler: {
+                        showModal(with: TranslateModalController(context: context, from: language, toLang: toLang, text: text), for: context.window)
+                    }, itemImage: MenuAnimation.menu_translate.value)
+                }
+                return nil
             } else {
                 return nil
             }

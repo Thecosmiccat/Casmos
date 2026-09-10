@@ -76,7 +76,7 @@ final class GalleryRecognition {
         case let .finish(_, text):
             let text = text.map { $0.text }.joined(separator: "\n")
             let fromLang = Translate.detectLanguage(for: text)
-            let toLang = item.context.sharedContext.baseSettings.doNotTranslate.union([appAppearance.languageCode])
+            let toLang = casmosSkipTranslateLanguages(item.context)
             
             if fromLang == nil || !toLang.contains(fromLang!) {
                 return true

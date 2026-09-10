@@ -206,7 +206,7 @@ class TextAndLabelItem: GeneralRowItem {
             
             if canTranslate, let context = context {
                 let fromLang = Translate.detectLanguage(for: text)
-                let toLang = context.sharedContext.baseSettings.doNotTranslate.union([appAppearance.languageCode])
+                let toLang = casmosSkipTranslateLanguages(context)
                 
                 if fromLang == nil || !toLang.contains(fromLang!) {
                     items.append(ContextMenuItem.init(strings().peerInfoTranslate, handler: {

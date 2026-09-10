@@ -46,9 +46,17 @@ public enum CasmosLocalTranslations {
         "\(key)|\(toLang)"
     }
 
-    public static func set(key: String, toLang: String, text: String) {
+    private static var formatted: [String: CasmosFormattedText] = [:]
+
+    public static func set(key: String, toLang: String, text: String, spans: [CasmosFormatSpan] = []) {
         lock.lock()
-        texts[storageKey(key, toLang: toLang)] = text
+        let storage = storageKey(key, toLang: toLang)
+        texts[storage] = text
+        if spans.isEmpty {
+            formatted.removeValue(forKey: storage)
+        } else {
+            formatted[storage] = CasmosFormattedText(text: text, spans: spans)
+        }
         lock.unlock()
     }
 
@@ -63,6 +71,13 @@ public enum CasmosLocalTranslations {
     public static func text(for key: String, toLang: String) -> String? {
         lock.lock()
         let value = texts[storageKey(key, toLang: toLang)]
+        lock.unlock()
+        return value
+    }
+
+    public static func formatted(for key: String, toLang: String) -> CasmosFormattedText? {
+        lock.lock()
+        let value = formatted[storageKey(key, toLang: toLang)]
         lock.unlock()
         return value
     }
@@ -90,12 +105,12 @@ public enum CasmosTranslator {
 
     private static let userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
-    public static func translate(text: String, from: String?, to: String, engine: CasmosTranslatorEngine = CasmosPreferences.translatorEngine, completion: @escaping (Result<CasmosTranslationResult, Error>) -> Void) -> URLSessionDataTask? {
+    public static func translate(text: String, from: String?, to: String, html: Bool = false, engine: CasmosTranslatorEngine = CasmosPreferences.translatorEngine, completion: @escaping (Result<CasmosTranslationResult, Error>) -> Void) -> URLSessionDataTask? {
         switch engine {
         case .yandex:
-            return translateYandex(text: text, from: from, to: to, completion: completion)
+            return translateYandex(text: text, from: from, to: to, html: html, completion: completion)
         case .deepl:
-            return translateDeepl(text: text, from: from, to: to, completion: completion)
+            return translateDeepl(text: text, from: from, to: to, html: html, completion: completion)
         case .system, .extra:
             completion(.failure(CasmosTranslatorError.unsupportedEngine))
             return nil
@@ -133,7 +148,7 @@ public enum CasmosTranslator {
         return value
     }
 
-    private static func translateYandex(text: String, from: String?, to: String, completion: @escaping (Result<CasmosTranslationResult, Error>) -> Void) -> URLSessionDataTask? {
+    private static func translateYandex(text: String, from: String?, to: String, html: Bool, completion: @escaping (Result<CasmosTranslationResult, Error>) -> Void) -> URLSessionDataTask? {
         let target = normalize(to)
         let lang: String
         if let from = from, !from.isEmpty, from != "auto" {
@@ -146,7 +161,7 @@ public enum CasmosTranslator {
             URLQueryItem(name: "id", value: "\(UUID().uuidString.lowercased())-0-0"),
             URLQueryItem(name: "srv", value: "android"),
             URLQueryItem(name: "lang", value: lang),
-            URLQueryItem(name: "format", value: "plain")
+            URLQueryItem(name: "format", value: html ? "html" : "plain")
         ]
         guard let url = components?.url else {
             completion(.failure(CasmosTranslatorError.network))
@@ -174,15 +189,15 @@ public enum CasmosTranslator {
         }
     }
 
-    private static func translateDeepl(text: String, from: String?, to: String, completion: @escaping (Result<CasmosTranslationResult, Error>) -> Void) -> URLSessionDataTask? {
+    private static func translateDeepl(text: String, from: String?, to: String, html: Bool, completion: @escaping (Result<CasmosTranslationResult, Error>) -> Void) -> URLSessionDataTask? {
         let key = CasmosPreferences.deeplKey.trimmingCharacters(in: .whitespacesAndNewlines)
         if !key.isEmpty && key != "CASMOS_PLACEHOLDER_DEEPL_KEY" {
-            return translateDeeplOfficial(text: text, from: from, to: to, key: key, completion: completion)
+            return translateDeeplOfficial(text: text, from: from, to: to, key: key, html: html, completion: completion)
         }
         return translateDeeplWeb(text: text, from: from, to: to, completion: completion)
     }
 
-    private static func translateDeeplOfficial(text: String, from: String?, to: String, key: String, completion: @escaping (Result<CasmosTranslationResult, Error>) -> Void) -> URLSessionDataTask? {
+    private static func translateDeeplOfficial(text: String, from: String?, to: String, key: String, html: Bool, completion: @escaping (Result<CasmosTranslationResult, Error>) -> Void) -> URLSessionDataTask? {
         guard let url = URL(string: "https://api-free.deepl.com/v2/translate") else {
             completion(.failure(CasmosTranslatorError.network))
             return nil
@@ -192,6 +207,9 @@ public enum CasmosTranslator {
         request.setValue("application/x-www-form-urlencoded;charset=UTF-8", forHTTPHeaderField: "Content-Type")
         request.setValue("DeepL-Auth-Key \(key)", forHTTPHeaderField: "Authorization")
         var body = "text=\(text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? text)&target_lang=\(deeplCode(to))"
+        if html {
+            body += "&tag_handling=html"
+        }
         if let from = from, !from.isEmpty, from != "auto" {
             body += "&source_lang=\(deeplCode(from))"
         }

@@ -672,7 +672,7 @@ func chatMenuItems(for message: Message, entry: ChatHistoryEntry?, textLayout: (
             }
             let language = Translate.detectLanguage(for: text)
                         
-            let toLang = context.sharedContext.baseSettings.doNotTranslate.union([appAppearance.languageCode])
+            let toLang = casmosSkipTranslateLanguages(context)
             if language == nil || !toLang.contains(language!), !muteTranslate, !isService, allowTranslate {
                 thirdBlock.append(ContextMenuItem(strings().chatContextTranslate, handler: {
                     showModal(with: TranslateModalController(context: context, from: language, toLang: appAppearance.languageCode, text: text, entities: entities, canBreak: false), for: context.window)
@@ -697,7 +697,7 @@ func chatMenuItems(for message: Message, entry: ChatHistoryEntry?, textLayout: (
                 }
             }
             let language = Translate.detectLanguage(for: text)
-            let toLang = context.sharedContext.baseSettings.doNotTranslate.union([appAppearance.languageCode])
+            let toLang = casmosSkipTranslateLanguages(context)
             if language == nil || !toLang.contains(language!), !muteTranslate, !isService, allowTranslate {
                 thirdBlock.append(ContextMenuItem(strings().chatContextTranslate, handler: {
                     showModal(with: TranslateModalController(context: context, from: language, toLang: appAppearance.languageCode, text: text, entities: entities, canBreak: false), for: context.window)
@@ -716,7 +716,7 @@ func chatMenuItems(for message: Message, entry: ChatHistoryEntry?, textLayout: (
                 let entities = message.textEntities?.entities ?? []
                 let language = Translate.detectLanguage(for: text)
                 
-                let toLang = context.sharedContext.baseSettings.doNotTranslate.union([appAppearance.languageCode])
+                let toLang = casmosSkipTranslateLanguages(context)
                 if language == nil || !toLang.contains(language!), !muteTranslate, !isService, allowTranslate {
                     thirdBlock.append(ContextMenuItem(strings().chatContextTranslate, handler: {
                         showModal(with: TranslateModalController(context: context, from: language, toLang: appAppearance.languageCode, text: text, entities: entities), for: context.window)
@@ -777,7 +777,7 @@ func chatMenuItems(for message: Message, entry: ChatHistoryEntry?, textLayout: (
 
                         let text = state.inputText
                         let language = Translate.detectLanguage(for: text)
-                        let toLang = context.sharedContext.baseSettings.doNotTranslate.union([appAppearance.languageCode])
+                        let toLang = casmosSkipTranslateLanguages(context)
                         
                         
                         if language == nil || !toLang.contains(language!), !muteTranslate, !isService, allowTranslate {
@@ -816,7 +816,7 @@ func chatMenuItems(for message: Message, entry: ChatHistoryEntry?, textLayout: (
             if !state.text.isEmpty && !state.isPending {
                 let text = state.text
                 let language = Translate.detectLanguage(for: text)
-                let toLang = context.sharedContext.baseSettings.doNotTranslate.union([appAppearance.languageCode])
+                let toLang = casmosSkipTranslateLanguages(context)
                 if language == nil || !toLang.contains(language!), !isService, allowTranslate {
                     thirdBlock.append(ContextMenuItem(strings().chatContextTranslate, handler: {
                         showModal(with: TranslateModalController(context: context, from: language, toLang: appAppearance.languageCode, text: text), for: context.window)
