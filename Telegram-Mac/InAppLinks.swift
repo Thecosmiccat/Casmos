@@ -18,6 +18,7 @@ import ThemeSettings
 import Translate
 import InputView
 import TelegramMedia
+import Casmos
 
 
 private func hTmeParseDuration(_ durationStr: String) -> Int {
@@ -468,6 +469,9 @@ func execute(inapp:inAppLink, window: Window? = nil, afterComplete: @escaping(Bo
                             needConfirm = false
                         }
                     }
+                }
+                if CasmosHooks.confirmExternalLinks {
+                    needConfirm = true
                 }
 
                 if let withToken = appDelegate?.tryApplyAutologinToken(url.absoluteString), let url = URL(string: withToken) {

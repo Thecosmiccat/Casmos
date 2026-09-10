@@ -16,6 +16,7 @@ import InAppSettings
 import TGUIKit
 import WebKit
 import TelegramMedia
+import Casmos
 
 func clearUserDefaultsObject(forKeyPrefix prefix: String) {
     let defaults = UserDefaults.standard
@@ -277,7 +278,7 @@ class FastSettings {
     }
     
     static func checkSendingAbility(for event:NSEvent) -> Bool {
-        return isEnterAccessObjc(event, sendingType == .cmdEnter)
+        return isEnterAccessObjc(event, sendingType == .cmdEnter || CasmosHooks.sendWithCommandEnter)
     }
     
     static func isChannelMessagesMuted(_ peerId: PeerId) -> Bool {

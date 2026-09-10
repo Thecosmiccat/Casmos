@@ -29,6 +29,7 @@ import MetalEngine
 import TelegramMedia
 import RLottie
 import KeyboardKey
+import Casmos
 
 #if BETA || DEBUG
 import Firebase
@@ -1474,6 +1475,7 @@ class AppDelegate: NSResponder, NSApplicationDelegate, NSUserNotificationCenterD
     }
     
     func applicationWillBecomeActive(_ notification: Notification) {
+        casmosApplyAppSwitcherPrivacy()
         if contextValue != nil, !self.window.isMiniaturized {
             if !self.window.isVisible {
                 self.window.makeKeyAndOrderFront(self)
@@ -1487,13 +1489,22 @@ class AppDelegate: NSResponder, NSApplicationDelegate, NSUserNotificationCenterD
         }
     }
     
+    private func casmosApplyAppSwitcherPrivacy() {
+        window.sharingType = CasmosHooks.hideContentInAppSwitcher ? .none : .readWrite
+    }
+    
     func updateActiveContexts() {
         let records = [self.contextValue?.context.account.id].compactMap { $0 } + (supportAccountContextValue?.accountIds ?? [])
         BrowserStateContext.focus(records)
     }
     
     
+    func applicationWillResignActive(_ notification: Notification) {
+        casmosApplyAppSwitcherPrivacy()
+    }
+    
     func applicationDidResignActive(_ notification: Notification) {
+        casmosApplyAppSwitcherPrivacy()
         updatePeerPresence()
         if viewer != nil, NSScreen.main == viewer?.window.screen {
             viewer?.window.orderOut(nil)

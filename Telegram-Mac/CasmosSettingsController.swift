@@ -97,7 +97,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     header("GENERAL")
     toggleRow(id: _id_keep_names, name: "Keep Original File Names", value: state.keepOriginalFileNames, key: CasmosPrefKey.General.keepOriginalFileNames, viewType: .firstItem)
     toggleRow(id: _id_confirm_links, name: "Confirm External Links", value: state.confirmLinkOpens, key: CasmosPrefKey.General.confirmLinkOpens, viewType: .lastItem)
-    footer("Stored as casmos.pref.general.*")
+    footer("Stored as casmos.pref.general.* Confirm External Links prompts before opening http(s) URLs.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -114,7 +114,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     toggleRow(id: _id_cmd_enter, name: "Send with Command-Return", value: state.sendWithCommandEnter, key: CasmosPrefKey.Chat.sendWithCommandEnter, viewType: .firstItem)
     entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_sticker_size, data: .init(name: "Sticker Size", color: theme.colors.text, type: .nextContext(state.stickerSize), viewType: .lastItem, action: arguments.cycleStickerSize)))
     index += 1
-    footer("Scales the 208pt chat sticker box. Custom emoji size is unchanged.")
+    footer("Command-Return sends when enabled. Sticker size scales the 208pt chat sticker box. Custom emoji size is unchanged.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -131,7 +131,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     header("PASSCODE")
     toggleRow(id: _id_autolock, name: "Lock on Sleep", value: state.autoLockOnSleep, key: CasmosPrefKey.Passcode.autoLockOnSleep, viewType: .firstItem)
     toggleRow(id: _id_hide_switcher, name: "Hide Content in App Switcher", value: state.hideContentInAppSwitcher, key: CasmosPrefKey.Passcode.hideContentInAppSwitcher, viewType: .lastItem)
-    footer("Stored as casmos.pref.passcode.*")
+    footer("Lock on Sleep shows the passcode overlay if a passcode is set. Hide Content in App Switcher blanks window snapshots.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1

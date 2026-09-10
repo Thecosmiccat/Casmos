@@ -1,7 +1,7 @@
 import Foundation
 
-/// Thin P1 hooks over `CasmosPreferences`. Layout, translate routing, and
-/// inline playback call these; they do not add a separate translate engine.
+/// Thin hooks over `CasmosPreferences` for layout, translate routing,
+/// inline playback, send-key, link confirm, and passcode.
 public enum CasmosHooks {
     /// Scale for the 208pt chat sticker box. Custom-emoji 112pt boxes stay unchanged.
     public static var stickerLayoutScale: Double {
@@ -24,6 +24,22 @@ public enum CasmosHooks {
     public static var prefersExtraTranslatorEngine: Bool {
         CasmosPreferences.bool(forKey: CasmosPrefKey.Translator.enabled)
             && CasmosPreferences.translatorEngine == .extra
+    }
+
+    public static var sendWithCommandEnter: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Chat.sendWithCommandEnter)
+    }
+
+    public static var confirmExternalLinks: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.General.confirmLinkOpens)
+    }
+
+    public static var autoLockOnSleep: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.autoLockOnSleep)
+    }
+
+    public static var hideContentInAppSwitcher: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.hideContentInAppSwitcher)
     }
 
     public static func allowsInlinePlayback(windowIsKey: Bool, appIsActive: Bool) -> Bool {

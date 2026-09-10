@@ -8,6 +8,7 @@
 - Modular `packages/Casmos`
 - Official Sparkle and App Center update endpoints blanked
 - Mac Xcode build notes in INSTALL.md
+- Send with Command-Return, confirm external links, lock on sleep, hide content in App Switcher
 
 ## P1 (thin hooks in this tree)
 
@@ -17,6 +18,6 @@
 
 ## Later
 
+- Keep Original File Names, compact chat list, monochrome folders, verbose logging (keys stored only)
 - Full multi-engine translator (separate engines, not only the existing fallback)
-- Remaining Casmos Settings rows that still only store keys (General / Appearance / Passcode / other Experimental)
 - A signed Mac build with real `api_id` / `api_hash` / Team ID (placeholders stay in this tree)

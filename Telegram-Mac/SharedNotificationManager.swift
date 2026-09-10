@@ -14,6 +14,7 @@ import BuildConfig
 import TGUIKit
 import ObjcUtils
 import InAppSettings
+import Casmos
 
 func getNotificationMessageId(userInfo:[AnyHashable: Any], for prefix: String) -> MessageId? {
     if let msgId = userInfo["\(prefix).message.id"] as? Int32, let msgNamespace = userInfo["\(prefix).message.namespace"] as? Int32, let namespace = userInfo["\(prefix).peer.namespace"] as? Int32, let id = userInfo["\(prefix).peer.id"] as? Int64 {
@@ -132,6 +133,7 @@ final class SharedNotificationManager : NSObject, NSUserNotificationCenterDelega
         
         DistributedNotificationCenter.default().addObserver(self, selector: #selector(screenIsLocked), name: NSNotification.Name(rawValue: "com.apple.screenIsLocked"), object: nil)
         DistributedNotificationCenter.default().addObserver(self, selector: #selector(screenIsUnlocked), name: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"), object: nil)
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(casmosComputerWillSleep), name: NSWorkspace.willSleepNotification, object: nil)
 
         
         _ = (_passlock.get() |> mapToSignal { show in additionalSettings(accountManager: accountManager) |> take(1) |> map { (show, $0) }} |> deliverOnMainQueue |> mapToSignal { show, settings -> Signal<Bool, NoError> in
@@ -266,6 +268,22 @@ final class SharedNotificationManager : NSObject, NSUserNotificationCenterDelega
             return previous.withUpdatedScreenLock(true)
         }
         _isLockedValue.set(true)
+    }
+    
+    @objc func casmosComputerWillSleep() {
+        guard CasmosHooks.autoLockOnSleep else {
+            return
+        }
+        if !_lockedValue.passcodeLock {
+            _passlock.set(accountManager.transaction { transaction -> Bool in
+                switch transaction.getAccessChallengeData() {
+                case .none:
+                    return false
+                default:
+                    return true
+                }
+            })
+        }
     }
     
     @objc func screenIsUnlocked() {
