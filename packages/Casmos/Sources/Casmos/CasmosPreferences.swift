@@ -33,6 +33,21 @@ public enum CasmosPrefKey {
         public static let auto = "casmos.pref.translator.auto"
         /// Local DeepL auth key. Empty placeholder; never commit a real key.
         public static let deeplKey = "casmos.pref.translator.deeplKey"
+        /// Comma-separated language codes skipped by auto-translate and the Translate menu.
+        public static let doNotTranslate = "casmos.pref.translator.doNotTranslate"
+        /// Send HTML to local engines and restore bold / italic / links / code after translate.
+        public static let keepFormatting = "casmos.pref.translator.keepFormatting"
+    }
+
+    public enum Transcription {
+        /// Workers AI transcription. Off by default; this tree does not upload audio.
+        public static let workersAiEnabled = "casmos.pref.transcription.workersAiEnabled"
+        /// Cloudflare account id. Local only; never commit a real value.
+        public static let accountId = "casmos.pref.transcription.accountId"
+        /// Cloudflare API token. Local only; never commit a real token.
+        public static let apiToken = "casmos.pref.transcription.apiToken"
+        /// Workers AI model id (placeholder default `@cf/openai/whisper`).
+        public static let model = "casmos.pref.transcription.model"
     }
 
     public enum Passcode {
@@ -59,6 +74,12 @@ public enum CasmosPrefKey {
         Translator.engine,
         Translator.auto,
         Translator.deeplKey,
+        Translator.doNotTranslate,
+        Translator.keepFormatting,
+        Transcription.workersAiEnabled,
+        Transcription.accountId,
+        Transcription.apiToken,
+        Transcription.model,
         Passcode.autoLockOnSleep,
         Passcode.hideContentInAppSwitcher,
         Experimental.pauseVideoOnBackground,
@@ -70,13 +91,22 @@ public enum CasmosPrefKey {
         Chat.stickerSize,
         Chat.doubleTapAction,
         Translator.engine,
-        Translator.deeplKey
+        Translator.deeplKey,
+        Translator.doNotTranslate,
+        Transcription.accountId,
+        Transcription.apiToken,
+        Transcription.model
+    ]
+
+    /// Bool keys whose unset value is true (export / first toggle).
+    public static let trueDefaultKeys: Set<String> = [
+        Translator.keepFormatting
     ]
 
     /// Unset bool keys use these defaults. Verbose logging stays off.
     public static func boolDefault(for key: String) -> Bool {
         switch key {
-        case General.confirmLinkOpens, Passcode.autoLockOnSleep, Passcode.hideContentInAppSwitcher:
+        case General.confirmLinkOpens, Passcode.autoLockOnSleep, Passcode.hideContentInAppSwitcher, Translator.keepFormatting:
             return true
         default:
             return false
@@ -215,6 +245,58 @@ public enum CasmosPreferences {
         set { set(newValue, forKey: CasmosPrefKey.Translator.deeplKey) }
     }
 
+    /// Language codes skipped by Casmos auto-translate and the Translate menu.
+    public static var doNotTranslate: Set<String> {
+        get {
+            let raw = string(forKey: CasmosPrefKey.Translator.doNotTranslate, default: "")
+            return Set(raw.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }.filter { !$0.isEmpty })
+        }
+        set {
+            let joined = newValue.map { $0.lowercased() }.filter { !$0.isEmpty }.sorted().joined(separator: ",")
+            set(joined, forKey: CasmosPrefKey.Translator.doNotTranslate)
+        }
+    }
+
+    public static func toggleDoNotTranslate(_ code: String) {
+        let value = code.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !value.isEmpty else {
+            return
+        }
+        var current = doNotTranslate
+        if current.contains(value) {
+            current.remove(value)
+        } else {
+            current.insert(value)
+        }
+        doNotTranslate = current
+    }
+
+    /// Keep message formatting (bold / italic / links / code) when using local engines. Default on.
+    public static var keepTranslateFormatting: Bool {
+        get { bool(forKey: CasmosPrefKey.Translator.keepFormatting, default: true) }
+        set { set(newValue, forKey: CasmosPrefKey.Translator.keepFormatting) }
+    }
+
+    public static var workersAiTranscriptionEnabled: Bool {
+        get { bool(forKey: CasmosPrefKey.Transcription.workersAiEnabled) }
+        set { set(newValue, forKey: CasmosPrefKey.Transcription.workersAiEnabled) }
+    }
+
+    public static var transcriptionAccountId: String {
+        get { string(forKey: CasmosPrefKey.Transcription.accountId, default: "") }
+        set { set(newValue, forKey: CasmosPrefKey.Transcription.accountId) }
+    }
+
+    public static var transcriptionApiToken: String {
+        get { string(forKey: CasmosPrefKey.Transcription.apiToken, default: "") }
+        set { set(newValue, forKey: CasmosPrefKey.Transcription.apiToken) }
+    }
+
+    public static var transcriptionModel: String {
+        get { string(forKey: CasmosPrefKey.Transcription.model, default: "") }
+        set { set(newValue, forKey: CasmosPrefKey.Transcription.model) }
+    }
+
     public static func toggle(_ key: String, default defaultValue: Bool? = nil) {
         set(!bool(forKey: key, default: defaultValue), forKey: key)
     }
@@ -226,14 +308,14 @@ public enum CasmosPreferences {
         set { set(newValue.rawValue, forKey: CasmosPrefKey.Chat.doubleTapAction) }
     }
 
-    /// JSON export of known `casmos.pref.*` keys. May include the local DeepL key when set.
+    /// JSON export of known `casmos.pref.*` keys. May include local DeepL / Cloudflare fields when set.
     public static func exportJSON() -> Data? {
         var prefs: [String: Any] = [:]
         for key in CasmosPrefKey.allKeys {
             if CasmosPrefKey.stringKeys.contains(key) {
                 prefs[key] = string(forKey: key, default: "")
             } else {
-                prefs[key] = bool(forKey: key)
+                prefs[key] = bool(forKey: key, default: CasmosPrefKey.trueDefaultKeys.contains(key))
             }
         }
         let payload: [String: Any] = [

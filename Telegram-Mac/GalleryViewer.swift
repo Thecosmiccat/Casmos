@@ -1394,7 +1394,7 @@ class GalleryViewer: NSResponder {
                     }, itemImage: MenuAnimation.menu_copy.value))
                     
                     let fromLang = Translate.detectLanguage(for: text)
-                    let toLang = context.sharedContext.baseSettings.doNotTranslate.union([appAppearance.languageCode])
+                    let toLang = casmosSkipTranslateLanguages(context)
                     
                     if fromLang == nil || !toLang.contains(fromLang!) {
                         menu.addItem(ContextMenuItem.init(strings().peerInfoTranslate, handler: {

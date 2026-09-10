@@ -83,6 +83,79 @@ func casmosCopyMessageText(_ message: Message, context: AccountContext) {
     showModalText(for: context.window, text: "Copied")
 }
 
+func casmosSkipTranslateLanguages(_ context: AccountContext) -> Set<String> {
+    CasmosHooks.skipTranslateLanguages(base: context.sharedContext.baseSettings.doNotTranslate, languageCode: appAppearance.languageCode)
+}
+
+func casmosSpans(from entities: [MessageTextEntity]) -> [CasmosFormatSpan] {
+    var spans: [CasmosFormatSpan] = []
+    for entity in entities {
+        let start = entity.range.lowerBound
+        let end = entity.range.upperBound
+        switch entity.type {
+        case .Bold:
+            spans.append(CasmosFormatSpan(name: "bold", start: start, end: end))
+        case .Italic:
+            spans.append(CasmosFormatSpan(name: "italic", start: start, end: end))
+        case .Underline:
+            spans.append(CasmosFormatSpan(name: "underline", start: start, end: end))
+        case .Strikethrough:
+            spans.append(CasmosFormatSpan(name: "strike", start: start, end: end))
+        case .Code:
+            spans.append(CasmosFormatSpan(name: "code", start: start, end: end))
+        case .Spoiler:
+            spans.append(CasmosFormatSpan(name: "spoiler", start: start, end: end))
+        case let .Pre(language):
+            spans.append(CasmosFormatSpan(name: "pre", start: start, end: end, extra: language))
+        case let .TextUrl(url):
+            spans.append(CasmosFormatSpan(name: "url", start: start, end: end, extra: url))
+        case let .TextMention(peerId):
+            spans.append(CasmosFormatSpan(name: "mention", start: start, end: end, extra: "\(peerId.toInt64())"))
+        case let .BlockQuote(collapsed):
+            spans.append(CasmosFormatSpan(name: "quote", start: start, end: end, extra: collapsed ? "1" : "0"))
+        default:
+            break
+        }
+    }
+    return spans
+}
+
+func casmosEntities(from spans: [CasmosFormatSpan]) -> [MessageTextEntity] {
+    var entities: [MessageTextEntity] = []
+    for span in spans {
+        let range = span.start ..< span.end
+        switch span.name {
+        case "bold":
+            entities.append(MessageTextEntity(range: range, type: .Bold))
+        case "italic":
+            entities.append(MessageTextEntity(range: range, type: .Italic))
+        case "underline":
+            entities.append(MessageTextEntity(range: range, type: .Underline))
+        case "strike":
+            entities.append(MessageTextEntity(range: range, type: .Strikethrough))
+        case "code":
+            entities.append(MessageTextEntity(range: range, type: .Code))
+        case "spoiler":
+            entities.append(MessageTextEntity(range: range, type: .Spoiler))
+        case "pre":
+            entities.append(MessageTextEntity(range: range, type: .Pre(language: span.extra)))
+        case "url":
+            if let url = span.extra, !url.isEmpty {
+                entities.append(MessageTextEntity(range: range, type: .TextUrl(url: url)))
+            }
+        case "mention":
+            if let extra = span.extra, let value = Int64(extra) {
+                entities.append(MessageTextEntity(range: range, type: .TextMention(peerId: PeerId(namespace: Namespaces.Peer.CloudUser, id: PeerId.Id._internalFromInt64Value(value)))))
+            }
+        case "quote":
+            entities.append(MessageTextEntity(range: range, type: .BlockQuote(isCollapsed: span.extra == "1")))
+        default:
+            break
+        }
+    }
+    return entities
+}
+
 func casmosTranslateMessage(_ message: Message, chatInteraction: ChatInteraction) {
     let text = message.text
     guard !text.isEmpty else {
