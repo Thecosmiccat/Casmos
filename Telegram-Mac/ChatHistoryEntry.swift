@@ -1117,11 +1117,11 @@ func messageEntries(_ messagesEntries: [MessageHistoryEntry], location: ChatLoca
                 replyTranslate = nil
             }
             if translate.canTranslate, translate.translate {
-                if let _ = message.translationAttribute(toLang: translate.to) {
+                if message.hasDisplayedTranslation(toLang: translate.to) {
                     messageTranslate = .complete(toLang: translate.to)
                 }
                 if let reply = message.replyAttribute, let replyMessage = message.associatedMessages[reply.messageId] {
-                    if let _ = replyMessage.translationAttribute(toLang: translate.to) {
+                    if replyMessage.hasDisplayedTranslation(toLang: translate.to) {
                         replyTranslate = .complete(toLang: translate.to)
                     }
                 }

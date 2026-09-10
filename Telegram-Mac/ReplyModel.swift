@@ -287,7 +287,7 @@ class ReplyModel: ChatAccessoryModel {
             var resetEntities: Bool = true
             
             let text: NSAttributedString
-            if let translate = self.translate, let translateText = message.translationAttribute(toLang: translate.toLang)?.text  {
+            if let translate = self.translate, let translateText = message.displayedTranslation(toLang: translate.toLang)?.text  {
                 text = .initialize(string: translateText, color: theme.colors.text, font: .normal(.text))
             } else {
                 if let quote = quote {

@@ -4,7 +4,7 @@
 //
 //  Settings shell for Casmos (General / Appearance / Chat / Translator / Passcode / Experimental).
 //  Preference keys live in the Casmos package (`casmos.pref.*`).
-//  P1 sticker size, extra translator routing, and pause-video hooks are wired.
+//  P1 sticker size, extra translator routing, pause-video, and multi-engine translator.
 //
 
 import Cocoa
@@ -35,6 +35,7 @@ private struct CasmosSettingsState: Equatable {
     var stickerSize: String
     var translatorEnabled: Bool
     var translatorEngine: String
+    var translatorAuto: Bool
     var autoLockOnSleep: Bool
     var hideContentInAppSwitcher: Bool
     var pauseVideoOnBackground: Bool
@@ -50,6 +51,7 @@ private struct CasmosSettingsState: Equatable {
             stickerSize: CasmosPreferences.stickerSize.rawValue,
             translatorEnabled: CasmosPreferences.bool(forKey: CasmosPrefKey.Translator.enabled),
             translatorEngine: CasmosPreferences.translatorEngine.rawValue,
+            translatorAuto: CasmosPreferences.translatorAuto,
             autoLockOnSleep: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.autoLockOnSleep),
             hideContentInAppSwitcher: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.hideContentInAppSwitcher),
             pauseVideoOnBackground: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.pauseVideoOnBackground),
@@ -66,6 +68,7 @@ private let _id_cmd_enter = InputDataIdentifier("casmos.pref.chat.sendWithComman
 private let _id_sticker_size = InputDataIdentifier("casmos.pref.chat.stickerSize")
 private let _id_translator = InputDataIdentifier("casmos.pref.translator.enabled")
 private let _id_translator_engine = InputDataIdentifier("casmos.pref.translator.engine")
+private let _id_translator_auto = InputDataIdentifier("casmos.pref.translator.auto")
 private let _id_autolock = InputDataIdentifier("casmos.pref.passcode.autoLockOnSleep")
 private let _id_hide_switcher = InputDataIdentifier("casmos.pref.passcode.hideContentInAppSwitcher")
 private let _id_pause_video = InputDataIdentifier("casmos.pref.experimental.pauseVideoOnBackground")
@@ -121,9 +124,10 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
 
     header("TRANSLATOR")
     toggleRow(id: _id_translator, name: "Enable Translator", value: state.translatorEnabled, key: CasmosPrefKey.Translator.enabled, viewType: .firstItem)
-    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_translator_engine, data: .init(name: "Engine", color: theme.colors.text, type: .nextContext(state.translatorEngine), viewType: .lastItem, action: arguments.cycleTranslatorEngine)))
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_translator_engine, data: .init(name: "Engine", color: theme.colors.text, type: .nextContext(state.translatorEngine), viewType: .innerItem, action: arguments.cycleTranslatorEngine)))
     index += 1
-    footer("System keeps the official path. Extra uses the existing web fallback.")
+    toggleRow(id: _id_translator_auto, name: "Auto-translate Chats", value: state.translatorAuto, key: CasmosPrefKey.Translator.auto, viewType: .lastItem)
+    footer("System keeps the official path. Extra uses the existing web fallback. Yandex and DeepL are local engines. DeepL reads casmos.pref.translator.deeplKey when set (local only). Auto-translate applies the selected engine to chat messages.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1

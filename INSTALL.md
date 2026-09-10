@@ -58,6 +58,10 @@ Open `Telegram-Mac.xcworkspace` (not the `.xcodeproj` alone) in the latest Xcode
 
 Build the **Telegram** target. The product name is Casmos.
 
+## Translator (Mac QA)
+
+Casmos Settings → Translator: enable, cycle Engine (`system` / `extra` / `yandex` / `deepl`), optional Auto-translate Chats. Message context menu Translate uses the selected engine. DeepL without a local `casmos.pref.translator.deeplKey` uses the public web endpoint. This Linux environment cannot compile the Mac app.
+
 ## Updates
 
 In-app Sparkle / App Center feeds that pointed at osx.telegram.org, mac-updates.telegram.org, and api.appcenter.ms are disabled. Do not restore those official endpoints for a Casmos build.

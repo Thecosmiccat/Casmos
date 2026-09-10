@@ -12,6 +12,8 @@ import SwiftSignalKit
 import TelegramCore
 import Translate
 import InAppSettings
+import Casmos
+import ObjcUtils
 
 enum AppConfigTranslateState : String {
     case enabled
@@ -216,6 +218,10 @@ final class ChatLiveTranslateContext {
                 isHidden = true
             }
             
+            if CasmosHooks.translatorEnabled {
+                isHidden = false
+            }
+            
             var translationState = translationState
             if let paywall = settings.paywall, isHidden {
                 translationState?.paywall = paywall.show
@@ -229,11 +235,13 @@ final class ChatLiveTranslateContext {
             
             let translateConfig = AppConfigTranslateState(rawValue: context.appConfiguration.getStringValue("translations_auto_enabled", orElse: "enabled")) ?? .disabled
 
-            if !isHidden, !translateConfig.canTranslate {
+            if !isHidden, !translateConfig.canTranslate, !CasmosHooks.translatorEnabled {
                 isHidden = true
             }
             
             if !isHidden && translationState?.fromLang != translationState?.toLang  {
+                return (translationState, appearance, peer?.isPremium == true, autoTranslate)
+            } else if CasmosHooks.translatorEnabled && !isHidden {
                 return (translationState, appearance, peer?.isPremium == true, autoTranslate)
             } else {
                 return (nil, appearance, peer?.isPremium == true, autoTranslate)
@@ -250,18 +258,24 @@ final class ChatLiveTranslateContext {
                     current.from = state.fromLang
                     current.to = to
                     current.canTranslate = true
+                } else if CasmosHooks.translatorEnabled {
+                    current.from = state?.fromLang ?? ""
+                    current.to = to
+                    current.canTranslate = true
                 } else {
                     current.canTranslate = false
                 }
                 if let isEnabled = state?.isEnabled {
-                    current.translate = isEnabled && isPremium
+                    current.translate = isEnabled && (isPremium || CasmosHooks.translatorEnabled)
                 } else if autoTranslate {
+                    current.translate = true
+                } else if CasmosHooks.translatorAutoEnabled {
                     current.translate = true
                 } else {
                     current.translate = false
                 }
-                current.autotranslate = autoTranslate
-                current.paywall = isPremium ? false : (state?.paywall ?? false)
+                current.autotranslate = autoTranslate || CasmosHooks.translatorAutoEnabled
+                current.paywall = isPremium || CasmosHooks.translatorEnabled ? false : (state?.paywall ?? false)
                 if !current.canTranslate || !current.translate || toUpdated {
                     current.result = [:]
                 }
@@ -289,6 +303,52 @@ final class ChatLiveTranslateContext {
     }
         
     private func activateTranslation(for msgIds: [MessageId], state: State) -> Void {
+        let queued = state.queued.filter { msgIds.contains($0.id) }
+        if CasmosHooks.usesLocalTranslatorEngine {
+            self.updateState { current in
+                var current = current
+                current.queued.removeAll()
+                for id in msgIds {
+                    current.result[.Key(id: id, toLang: current.to)] = .loading(toLang: current.to)
+                }
+                return current
+            }
+            let from = state.from.isEmpty ? nil : state.from
+            for msg in queued {
+                let text = msg.text
+                if text.isEmpty {
+                    continue
+                }
+                let messageId = msg.id
+                let toLang = state.to
+                let chunks = cut_long_message(text, 1024)
+                var signal: Signal<(detect: String?, result: String), Translate.Error> = .single((detect: nil, result: ""))
+                for chunk in chunks {
+                    let part = chunk as String
+                    signal = signal |> mapToSignal { acc in
+                        casmosLocalTranslate(text: part, from: from, to: toLang) |> map { value in
+                            (detect: value.detect ?? acc.detect, result: acc.result + value.result)
+                        }
+                    }
+                }
+                actionsDisposable.add((signal |> deliverOnMainQueue).start(next: { [weak self] result in
+                    CasmosLocalTranslations.set(key: CasmosLocalTranslations.key(peerId: messageId.peerId.toInt64(), namespace: messageId.namespace, id: messageId.id), toLang: toLang, text: result.result)
+                    self?.updateState { current in
+                        var current = current
+                        current.result[.Key(id: messageId, toLang: current.to)] = .complete(toLang: current.to)
+                        return current
+                    }
+                }, error: { [weak self] _ in
+                    self?.updateState { current in
+                        var current = current
+                        current.result.removeValue(forKey: .Key(id: messageId, toLang: current.to))
+                        return current
+                    }
+                }))
+            }
+            return
+        }
+        
         let signal = context.engine.messages.translateMessages(messageIds: msgIds, fromLang: nil, toLang: state.to, enableLocalIfPossible: false)
         
         actionsDisposable.add(signal.start(error: { [weak self] error in
@@ -342,8 +402,8 @@ final class ChatLiveTranslateContext {
             if !isEnabled {
                 return
             }
-            let msgs = message.filter { !$0.hasTranslationAttribute(toLang: toLang) }.map { $0 }
-            let translated = message.filter { $0.hasTranslationAttribute(toLang: toLang) }.map { $0 }
+            let msgs = message.filter { !$0.hasDisplayedTranslation(toLang: toLang) }.map { $0 }
+            let translated = message.filter { $0.hasDisplayedTranslation(toLang: toLang) }.map { $0 }
             
             if !translated.isEmpty {
                 self.updateState { current in
@@ -440,7 +500,7 @@ func chatTranslationState(context: AccountContext, peerId: EnginePeer.Id) -> Sig
     let baseLang = appAppearance.languageCode
     return baseAppSettings(accountManager: context.sharedContext.accountManager)
     |> mapToSignal { settings in
-        if !settings.translateChats {
+        if !settings.translateChats && !CasmosHooks.translatorEnabled {
             return .single(nil)
         }
         

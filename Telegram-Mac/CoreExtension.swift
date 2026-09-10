@@ -24,6 +24,7 @@ import TGModernGrowingTextView
 import InputView
 import TelegramMedia
 import CurrencyFormat
+import Casmos
 
 func optionalMessageThreadId(_ messageId: MessageId?) -> Int64? {
     if let messageId = messageId {
@@ -538,6 +539,10 @@ public extension Message {
         return false
     }
     
+    var casmosTranslationKey: String {
+        CasmosLocalTranslations.key(peerId: id.peerId.toInt64(), namespace: id.namespace, id: id.id)
+    }
+    
     func translationAttribute(toLang: String) -> TranslationMessageAttribute? {
         for attr in attributes {
             if let attr = attr as? TranslationMessageAttribute, attr.toLang == toLang {
@@ -547,6 +552,19 @@ public extension Message {
         return nil
     }
     
+    func displayedTranslation(toLang: String) -> (text: String, entities: [MessageTextEntity])? {
+        if let attr = translationAttribute(toLang: toLang) {
+            return (attr.text, attr.entities)
+        }
+        if let text = CasmosLocalTranslations.text(for: casmosTranslationKey, toLang: toLang) {
+            return (text, [])
+        }
+        return nil
+    }
+    
+    func hasDisplayedTranslation(toLang: String) -> Bool {
+        hasTranslationAttribute(toLang: toLang) || CasmosLocalTranslations.contains(key: casmosTranslationKey, toLang: toLang)
+    }
     
     func hasTranslationAttribute(toLang: String) -> Bool {
         for attr in attributes {

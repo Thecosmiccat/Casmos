@@ -28,7 +28,7 @@ See [INSTALL.md](INSTALL.md) for the Mac / Xcode steps.
 
 ## Settings
 
-Casmos Settings (General, Appearance, Chat, Translator, Passcode, Experimental) stores `casmos.pref.*` keys. Thin P1 hooks apply sticker size, extra-engine translate routing, and pause-video-in-background. See [ROADMAP.md](ROADMAP.md).
+Casmos Settings (General, Appearance, Chat, Translator, Passcode, Experimental) stores `casmos.pref.*` keys. Thin P1 hooks apply sticker size, extra-engine translate routing, pause-video-in-background, and local translator engines (yandex / deepl) plus message translate and optional chat auto-translate. See [ROADMAP.md](ROADMAP.md).
 
 ## License
 

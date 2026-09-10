@@ -281,9 +281,9 @@ class ChatMessageItem: ChatRowItem {
                  case .loading:
                      self.isTranslateLoading = true
                  case let .complete(toLang: toLang):
-                     if let attribute = message.translationAttribute(toLang: toLang) {
-                         text = attribute.text
-                         attributes = [TextEntitiesMessageAttribute(entities: attribute.entities)]
+                     if let translated = message.displayedTranslation(toLang: toLang) {
+                         text = translated.text
+                         attributes = [TextEntitiesMessageAttribute(entities: translated.entities)]
                      }
                  }
              }

@@ -13,11 +13,11 @@
 ## P1 (thin hooks in this tree)
 
 - Sticker size: `casmos.pref.chat.stickerSize` scales the 208pt chat sticker box (small / medium / large). Custom emoji stays 112pt.
-- Translator extra engine: when translator is enabled and engine is `extra`, `translateBlocks` uses the existing web fallback instead of the official API. `system` leaves official routing. This is not a new translate engine.
+- Translator extra engine: when translator is enabled and engine is `extra`, `translateBlocks` uses the existing web fallback instead of the official API. `system` leaves official routing.
+- Multi-engine translator: `yandex` and `deepl` are local engines (DeepL uses `casmos.pref.translator.deeplKey` when set). Message context menu Translate uses the selected engine when translator is enabled. Auto-translate chats is `casmos.pref.translator.auto`.
 - Pause video when the app is in the background: inline chat video, GIFs, and round videos pause when Casmos is not the active app.
 
 ## Later
 
 - Keep Original File Names, compact chat list, monochrome folders, verbose logging (keys stored only)
-- Full multi-engine translator (separate engines, not only the existing fallback)
 - A signed Mac build with real `api_id` / `api_hash` / Team ID (placeholders stay in this tree)

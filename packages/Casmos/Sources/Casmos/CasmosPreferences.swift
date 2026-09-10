@@ -23,8 +23,12 @@ public enum CasmosPrefKey {
 
     public enum Translator {
         public static let enabled = "casmos.pref.translator.enabled"
-        /// Translator engine. `extra` routes through the existing web fallback.
+        /// Translator engine. `extra` is the existing web fallback; `yandex` and `deepl` are local engines.
         public static let engine = "casmos.pref.translator.engine"
+        /// Auto-translate chat messages with the selected engine.
+        public static let auto = "casmos.pref.translator.auto"
+        /// Local DeepL auth key. Empty placeholder; never commit a real key.
+        public static let deeplKey = "casmos.pref.translator.deeplKey"
     }
 
     public enum Passcode {
@@ -47,6 +51,8 @@ public enum CasmosPrefKey {
         Chat.stickerSize,
         Translator.enabled,
         Translator.engine,
+        Translator.auto,
+        Translator.deeplKey,
         Passcode.autoLockOnSleep,
         Passcode.hideContentInAppSwitcher,
         Experimental.pauseVideoOnBackground,
@@ -65,8 +71,19 @@ public enum CasmosStickerSize: String, CaseIterable {
 public enum CasmosTranslatorEngine: String, CaseIterable {
     case system
     case extra
+    case yandex
+    case deepl
 
     public static let `default` = CasmosTranslatorEngine.system
+
+    public var isLocal: Bool {
+        switch self {
+        case .yandex, .deepl, .extra:
+            return true
+        case .system:
+            return false
+        }
+    }
 }
 
 public enum CasmosPreferences {
@@ -103,6 +120,17 @@ public enum CasmosPreferences {
             CasmosTranslatorEngine(rawValue: string(forKey: CasmosPrefKey.Translator.engine, default: CasmosTranslatorEngine.default.rawValue)) ?? .default
         }
         set { set(newValue.rawValue, forKey: CasmosPrefKey.Translator.engine) }
+    }
+
+    public static var translatorAuto: Bool {
+        get { bool(forKey: CasmosPrefKey.Translator.auto) }
+        set { set(newValue, forKey: CasmosPrefKey.Translator.auto) }
+    }
+
+    /// Local DeepL key. Default is empty (`CASMOS_PLACEHOLDER_DEEPL_KEY` is treated as unset).
+    public static var deeplKey: String {
+        get { string(forKey: CasmosPrefKey.Translator.deeplKey, default: "") }
+        set { set(newValue, forKey: CasmosPrefKey.Translator.deeplKey) }
     }
 
     public static func toggle(_ key: String, default defaultValue: Bool = false) {

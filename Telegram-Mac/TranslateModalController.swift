@@ -139,10 +139,54 @@ private func entries(_ state: State, arguments: Arguments) -> [InputDataEntry] {
 
 
 
+func casmosLocalTranslate(text: String, from: String?, to: String) -> Signal<(detect: String?, result: String), Translate.Error> {
+    switch CasmosPreferences.translatorEngine {
+    case .extra:
+        return Translate.translateText(text: text, from: from, to: to)
+    case .yandex, .deepl:
+        return Signal { subscriber in
+            let task = CasmosTranslator.translate(text: text, from: from, to: to) { result in
+                switch result {
+                case let .success(value):
+                    subscriber.putNext((detect: value.detect, result: value.text))
+                    subscriber.putCompletion()
+                case .failure:
+                    subscriber.putError(.generic)
+                }
+            }
+            return ActionDisposable {
+                task?.cancel()
+            }
+        }
+    case .system:
+        return Translate.translateText(text: text, from: from, to: to)
+    }
+}
+
 func translateBlocks(context: AccountContext, from: String?, to: String, blocks: [(String, [MessageTextEntity])], configState: AppConfigTranslateState) -> Signal<(detect: String?, result: String, entities: [MessageTextEntity]), Translate.Error> {
     var signals:[Signal<(detect: String?, result: String, entities: [MessageTextEntity]), Translate.Error>] = []
-    let routedState: AppConfigTranslateState = CasmosHooks.prefersExtraTranslatorEngine ? .alternative : configState
+    let translatorOn = CasmosHooks.translatorEnabled
+    let engine = CasmosPreferences.translatorEngine
+    let routedState: AppConfigTranslateState
+    if translatorOn {
+        switch engine {
+        case .extra:
+            routedState = .alternative
+        case .yandex, .deepl:
+            routedState = .alternative
+        case .system:
+            routedState = configState.canTranslate ? configState : .enabled
+        }
+    } else {
+        routedState = CasmosHooks.prefersExtraTranslatorEngine ? .alternative : configState
+    }
     for block in blocks {
+        if translatorOn, engine == .yandex || engine == .deepl {
+            signals.append(casmosLocalTranslate(text: block.0, from: from, to: to) |> map {
+                (detect: $0.detect, result: $0.result, entities: [])
+            })
+            continue
+        }
         switch routedState {
         case .enabled:
             signals.append(context.engine.messages.translate(text: block.0, toLang: to, entities: block.1) |> `catch` { error in
@@ -174,9 +218,10 @@ func translateBlocks(context: AccountContext, from: String?, to: String, blocks:
         
     }
     var signal: Signal<(detect: String?, result: String, entities: [MessageTextEntity]), Translate.Error> = .single((detect: nil, result: "", entities: []))
+    let blockDelay: Double = (translatorOn && (engine == .yandex || engine == .deepl)) ? 0.15 : 2.0
     for current in signals {
         signal = signal |> mapToSignal { result in
-            return current |> delay(2.0, queue: .mainQueue()) |> map { value in
+            return current |> delay(blockDelay, queue: .mainQueue()) |> map { value in
                 var entities: [MessageTextEntity] = []
                 for entity in value.entities {
                     var current = entity

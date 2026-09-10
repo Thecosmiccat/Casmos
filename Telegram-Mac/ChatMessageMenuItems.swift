@@ -17,6 +17,7 @@ import Translate
 import InAppSettings
 import InputView
 import TelegramMedia
+import Casmos
 
 final class ChatMenuItemsData {
     let chatInteraction: ChatInteraction
@@ -269,6 +270,7 @@ func chatMenuItems(for message: Message, entry: ChatHistoryEntry?, textLayout: (
         let mode = chatInteraction.mode
         let isIncoming = data.message.isIncoming(context.account, false)
         let translateConfig = AppConfigTranslateState(rawValue: context.appConfiguration.getStringValue("translations_manual_enabled", orElse: "enabled")) ?? .disabled
+        let allowTranslate = translateConfig.canTranslate || CasmosHooks.translatorEnabled
         var isService = data.message.extendedMedia is TelegramMediaAction || mode.isSavedMode || mode == .preview || chatInteraction.isLogInteraction
         
 
@@ -641,7 +643,7 @@ func chatMenuItems(for message: Message, entry: ChatHistoryEntry?, textLayout: (
             case .loading:
                 break
             case let .complete(toLang):
-                if let _ = message.translationAttribute(toLang: toLang) {
+                if message.hasDisplayedTranslation(toLang: toLang) {
                     muteTranslate = true
                 }
             }
@@ -664,10 +666,12 @@ func chatMenuItems(for message: Message, entry: ChatHistoryEntry?, textLayout: (
             let language = Translate.detectLanguage(for: text)
                         
             let toLang = context.sharedContext.baseSettings.doNotTranslate.union([appAppearance.languageCode])
-            if language == nil || !toLang.contains(language!), !muteTranslate, !isService, translateConfig.canTranslate {
+            if language == nil || !toLang.contains(language!), !muteTranslate, !isService, allowTranslate {
                 thirdBlock.append(ContextMenuItem(strings().chatContextTranslate, handler: {
                     showModal(with: TranslateModalController(context: context, from: language, toLang: appAppearance.languageCode, text: text, entities: entities, canBreak: false), for: context.window)
-                    data.chatInteraction.enableTranslatePaywall()
+                    if !CasmosHooks.translatorEnabled {
+                        data.chatInteraction.enableTranslatePaywall()
+                    }
                 }, itemImage: MenuAnimation.menu_translate.value))
             }
         }
@@ -681,10 +685,12 @@ func chatMenuItems(for message: Message, entry: ChatHistoryEntry?, textLayout: (
                 let language = Translate.detectLanguage(for: text)
                 
                 let toLang = context.sharedContext.baseSettings.doNotTranslate.union([appAppearance.languageCode])
-                if language == nil || !toLang.contains(language!), !muteTranslate, !isService, translateConfig.canTranslate {
+                if language == nil || !toLang.contains(language!), !muteTranslate, !isService, allowTranslate {
                     thirdBlock.append(ContextMenuItem(strings().chatContextTranslate, handler: {
                         showModal(with: TranslateModalController(context: context, from: language, toLang: appAppearance.languageCode, text: text, entities: entities), for: context.window)
-                        data.chatInteraction.enableTranslatePaywall()
+                        if !CasmosHooks.translatorEnabled {
+                            data.chatInteraction.enableTranslatePaywall()
+                        }
                     }, itemImage: MenuAnimation.menu_translate.value))
                 }
                 if !data.message.isCopyProtected() {
@@ -742,10 +748,12 @@ func chatMenuItems(for message: Message, entry: ChatHistoryEntry?, textLayout: (
                         let toLang = context.sharedContext.baseSettings.doNotTranslate.union([appAppearance.languageCode])
                         
                         
-                        if language == nil || !toLang.contains(language!), !muteTranslate, !isService, translateConfig.canTranslate {
+                        if language == nil || !toLang.contains(language!), !muteTranslate, !isService, allowTranslate {
                             thirdBlock.append(ContextMenuItem(strings().chatContextTranslate, handler: {
                                 showModal(with: TranslateModalController(context: context, from: language, toLang: appAppearance.languageCode, text: text, entities: entities), for: context.window)
-                                data.chatInteraction.enableTranslatePaywall()
+                                if !CasmosHooks.translatorEnabled {
+                                    data.chatInteraction.enableTranslatePaywall()
+                                }
                             }, itemImage: MenuAnimation.menu_translate.value))
                         }
                         thirdBlock.append(ContextMenuItem(strings().chatCopySelectedText, handler: { [weak textLayout] in
@@ -777,10 +785,12 @@ func chatMenuItems(for message: Message, entry: ChatHistoryEntry?, textLayout: (
                 let text = state.text
                 let language = Translate.detectLanguage(for: text)
                 let toLang = context.sharedContext.baseSettings.doNotTranslate.union([appAppearance.languageCode])
-                if language == nil || !toLang.contains(language!), !isService, translateConfig.canTranslate {
+                if language == nil || !toLang.contains(language!), !isService, allowTranslate {
                     thirdBlock.append(ContextMenuItem(strings().chatContextTranslate, handler: {
                         showModal(with: TranslateModalController(context: context, from: language, toLang: appAppearance.languageCode, text: text), for: context.window)
-                        data.chatInteraction.enableTranslatePaywall()
+                        if !CasmosHooks.translatorEnabled {
+                            data.chatInteraction.enableTranslatePaywall()
+                        }
                     }, itemImage: MenuAnimation.menu_translate.value))
                 }
             }

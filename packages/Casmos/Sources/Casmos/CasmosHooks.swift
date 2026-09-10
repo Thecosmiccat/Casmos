@@ -19,11 +19,23 @@ public enum CasmosHooks {
         CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.pauseVideoOnBackground)
     }
 
+    public static var translatorEnabled: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Translator.enabled)
+    }
+
+    public static var translatorAutoEnabled: Bool {
+        translatorEnabled && CasmosPreferences.translatorAuto
+    }
+
     /// When translator is on and engine is extra, use the existing web fallback
     /// instead of the official translate API. `system` leaves routing unchanged.
     public static var prefersExtraTranslatorEngine: Bool {
-        CasmosPreferences.bool(forKey: CasmosPrefKey.Translator.enabled)
-            && CasmosPreferences.translatorEngine == .extra
+        translatorEnabled && CasmosPreferences.translatorEngine == .extra
+    }
+
+    /// Translator is on and the selected engine is a local one (extra / yandex / deepl).
+    public static var usesLocalTranslatorEngine: Bool {
+        translatorEnabled && CasmosPreferences.translatorEngine.isLocal
     }
 
     public static var sendWithCommandEnter: Bool {

@@ -577,9 +577,9 @@ class MGalleryItem: NSObject, Comparable, Identifiable {
                 case .loading:
                     break
                 case let .complete(toLang: toLang):
-                    if let attribute = message.translationAttribute(toLang: toLang) {
-                        text = attribute.text
-                        entities = attribute.entities
+                    if let translated = message.displayedTranslation(toLang: toLang) {
+                        text = translated.text
+                        entities = translated.entities
                     }
                 }
             }
