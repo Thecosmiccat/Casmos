@@ -1,7 +1,7 @@
 import Foundation
 
-/// Casmos preference keys (`casmos.pref.*`) and UserDefaults-backed stubs.
-/// P1 behavior is not implemented here; values are stored only.
+/// Casmos preference keys (`casmos.pref.*`) and UserDefaults-backed values.
+/// P1 layout / routing / playback hooks live in `CasmosHooks`.
 public enum CasmosPrefKey {
     public static let prefix = "casmos.pref."
 
@@ -17,13 +17,13 @@ public enum CasmosPrefKey {
 
     public enum Chat {
         public static let sendWithCommandEnter = "casmos.pref.chat.sendWithCommandEnter"
-        /// P1 stub: sticker size. Not applied to rendering yet.
+        /// Sticker size. Applied to the 208pt chat sticker box via `CasmosHooks`.
         public static let stickerSize = "casmos.pref.chat.stickerSize"
     }
 
     public enum Translator {
         public static let enabled = "casmos.pref.translator.enabled"
-        /// P1 stub: multi-engine translator. Engine selection is stored only.
+        /// Translator engine. `extra` routes through the existing web fallback.
         public static let engine = "casmos.pref.translator.engine"
     }
 
@@ -33,7 +33,7 @@ public enum CasmosPrefKey {
     }
 
     public enum Experimental {
-        /// P1 stub: pause video when the app is in the background. Not wired to playback.
+        /// Pause inline chat video when Casmos is not the active app.
         public static let pauseVideoOnBackground = "casmos.pref.experimental.pauseVideoOnBackground"
         public static let verboseLogging = "casmos.pref.experimental.verboseLogging"
     }

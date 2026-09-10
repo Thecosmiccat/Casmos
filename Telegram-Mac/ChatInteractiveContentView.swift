@@ -14,6 +14,7 @@ import TextRecognizing
 import TGUIKit
 import TelegramMedia
 import TelegramMediaPlayer
+import Casmos
 
 extension AutoremoveTimeoutMessageAttribute : Equatable {
     public static func == (lhs: AutoremoveTimeoutMessageAttribute, rhs: AutoremoveTimeoutMessageAttribute) -> Bool {
@@ -560,7 +561,7 @@ class ChatInteractiveContentView: ChatMediaContentView {
     
     @objc func updatePlayerIfNeeded() {
         
-        var accept = window != nil && window!.isKeyWindow && !NSIsEmptyRect(visibleRect) && !self.isDynamicContentLocked
+        var accept = window != nil && CasmosHooks.allowsInlinePlayback(windowIsKey: window!.isKeyWindow, appIsActive: NSApp.isActive) && !NSIsEmptyRect(visibleRect) && !self.isDynamicContentLocked
         
         if lite {
             accept = accept && mouseInside()
@@ -605,6 +606,8 @@ class ChatInteractiveContentView: ChatMediaContentView {
             NotificationCenter.default.removeObserver(self)
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSWindow.didBecomeKeyNotification, object: window)
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSWindow.didResignKeyNotification, object: window)
+            NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSApplication.didBecomeActiveNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSApplication.didResignActiveNotification, object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSView.boundsDidChangeNotification, object: table?.clipView)
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSView.boundsDidChangeNotification, object: self)
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSView.frameDidChangeNotification, object: table?.view)

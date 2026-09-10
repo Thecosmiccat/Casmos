@@ -28,7 +28,7 @@ See [INSTALL.md](INSTALL.md) for the Mac / Xcode steps.
 
 ## Settings
 
-Casmos Settings (General, Appearance, Chat, Translator, Passcode, Experimental) is a P0 shell. Preference keys are stored; extra client features listed in [ROADMAP.md](ROADMAP.md) are not implemented yet.
+Casmos Settings (General, Appearance, Chat, Translator, Passcode, Experimental) stores `casmos.pref.*` keys. Thin P1 hooks apply sticker size, extra-engine translate routing, and pause-video-in-background. See [ROADMAP.md](ROADMAP.md).
 
 ## License
 

@@ -12,6 +12,7 @@ import TelegramCore
 import TGUIKit
 import Postbox
 import SwiftSignalKit
+import Casmos
 
 
 
@@ -101,6 +102,9 @@ class GIFContainerView: Control {
     var accept: Bool {
         let wAccept = window != nil && (window!.isKeyWindow || self.ignoreWindowKey)  && !NSIsEmptyRect(visibleRect)
         var accept:Bool = wAccept
+        if !ignoreWindowKey && CasmosHooks.pauseVideoWhenAppInactive && !NSApp.isActive {
+            accept = false
+        }
         if let context = self.context, context.isLite(.gif) && tableView != nil {
             accept = accept && mouseInside()
         }
@@ -144,9 +148,12 @@ class GIFContainerView: Control {
     
     
     func updateListeners() {
+        NotificationCenter.default.removeObserver(self)
         if let window = window {
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSWindow.didBecomeKeyNotification, object: window)
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSWindow.didResignKeyNotification, object: window)
+            NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSApplication.didBecomeActiveNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSApplication.didResignActiveNotification, object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSView.boundsDidChangeNotification, object: tableView?.clipView)
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSView.frameDidChangeNotification, object: tableView?.view)
         } else {

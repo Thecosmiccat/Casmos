@@ -8,8 +8,15 @@
 
 import Cocoa
 import TelegramCore
+import Casmos
 
 import Postbox
+
+private func casmosStickerMaxSize(_ base: CGFloat = 208) -> NSSize {
+    let scale = CGFloat(CasmosHooks.stickerLayoutScale)
+    let side = floor(base * scale)
+    return NSMakeSize(side, side)
+}
 
 class ChatLayoutUtils: NSObject {
 
@@ -46,7 +53,7 @@ class ChatLayoutUtils: NSObject {
             }
             if file.isWebm || file.isVideoSticker {
                 let dimensions = file.dimensions?.size
-                size = NSMakeSize(208, 208)
+                size = casmosStickerMaxSize()
                 if file.isEmojiAnimatedSticker || file.isCustomEmoji {
                     size = NSMakeSize(112, 112)
                 }
@@ -55,7 +62,7 @@ class ChatLayoutUtils: NSObject {
                 }
             } else if file.isAnimatedSticker && !webpIsFile {
                 let dimensions = file.dimensions?.size
-                size = NSMakeSize(208, 208)
+                size = casmosStickerMaxSize()
                 if file.isEmojiAnimatedSticker || file.isCustomEmoji {
                     size = NSMakeSize(112, 112)
                 }
@@ -64,7 +71,7 @@ class ChatLayoutUtils: NSObject {
                 }
             } else if file.isStaticSticker && !webpIsFile {
                 
-                var sz = NSMakeSize(208, 208)
+                var sz = casmosStickerMaxSize()
                 if file.fileName == "telegram-animoji.tgs" {
                     sz = NSMakeSize(112, 112)
                 }

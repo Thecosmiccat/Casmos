@@ -3,7 +3,8 @@
 //  Casmos
 //
 //  Settings shell for Casmos (General / Appearance / Chat / Translator / Passcode / Experimental).
-//  Preference keys live in the Casmos package (`casmos.pref.*`). P1 features are stubs only.
+//  Preference keys live in the Casmos package (`casmos.pref.*`).
+//  P1 sticker size, extra translator routing, and pause-video hooks are wired.
 //
 
 import Cocoa
@@ -113,7 +114,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     toggleRow(id: _id_cmd_enter, name: "Send with Command-Return", value: state.sendWithCommandEnter, key: CasmosPrefKey.Chat.sendWithCommandEnter, viewType: .firstItem)
     entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_sticker_size, data: .init(name: "Sticker Size", color: theme.colors.text, type: .nextContext(state.stickerSize), viewType: .lastItem, action: arguments.cycleStickerSize)))
     index += 1
-    footer("Sticker size is a stub for a later release.")
+    footer("Scales the 208pt chat sticker box. Custom emoji size is unchanged.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -122,7 +123,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     toggleRow(id: _id_translator, name: "Enable Translator", value: state.translatorEnabled, key: CasmosPrefKey.Translator.enabled, viewType: .firstItem)
     entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_translator_engine, data: .init(name: "Engine", color: theme.colors.text, type: .nextContext(state.translatorEngine), viewType: .lastItem, action: arguments.cycleTranslatorEngine)))
     index += 1
-    footer("Multi-engine translation is a stub for a later release.")
+    footer("System keeps the official path. Extra uses the existing web fallback.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -138,7 +139,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     header("EXPERIMENTAL")
     toggleRow(id: _id_pause_video, name: "Pause Video in Background", value: state.pauseVideoOnBackground, key: CasmosPrefKey.Experimental.pauseVideoOnBackground, viewType: .firstItem)
     toggleRow(id: _id_verbose, name: "Verbose Logging", value: state.verboseLogging, key: CasmosPrefKey.Experimental.verboseLogging, viewType: .lastItem)
-    footer("Pause-video-in-background is a stub for a later release.")
+    footer("Pauses inline chat video, GIFs, and round videos when Casmos is inactive.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1

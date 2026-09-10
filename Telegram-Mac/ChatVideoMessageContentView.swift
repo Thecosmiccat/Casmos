@@ -12,6 +12,7 @@ import TelegramCore
 import TelegramMedia
 import Postbox
 import SwiftSignalKit
+import Casmos
 
 /*
  func songDidStopPlaying(song:APSongItem, for controller:APController, animated: Bool) {
@@ -290,7 +291,7 @@ class ChatVideoMessageContentView: ChatMediaContentView, APDelegate {
     
     
     var acceptVisibility:Bool {
-        return window != nil && window!.isKeyWindow && !NSIsEmptyRect(visibleRect) && !isDynamicContentLocked
+        return window != nil && CasmosHooks.allowsInlinePlayback(windowIsKey: window!.isKeyWindow, appIsActive: NSApp.isActive) && !NSIsEmptyRect(visibleRect) && !isDynamicContentLocked
     }
     
     override func viewDidUpdatedDynamicContent() {
@@ -324,9 +325,12 @@ class ChatVideoMessageContentView: ChatMediaContentView, APDelegate {
     }
     
     func updateListeners() {
+        NotificationCenter.default.removeObserver(self)
         if let window = window {
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSWindow.didBecomeKeyNotification, object: window)
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSWindow.didResignKeyNotification, object: window)
+            NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSApplication.didBecomeActiveNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSApplication.didResignActiveNotification, object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSView.boundsDidChangeNotification, object: table?.clipView)
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSView.frameDidChangeNotification, object: table?.view)
 

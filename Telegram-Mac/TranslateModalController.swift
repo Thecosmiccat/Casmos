@@ -15,6 +15,7 @@ import ObjcUtils
 import Localization
 import TelegramCore
 import Postbox
+import Casmos
 
 private final class Arguments {
     let context: AccountContext
@@ -140,8 +141,9 @@ private func entries(_ state: State, arguments: Arguments) -> [InputDataEntry] {
 
 func translateBlocks(context: AccountContext, from: String?, to: String, blocks: [(String, [MessageTextEntity])], configState: AppConfigTranslateState) -> Signal<(detect: String?, result: String, entities: [MessageTextEntity]), Translate.Error> {
     var signals:[Signal<(detect: String?, result: String, entities: [MessageTextEntity]), Translate.Error>] = []
+    let routedState: AppConfigTranslateState = CasmosHooks.prefersExtraTranslatorEngine ? .alternative : configState
     for block in blocks {
-        switch configState {
+        switch routedState {
         case .enabled:
             signals.append(context.engine.messages.translate(text: block.0, toLang: to, entities: block.1) |> `catch` { error in
                 switch error {
