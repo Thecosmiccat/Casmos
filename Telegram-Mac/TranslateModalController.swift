@@ -139,6 +139,20 @@ private func entries(_ state: State, arguments: Arguments) -> [InputDataEntry] {
 
 
 
+func casmosLocalTranslateParts(texts: [String], from: String?, to: String) -> Signal<[String], Translate.Error> {
+    var signal: Signal<[String], Translate.Error> = .single([])
+    for text in texts {
+        if text.isEmpty {
+            signal = signal |> map { $0 + [""] }
+            continue
+        }
+        signal = signal |> mapToSignal { acc in
+            casmosLocalTranslate(text: text, from: from, to: to) |> map { acc + [$0.result] }
+        }
+    }
+    return signal
+}
+
 func casmosLocalTranslate(text: String, from: String?, to: String) -> Signal<(detect: String?, result: String), Translate.Error> {
     switch CasmosPreferences.translatorEngine {
     case .extra:

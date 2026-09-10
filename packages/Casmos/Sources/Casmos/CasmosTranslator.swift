@@ -18,11 +18,25 @@ public enum CasmosTranslatorError: Error {
     case missingKey
 }
 
+/// Structured local translation for polls and todo lists (question + options).
+public struct CasmosMediaTranslation {
+    public let text: String
+    public let additional: [String]
+    public let solution: String?
+
+    public init(text: String, additional: [String], solution: String? = nil) {
+        self.text = text
+        self.additional = additional
+        self.solution = solution
+    }
+}
+
 /// In-memory translations produced by local engines (yandex / deepl / extra).
 /// Chat rows read this when the official translation attribute is absent.
 public enum CasmosLocalTranslations {
     private static let lock = NSLock()
     private static var texts: [String: String] = [:]
+    private static var media: [String: CasmosMediaTranslation] = [:]
 
     public static func key(peerId: Int64, namespace: Int32, id: Int32) -> String {
         "\(peerId).\(namespace).\(id)"
@@ -38,6 +52,14 @@ public enum CasmosLocalTranslations {
         lock.unlock()
     }
 
+    public static func setMedia(key: String, toLang: String, value: CasmosMediaTranslation) {
+        lock.lock()
+        let storage = storageKey(key, toLang: toLang)
+        media[storage] = value
+        texts[storage] = value.text
+        lock.unlock()
+    }
+
     public static func text(for key: String, toLang: String) -> String? {
         lock.lock()
         let value = texts[storageKey(key, toLang: toLang)]
@@ -45,8 +67,15 @@ public enum CasmosLocalTranslations {
         return value
     }
 
+    public static func media(for key: String, toLang: String) -> CasmosMediaTranslation? {
+        lock.lock()
+        let value = media[storageKey(key, toLang: toLang)]
+        lock.unlock()
+        return value
+    }
+
     public static func contains(key: String, toLang: String) -> Bool {
-        text(for: key, toLang: toLang) != nil
+        text(for: key, toLang: toLang) != nil || media(for: key, toLang: toLang) != nil
     }
 }
 

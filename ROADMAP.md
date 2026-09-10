@@ -14,10 +14,12 @@
 
 - Sticker size: `casmos.pref.chat.stickerSize` scales the 208pt chat sticker box (small / medium / large). Custom emoji stays 112pt.
 - Translator extra engine: when translator is enabled and engine is `extra`, `translateBlocks` uses the existing web fallback instead of the official API. `system` leaves official routing.
-- Multi-engine translator: `yandex` and `deepl` are local engines (DeepL uses `casmos.pref.translator.deeplKey` when set). Message context menu Translate uses the selected engine when translator is enabled. Auto-translate chats is `casmos.pref.translator.auto`.
 - Pause video when the app is in the background: inline chat video, GIFs, and round videos pause when Casmos is not the active app.
+- Multi-engine translator: `yandex` and `deepl` are local engines (DeepL uses `casmos.pref.translator.deeplKey` when set). Message context menu Translate uses the selected engine when translator is enabled. Auto-translate chats is `casmos.pref.translator.auto`. Poll and todo messages use the local engine when translator is on (official attributes still apply when present).
+- Keep Original File Names: Save / Downloads prefer the document name (`casmos.pref.general.keepOriginalFileNames`).
+- Compact Chat List: 56pt rows and 36pt avatars (`casmos.pref.appearance.compactChatList`).
+- Monochrome Folders: folder tags use gray instead of assigned colors (`casmos.pref.appearance.monochromeFolders`).
+- Verbose Logging: console and file logs (`casmos.pref.experimental.verboseLogging`).
 
 ## Later
-
-- Keep Original File Names, compact chat list, monochrome folders, verbose logging (keys stored only)
 - A signed Mac build with real `api_id` / `api_hash` / Team ID (placeholders stay in this tree)

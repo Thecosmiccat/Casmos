@@ -12,6 +12,7 @@ import Postbox
 import TelegramCore
 import InAppSettings
 import TGUIKit
+import Casmos
 
 
 private final class ChatListPresetArguments {
@@ -100,18 +101,9 @@ private func chatListPresetEntries(filtersWithCounts: [(ChatListFilter, Int)], s
             
             var image: CGImage?
             if let color = data.color, showTags {
-                
-                let colors = [theme.colors.peerColors(0).bottom,
-                              theme.colors.peerColors(1).bottom,
-                              theme.colors.peerColors(2).bottom,
-                              theme.colors.peerColors(3).bottom,
-                              theme.colors.peerColors(4).bottom,
-                              theme.colors.peerColors(5).bottom,
-                              theme.colors.peerColors(6).bottom]
-
                 image = generateImage(NSMakeSize(20, 20), contextGenerator: { size, ctx in
                     ctx.clear(size.bounds)
-                    ctx.setFillColor(colors[Int(color.rawValue)].cgColor)
+                    ctx.setFillColor(casmosFolderTagFillColor(Int(color.rawValue)).cgColor)
                     ctx.fillEllipse(in: size.bounds)
                 })
                 

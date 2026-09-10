@@ -315,12 +315,72 @@ final class ChatLiveTranslateContext {
             }
             let from = state.from.isEmpty ? nil : state.from
             for msg in queued {
+                let messageId = msg.id
+                let toLang = state.to
+                let key = CasmosLocalTranslations.key(peerId: messageId.peerId.toInt64(), namespace: messageId.namespace, id: messageId.id)
+                if let poll = msg.media.first as? TelegramMediaPoll {
+                    var parts: [String] = [poll.text]
+                    parts.append(contentsOf: poll.options.map { $0.text })
+                    let hasSolution = poll.results.solution != nil
+                    if let solution = poll.results.solution?.text {
+                        parts.append(solution)
+                    }
+                    if parts.allSatisfy({ $0.isEmpty }) {
+                        continue
+                    }
+                    actionsDisposable.add((casmosLocalTranslateParts(texts: parts, from: from, to: toLang) |> deliverOnMainQueue).start(next: { [weak self] translated in
+                        let question = translated.first ?? ""
+                        let optionCount = poll.options.count
+                        let additional = Array(translated.dropFirst().prefix(optionCount))
+                        let solution: String?
+                        if hasSolution, translated.count > 1 + optionCount {
+                            solution = translated[1 + optionCount]
+                        } else {
+                            solution = nil
+                        }
+                        CasmosLocalTranslations.setMedia(key: key, toLang: toLang, value: CasmosMediaTranslation(text: question, additional: additional, solution: solution))
+                        self?.updateState { current in
+                            var current = current
+                            current.result[.Key(id: messageId, toLang: current.to)] = .complete(toLang: current.to)
+                            return current
+                        }
+                    }, error: { [weak self] _ in
+                        self?.updateState { current in
+                            var current = current
+                            current.result.removeValue(forKey: .Key(id: messageId, toLang: current.to))
+                            return current
+                        }
+                    }))
+                    continue
+                }
+                if let todo = msg.media.first as? TelegramMediaTodo {
+                    var parts: [String] = [todo.text]
+                    parts.append(contentsOf: todo.items.map { $0.text })
+                    if parts.allSatisfy({ $0.isEmpty }) {
+                        continue
+                    }
+                    actionsDisposable.add((casmosLocalTranslateParts(texts: parts, from: from, to: toLang) |> deliverOnMainQueue).start(next: { [weak self] translated in
+                        let title = translated.first ?? ""
+                        let additional = Array(translated.dropFirst())
+                        CasmosLocalTranslations.setMedia(key: key, toLang: toLang, value: CasmosMediaTranslation(text: title, additional: additional))
+                        self?.updateState { current in
+                            var current = current
+                            current.result[.Key(id: messageId, toLang: current.to)] = .complete(toLang: current.to)
+                            return current
+                        }
+                    }, error: { [weak self] _ in
+                        self?.updateState { current in
+                            var current = current
+                            current.result.removeValue(forKey: .Key(id: messageId, toLang: current.to))
+                            return current
+                        }
+                    }))
+                    continue
+                }
                 let text = msg.text
                 if text.isEmpty {
                     continue
                 }
-                let messageId = msg.id
-                let toLang = state.to
                 let chunks = cut_long_message(text, 1024)
                 var signal: Signal<(detect: String?, result: String), Translate.Error> = .single((detect: nil, result: ""))
                 for chunk in chunks {
@@ -332,7 +392,7 @@ final class ChatLiveTranslateContext {
                     }
                 }
                 actionsDisposable.add((signal |> deliverOnMainQueue).start(next: { [weak self] result in
-                    CasmosLocalTranslations.set(key: CasmosLocalTranslations.key(peerId: messageId.peerId.toInt64(), namespace: messageId.namespace, id: messageId.id), toLang: toLang, text: result.result)
+                    CasmosLocalTranslations.set(key: key, toLang: toLang, text: result.result)
                     self?.updateState { current in
                         var current = current
                         current.result[.Key(id: messageId, toLang: current.to)] = .complete(toLang: current.to)

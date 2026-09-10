@@ -15,6 +15,7 @@ import InAppSettings
 import Postbox
 import SwiftSignalKit
 import ColorPalette
+import Casmos
 
 
 private func optionRects(for items: [TodoItem], width: CGFloat, offset: CGFloat) -> [NSRect] {
@@ -41,6 +42,15 @@ private extension TelegramMediaTodo {
         }
         
         return .init(flags: self.flags, text: todo.text, textEntities: todo.entities, items: options, completions: self.completions)
+    }
+
+    func translated(_ local: CasmosMediaTranslation) -> TelegramMediaTodo {
+        var options: [TelegramMediaTodo.Item] = self.items
+        for (i, option) in options.enumerated() {
+            let text = i < local.additional.count ? local.additional[i] : option.text
+            options[i] = .init(text: text, entities: [], id: option.id)
+        }
+        return .init(flags: self.flags, text: local.text, textEntities: [], items: options, completions: self.completions)
     }
 }
 
@@ -151,6 +161,8 @@ class ChatRowTodoItem: ChatRowItem {
             case let .complete(toLang: toLang):
                 if let attribute = object.message!.translationAttribute(toLang: toLang) {
                     todo = todo.translated(attribute)
+                } else if let local = CasmosLocalTranslations.media(for: object.message!.casmosTranslationKey, toLang: toLang) {
+                    todo = todo.translated(local)
                 }
                 isTranslateLoading = false
             }

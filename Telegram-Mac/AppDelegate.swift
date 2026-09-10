@@ -493,6 +493,7 @@ class AppDelegate: NSResponder, NSApplicationDelegate, NSUserNotificationCenterD
 //        #endif
         
         Logger.setSharedLogger(logger)
+        applyCasmosVerboseLogging()
         
                 
         let bundleId = Bundle.main.bundleIdentifier
@@ -943,6 +944,7 @@ class AppDelegate: NSResponder, NSApplicationDelegate, NSUserNotificationCenterD
                     #endif
                     Logger.shared.logToConsole = false//loggingSettings.logToConsole
                     Logger.shared.redactSensitiveData = true//loggingSettings.redactSensitiveData
+                    applyCasmosVerboseLogging()
                     return .single(sharedApplicationContext)
                 })
                 

@@ -4,7 +4,8 @@
 //
 //  Settings shell for Casmos (General / Appearance / Chat / Translator / Passcode / Experimental).
 //  Preference keys live in the Casmos package (`casmos.pref.*`).
-//  P1 sticker size, extra translator routing, pause-video, and multi-engine translator.
+//  P1 sticker size, extra translator routing, pause-video, multi-engine translator,
+//  leftover Settings toggles (file names, compact list, monochrome folders, verbose logging).
 //
 
 import Cocoa
@@ -12,6 +13,20 @@ import TGUIKit
 import SwiftSignalKit
 import TelegramCore
 import Casmos
+import MtProtoKit
+
+func applyCasmosVerboseLogging() {
+    let on = CasmosHooks.verboseLogging
+    if on {
+        MTLogSetEnabled(true)
+        Logger.shared.logToConsole = true
+        Logger.shared.logToFile = true
+        UserDefaults.standard.set(true, forKey: "enablelogs")
+        CasmosHooks.log("logging", "enabled")
+    } else {
+        Logger.shared.logToConsole = false
+    }
+}
 
 private final class CasmosSettingsArguments {
     let context: AccountContext
@@ -40,9 +55,12 @@ private struct CasmosSettingsState: Equatable {
     var hideContentInAppSwitcher: Bool
     var pauseVideoOnBackground: Bool
     var verboseLogging: Bool
+    var deeplKey: String
 
     static func load() -> CasmosSettingsState {
-        CasmosSettingsState(
+        let storedKey = CasmosPreferences.deeplKey
+        let deeplKey = storedKey == "CASMOS_PLACEHOLDER_DEEPL_KEY" ? "" : storedKey
+        return CasmosSettingsState(
             keepOriginalFileNames: CasmosPreferences.bool(forKey: CasmosPrefKey.General.keepOriginalFileNames),
             confirmLinkOpens: CasmosPreferences.bool(forKey: CasmosPrefKey.General.confirmLinkOpens),
             compactChatList: CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.compactChatList),
@@ -55,7 +73,8 @@ private struct CasmosSettingsState: Equatable {
             autoLockOnSleep: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.autoLockOnSleep),
             hideContentInAppSwitcher: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.hideContentInAppSwitcher),
             pauseVideoOnBackground: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.pauseVideoOnBackground),
-            verboseLogging: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.verboseLogging)
+            verboseLogging: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.verboseLogging),
+            deeplKey: deeplKey
         )
     }
 }
@@ -69,6 +88,7 @@ private let _id_sticker_size = InputDataIdentifier("casmos.pref.chat.stickerSize
 private let _id_translator = InputDataIdentifier("casmos.pref.translator.enabled")
 private let _id_translator_engine = InputDataIdentifier("casmos.pref.translator.engine")
 private let _id_translator_auto = InputDataIdentifier("casmos.pref.translator.auto")
+private let _id_deepl_key = InputDataIdentifier("casmos.pref.translator.deeplKey")
 private let _id_autolock = InputDataIdentifier("casmos.pref.passcode.autoLockOnSleep")
 private let _id_hide_switcher = InputDataIdentifier("casmos.pref.passcode.hideContentInAppSwitcher")
 private let _id_pause_video = InputDataIdentifier("casmos.pref.experimental.pauseVideoOnBackground")
@@ -100,7 +120,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     header("GENERAL")
     toggleRow(id: _id_keep_names, name: "Keep Original File Names", value: state.keepOriginalFileNames, key: CasmosPrefKey.General.keepOriginalFileNames, viewType: .firstItem)
     toggleRow(id: _id_confirm_links, name: "Confirm External Links", value: state.confirmLinkOpens, key: CasmosPrefKey.General.confirmLinkOpens, viewType: .lastItem)
-    footer("Stored as casmos.pref.general.* Confirm External Links prompts before opening http(s) URLs.")
+    footer("Keep Original File Names uses the document name in Save and Downloads. Confirm External Links prompts before opening http(s) URLs.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -108,7 +128,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     header("APPEARANCE")
     toggleRow(id: _id_compact_list, name: "Compact Chat List", value: state.compactChatList, key: CasmosPrefKey.Appearance.compactChatList, viewType: .firstItem)
     toggleRow(id: _id_mono_folders, name: "Monochrome Folders", value: state.monochromeFolders, key: CasmosPrefKey.Appearance.monochromeFolders, viewType: .lastItem)
-    footer("Stored as casmos.pref.appearance.*")
+    footer("Compact Chat List uses 56pt rows. Monochrome Folders draws folder tags in gray instead of assigned colors.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -126,8 +146,10 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     toggleRow(id: _id_translator, name: "Enable Translator", value: state.translatorEnabled, key: CasmosPrefKey.Translator.enabled, viewType: .firstItem)
     entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_translator_engine, data: .init(name: "Engine", color: theme.colors.text, type: .nextContext(state.translatorEngine), viewType: .innerItem, action: arguments.cycleTranslatorEngine)))
     index += 1
+    entries.append(.input(sectionId: sectionId, index: index, value: .string(state.deeplKey), error: nil, identifier: _id_deepl_key, mode: .secure, data: .init(viewType: .innerItem), placeholder: nil, inputPlaceholder: "DeepL key (local)", filter: { $0 }, limit: 255))
+    index += 1
     toggleRow(id: _id_translator_auto, name: "Auto-translate Chats", value: state.translatorAuto, key: CasmosPrefKey.Translator.auto, viewType: .lastItem)
-    footer("System keeps the official path. Extra uses the existing web fallback. Yandex and DeepL are local engines. DeepL reads casmos.pref.translator.deeplKey when set (local only). Auto-translate applies the selected engine to chat messages.")
+    footer("System keeps the official path. Extra uses the existing web fallback. Yandex and DeepL are local engines. DeepL uses the key above when set (local only); otherwise the public web endpoint. Auto-translate applies the selected engine to chat messages, including polls and todo lists.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -143,7 +165,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     header("EXPERIMENTAL")
     toggleRow(id: _id_pause_video, name: "Pause Video in Background", value: state.pauseVideoOnBackground, key: CasmosPrefKey.Experimental.pauseVideoOnBackground, viewType: .firstItem)
     toggleRow(id: _id_verbose, name: "Verbose Logging", value: state.verboseLogging, key: CasmosPrefKey.Experimental.verboseLogging, viewType: .lastItem)
-    footer("Pauses inline chat video, GIFs, and round videos when Casmos is inactive.")
+    footer("Pauses inline chat video, GIFs, and round videos when Casmos is inactive. Verbose Logging writes Casmos and network logs to the console and log files.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -161,6 +183,9 @@ func CasmosSettingsController(context: AccountContext) -> InputDataController {
 
     let arguments = CasmosSettingsArguments(context: context, toggle: { key in
         CasmosPreferences.toggle(key)
+        if key == CasmosPrefKey.Experimental.verboseLogging {
+            applyCasmosVerboseLogging()
+        }
         updateState { _ in CasmosSettingsState.load() }
     }, cycleStickerSize: {
         let current = CasmosPreferences.stickerSize
@@ -180,5 +205,13 @@ func CasmosSettingsController(context: AccountContext) -> InputDataController {
         InputDataSignalValue(entries: casmosSettingsEntries(state: state, arguments: arguments))
     }
 
-    return InputDataController(dataSignal: signal, title: "Casmos Settings", hasDone: false)
+    let controller = InputDataController(dataSignal: signal, title: "Casmos Settings", hasDone: false)
+    controller.updateDatas = { data in
+        if let value = data[_id_deepl_key]?.stringValue {
+            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            CasmosPreferences.deeplKey = trimmed == "CASMOS_PLACEHOLDER_DEEPL_KEY" ? "" : trimmed
+        }
+        return .none
+    }
+    return controller
 }

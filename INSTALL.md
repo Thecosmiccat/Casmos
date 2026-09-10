@@ -60,7 +60,11 @@ Build the **Telegram** target. The product name is Casmos.
 
 ## Translator (Mac QA)
 
-Casmos Settings → Translator: enable, cycle Engine (`system` / `extra` / `yandex` / `deepl`), optional Auto-translate Chats. Message context menu Translate uses the selected engine. DeepL without a local `casmos.pref.translator.deeplKey` uses the public web endpoint. This Linux environment cannot compile the Mac app.
+Casmos Settings → Translator: enable, cycle Engine (`system` / `extra` / `yandex` / `deepl`), optional Auto-translate Chats, optional DeepL key field. Message context menu Translate uses the selected engine. Poll and todo lists use the local engine when translator is enabled. DeepL without a local key uses the public web endpoint.
+
+Casmos Settings → General: Keep Original File Names uses the document name in Save and Downloads. Appearance: Compact Chat List (56pt rows) and Monochrome Folders (gray folder tags). Experimental: Verbose Logging writes to the console and log files.
+
+This Linux environment cannot compile the Mac app.
 
 ## Updates
 

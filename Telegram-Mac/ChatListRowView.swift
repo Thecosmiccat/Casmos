@@ -13,6 +13,7 @@ import TelegramCore
 import Postbox
 import Accelerate
 import TelegramMedia
+import Casmos
 
 extension EngineChatList.ForumTopicData {
     var effectiveTitle: String {
@@ -2162,15 +2163,18 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
              
              
              photoContainer.scaleOnClick = true
+             applyAvatarFrames(item)
              let transition: ContainedViewLayoutTransition = animated ? .animated(duration: 0.2, curve: .easeOut) : .immediate
+             let avatar = item.avatarSize
+             let storyInner = max(24, avatar - 6)
 
              if let component = item.avatarStoryIndicator {
                  
                  
-                 self.photo.update(component: component, availableSize: NSMakeSize(44, 44), transition: transition)
+                 self.photo.update(component: component, availableSize: NSMakeSize(storyInner, storyInner), transition: transition)
                  
-                 self.photoVideoView?._change(size: NSMakeSize(44, 44), animated: animated)
-                 self.archivedPhoto?._change(size: NSMakeSize(44, 44), animated: animated)
+                 self.photoVideoView?._change(size: NSMakeSize(storyInner, storyInner), animated: animated)
+                 self.archivedPhoto?._change(size: NSMakeSize(storyInner, storyInner), animated: animated)
 
                  self.photoVideoView?._change(pos: NSMakePoint(3, 3), animated: animated)
                  self.archivedPhoto?._change(pos: NSMakePoint(3, 3), animated: animated)
@@ -2182,8 +2186,8 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
                  self.archivedPhoto?.layer?.cornerRadius = photo.radius
 
              } else {
-                 self.photoVideoView?._change(size: NSMakeSize(50, 50), animated: animated)
-                 self.archivedPhoto?._change(size: NSMakeSize(50, 50), animated: animated)
+                 self.photoVideoView?._change(size: NSMakeSize(avatar, avatar), animated: animated)
+                 self.archivedPhoto?._change(size: NSMakeSize(avatar, avatar), animated: animated)
                  
                  self.photoVideoView?._change(pos: NSMakePoint(0, 0), animated: animated)
                  self.archivedPhoto?._change(pos: NSMakePoint(0, 0), animated: animated)
@@ -2192,7 +2196,7 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
                      photoVideoView.layer?.cornerRadius = item.isForum ? 10 : photoVideoView.frame.height / 2
                  }
                  self.archivedPhoto?.layer?.cornerRadius = photo.radius
-                 self.photo.update(component: nil, availableSize: NSMakeSize(44, 44), transition: transition)
+                 self.photo.update(component: nil, availableSize: NSMakeSize(storyInner, storyInner), transition: transition)
              }
              
              
@@ -2894,10 +2898,19 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
     }
     
     
+    private func applyAvatarFrames(_ item: ChatListRowItem) {
+        let size = item.avatarSize
+        let inset = item.avatarInset
+        photo.frame = NSMakeRect(0, 0, size, size)
+        photoContainer.frame = NSMakeRect(inset, inset, size, size)
+    }
+    
     override func layout() {
         super.layout()
        
         guard let item = item as? ChatListRowItem else { return }
+
+        applyAvatarFrames(item)
                 
         photoContainer.userInteractionEnabled = item.avatarStoryIndicator != nil && item.context.layout != .minimisize && item.selectedForum == nil
 

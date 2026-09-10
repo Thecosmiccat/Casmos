@@ -13,6 +13,7 @@ import TelegramCore
 import DateUtils
 import SwiftSignalKit
 import InAppSettings
+import Casmos
 
 
 class ChatListTags {
@@ -815,8 +816,7 @@ class ChatListRowItem: TableRowItem {
             for tab in filtered {
                 let color: NSColor?
                 if let dataColor = tab.data?.color {
-                    let index = Int(dataColor.rawValue)
-                    color = theme.colors.peerColors(index % 7).bottom
+                    color = casmosFolderTagFillColor(Int(dataColor.rawValue))
                 } else {
                     color = nil
                 }
@@ -1189,7 +1189,9 @@ class ChatListRowItem: TableRowItem {
         }
     }
     
-    let margin:CGFloat = 9
+    var margin:CGFloat {
+        return CGFloat(CasmosHooks.chatListRowMargin)
+    }
     
     
     var isPinned: Bool {
@@ -1382,13 +1384,27 @@ class ChatListRowItem: TableRowItem {
         return (max(200, size.width) - margin * 3) - w - (chatNameLayout != nil ? textLeftCutout : 0)
     }
     
+    var avatarSize: CGFloat {
+        if shouldHideContent {
+            return 50
+        }
+        return CGFloat(CasmosHooks.chatListAvatarSize)
+    }
+    
+    var avatarInset: CGFloat {
+        if shouldHideContent {
+            return 10
+        }
+        return CGFloat(CasmosHooks.chatListAvatarInset)
+    }
+    
     var leftInset:CGFloat {
         switch mode {
         case .chat, .savedMessages:
-            return 50 + (10 * 2.0)
+            return avatarSize + (avatarInset * 2.0)
         case .topic:
             if titleMode == .forumInfo {
-                return 50 + (10 * 2.0)
+                return avatarSize + (avatarInset * 2.0)
             } else {
                 if appearMode == .short {
                     return 35
@@ -2257,7 +2273,7 @@ class ChatListRowItem: TableRowItem {
         
         switch mode {
         case .chat, .savedMessages:
-            return 70
+            return CGFloat(CasmosHooks.chatListRowHeight)
         case .topic:
             return 53 + (displayLayout?.layoutSize.height ?? 17)
         }

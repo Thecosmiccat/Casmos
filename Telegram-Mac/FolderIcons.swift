@@ -7,6 +7,7 @@
 //
 
 import Cocoa
+import Casmos
 
 
 enum FolderIconState {
@@ -260,6 +261,13 @@ enum FolderEmoticon {
     }
 }
 
+func casmosFolderTagFillColor(_ rawValue: Int) -> NSColor {
+    if CasmosHooks.monochromeFolders {
+        return theme.colors.grayIcon
+    }
+    return theme.colors.peerColors(rawValue % 7).bottom
+}
+
 final class FolderIcon {
     let emoticon: FolderEmoticon
     
@@ -268,9 +276,21 @@ final class FolderIcon {
     }
     
     func icon(for state: FolderIconState) -> CGImage {
-        return NSImage(named: self.emoticon.iconName)!.precomposed(state.color, flipVertical: state == .preview)
+        let color: NSColor
+        if CasmosHooks.monochromeFolders {
+            switch state {
+            case .sidebar:
+                color = NSColor.white.withAlphaComponent(0.5)
+            case .sidebarActive:
+                color = .white
+            case .preview, .settings:
+                color = theme.colors.grayIcon
+            }
+        } else {
+            color = state.color
+        }
+        return NSImage(named: self.emoticon.iconName)!.precomposed(color, flipVertical: state == .preview)
     }
-    
 }
 
 

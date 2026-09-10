@@ -676,6 +676,31 @@ func chatMenuItems(for message: Message, entry: ChatHistoryEntry?, textLayout: (
             }
         }
         
+        if let todo = message.media.first as? TelegramMediaTodo, mode.customChatContents == nil {
+            var text = todo.text
+            var entities: [MessageTextEntity] = []
+            entities.append(contentsOf: todo.textEntities)
+            text += "\n"
+            for option in todo.items {
+                text += "\n☐ \(option.text)"
+                for entity in option.entities {
+                    var current = entity
+                    current.range = entity.range.lowerBound + text.length - option.text.length ..< entity.range.upperBound + text.length - option.text.length
+                    entities.append(current)
+                }
+            }
+            let language = Translate.detectLanguage(for: text)
+            let toLang = context.sharedContext.baseSettings.doNotTranslate.union([appAppearance.languageCode])
+            if language == nil || !toLang.contains(language!), !muteTranslate, !isService, allowTranslate {
+                thirdBlock.append(ContextMenuItem(strings().chatContextTranslate, handler: {
+                    showModal(with: TranslateModalController(context: context, from: language, toLang: appAppearance.languageCode, text: text, entities: entities, canBreak: false), for: context.window)
+                    if !CasmosHooks.translatorEnabled {
+                        data.chatInteraction.enableTranslatePaywall()
+                    }
+                }, itemImage: MenuAnimation.menu_translate.value))
+            }
+        }
+        
     //    if !data.message.isCopyProtected() {
         if let textLayout = data.textLayout?.0, mode.customChatContents == nil {
             

@@ -1,7 +1,7 @@
 import Foundation
 
 /// Thin hooks over `CasmosPreferences` for layout, translate routing,
-/// inline playback, send-key, link confirm, and passcode.
+/// inline playback, send-key, link confirm, passcode, file names, and logging.
 public enum CasmosHooks {
     /// Scale for the 208pt chat sticker box. Custom-emoji 112pt boxes stay unchanged.
     public static var stickerLayoutScale: Double {
@@ -52,6 +52,46 @@ public enum CasmosHooks {
 
     public static var hideContentInAppSwitcher: Bool {
         CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.hideContentInAppSwitcher)
+    }
+
+    public static var keepOriginalFileNames: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.General.keepOriginalFileNames)
+    }
+
+    public static var compactChatList: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.compactChatList)
+    }
+
+    public static var monochromeFolders: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.monochromeFolders)
+    }
+
+    public static var verboseLogging: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.verboseLogging)
+    }
+
+    /// Chat list avatar side. Compact is 36pt in a 56pt row.
+    public static var chatListAvatarSize: Double {
+        compactChatList ? 36 : 50
+    }
+
+    public static var chatListAvatarInset: Double {
+        compactChatList ? 10 : 10
+    }
+
+    public static var chatListRowHeight: Double {
+        compactChatList ? 56 : 70
+    }
+
+    public static var chatListRowMargin: Double {
+        compactChatList ? 6 : 9
+    }
+
+    public static func log(_ tag: String, _ message: String) {
+        guard verboseLogging else {
+            return
+        }
+        print("[Casmos][\(tag)] \(message)")
     }
 
     public static func allowsInlinePlayback(windowIsKey: Bool, appIsActive: Bool) -> Bool {

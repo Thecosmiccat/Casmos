@@ -89,6 +89,13 @@ public enum CasmosTranslatorEngine: String, CaseIterable {
 public enum CasmosPreferences {
     private static var defaults: UserDefaults { .standard }
 
+    /// Posted after any `casmos.pref.*` write so chat list / appearance can rebuild.
+    public static let didChangeNotification = Notification.Name("casmos.pref.didChange")
+
+    private static func notifyChange() {
+        NotificationCenter.default.post(name: didChangeNotification, object: nil)
+    }
+
     public static func bool(forKey key: String, default value: Bool = false) -> Bool {
         if defaults.object(forKey: key) == nil {
             return value
@@ -98,6 +105,7 @@ public enum CasmosPreferences {
 
     public static func set(_ value: Bool, forKey key: String) {
         defaults.set(value, forKey: key)
+        notifyChange()
     }
 
     public static func string(forKey key: String, default value: String) -> String {
@@ -106,6 +114,7 @@ public enum CasmosPreferences {
 
     public static func set(_ value: String, forKey key: String) {
         defaults.set(value, forKey: key)
+        notifyChange()
     }
 
     public static var stickerSize: CasmosStickerSize {

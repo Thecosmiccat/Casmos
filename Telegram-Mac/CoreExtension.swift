@@ -2667,6 +2667,9 @@ func mediaResourceName(from media:Media?, ext:String?) -> String {
     dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
     let ext = ext ?? ".file"
     if let media = media as? TelegramMediaFile {
+        if CasmosHooks.keepOriginalFileNames, let name = media.fileName, !name.isEmpty {
+            return name.fixedFileName
+        }
         return media.fileName ?? "FILE " + dateFormatter.string(from: Date()) + "." + ext
     } else if media is TelegramMediaImage {
         return "IMAGE " + dateFormatter.string(from: Date())  + "." + ext

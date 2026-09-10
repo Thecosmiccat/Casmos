@@ -14,6 +14,7 @@ import InAppSettings
 import Postbox
 import SwiftSignalKit
 import ColorPalette
+import Casmos
 
 
 private extension TelegramMediaPoll {
@@ -32,6 +33,22 @@ private extension TelegramMediaPoll {
         
         let result: TelegramMediaPollResults = .init(voters: self.results.voters, totalVoters: self.results.totalVoters, recentVoters: self.results.recentVoters, solution: solution)
         return .init(pollId: self.pollId, publicity: self.publicity, kind: self.kind, text: poll.text, textEntities: poll.entities, options: options, correctAnswers: self.correctAnswers, results: result, isClosed: self.isClosed, deadlineTimeout: self.deadlineTimeout)
+    }
+
+    func translated(_ local: CasmosMediaTranslation) -> TelegramMediaPoll {
+        var options: [TelegramMediaPollOption] = self.options
+        for (i, option) in options.enumerated() {
+            let text = i < local.additional.count ? local.additional[i] : option.text
+            options[i] = .init(text: text, entities: [], opaqueIdentifier: option.opaqueIdentifier)
+        }
+        let solution: TelegramMediaPollResults.Solution?
+        if let value = local.solution {
+            solution = .init(text: value, entities: [])
+        } else {
+            solution = self.results.solution
+        }
+        let result: TelegramMediaPollResults = .init(voters: self.results.voters, totalVoters: self.results.totalVoters, recentVoters: self.results.recentVoters, solution: solution)
+        return .init(pollId: self.pollId, publicity: self.publicity, kind: self.kind, text: local.text, textEntities: [], options: options, correctAnswers: self.correctAnswers, results: result, isClosed: self.isClosed, deadlineTimeout: self.deadlineTimeout)
     }
 }
 
@@ -349,6 +366,8 @@ class ChatPollItem: ChatRowItem {
             case let .complete(toLang: toLang):
                 if let attribute = object.message!.translationAttribute(toLang: toLang) {
                     poll = poll.translated(attribute)
+                } else if let local = CasmosLocalTranslations.media(for: object.message!.casmosTranslationKey, toLang: toLang) {
+                    poll = poll.translated(local)
                 }
                 isTranslateLoading = false
             }

@@ -898,6 +898,16 @@ class FastSettings {
 
 fileprivate let TelegramFileMediaBoxPath:String = "TelegramFileMediaBoxPathAttributeKey"
 
+func casmosExportFileName(_ file: TelegramMediaFile, fallback: String? = nil) -> String {
+    if CasmosHooks.keepOriginalFileNames, let name = file.fileName, !name.isEmpty {
+        return name
+    }
+    if let name = file.fileName, !name.isEmpty {
+        return name
+    }
+    return fallback ?? file.fileName ?? ""
+}
+
 func saveAs(_ file:TelegramMediaFile, account:Account) {
     
     let name = account.postbox.mediaBox.resourceData(file.resource) |> mapToSignal { data -> Signal< (String, String), NoError> in
@@ -919,7 +929,7 @@ func saveAs(_ file:TelegramMediaFile, account:Account) {
     } |> deliverOnMainQueue
     
     _ = name.start(next: { path, ext in
-        savePanel(file: path, ext: ext, for: mainWindow, defaultName: file.fileName)
+        savePanel(file: path, ext: ext, for: mainWindow, defaultName: casmosExportFileName(file))
     })
 }
 
@@ -1004,7 +1014,7 @@ func downloadFilePath(_ file: TelegramMediaFile, _ postbox: Postbox) -> Signal<(
     return combineLatest(postbox.mediaBox.resourceData(file.resource), automaticDownloadSettings(postbox: postbox)) |> take(1) |> mapToSignal { data, settings -> Signal< (String, String)?, NoError> in
         if data.complete {
             var ext:String = ""
-            let fileName = (file.fileName ?? data.path.nsstring.lastPathComponent).fixedFileName
+            let fileName = casmosExportFileName(file, fallback: data.path.nsstring.lastPathComponent).fixedFileName
             ext = fileName.nsstring.pathExtension
             if !ext.isEmpty {
                 return .single((data.path, "\(settings.downloadFolder)/\(fileName.nsstring.deletingPathExtension).\(ext)"))

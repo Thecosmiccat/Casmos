@@ -17,6 +17,7 @@ import ColorPalette
 import Translate
 import TelegramMediaPlayer
 import TelegramMedia
+import Casmos
 
 final class GalleryInteractions {
     var dismiss:(NSEvent)->KeyHandlerResult = { _ in return .rejected}
@@ -220,6 +221,22 @@ private final class GalleryTouchBarController : ViewController {
     }
 }
 
+
+private func casmosGallerySaveDefaultName(_ item: MGalleryItem) -> String? {
+    guard CasmosHooks.keepOriginalFileNames else {
+        return nil
+    }
+    if let item = item as? MGalleryVideoItem {
+        return item.media.fileName
+    }
+    if let item = item as? MGalleryGIFItem {
+        return item.media.fileName
+    }
+    if let photo = item as? MGalleryPhotoItem {
+        return photo.entry.file?.fileName
+    }
+    return item.entry.file?.fileName
+}
 
 class GalleryViewer: NSResponder {
     
@@ -1446,15 +1463,20 @@ class GalleryViewer: NSResponder {
                                     dateFormatter.dateFormat = "yyyy-MM-dd HH.mm.ss"
                                    
                                     
+                                    let generatedPhotoName = "photo_\(dateFormatter.string(from: Date())).jpeg"
                                     let file: TelegramMediaFile?
                                     if let item = item as? MGalleryVideoItem {
                                         file = item.media
                                     } else if let item = item as? MGalleryGIFItem {
                                         file = item.media
                                     } else if let photo = item as? MGalleryPhotoItem {
-                                        file = photo.entry.file ?? TelegramMediaFile(fileId: MediaId(namespace: 0, id: arc4random64()), partialReference: nil, resource: photo.media.representations.last!.resource, previewRepresentations: [], videoThumbnails: [], immediateThumbnailData: nil, mimeType: "image/jpeg", size: nil, attributes: [.FileName(fileName: "photo_\(dateFormatter.string(from: Date())).jpeg")], alternativeRepresentations: [])
+                                        if CasmosHooks.keepOriginalFileNames, let original = photo.entry.file {
+                                            file = original
+                                        } else {
+                                            file = photo.entry.file ?? TelegramMediaFile(fileId: MediaId(namespace: 0, id: arc4random64()), partialReference: nil, resource: photo.media.representations.last!.resource, previewRepresentations: [], videoThumbnails: [], immediateThumbnailData: nil, mimeType: "image/jpeg", size: nil, attributes: [.FileName(fileName: generatedPhotoName)], alternativeRepresentations: [])
+                                        }
                                     } else if let photo = item as? MGalleryPeerPhotoItem {
-                                        file = TelegramMediaFile(fileId: MediaId(namespace: 0, id: arc4random64()), partialReference: nil, resource: photo.media.representations.last!.resource, previewRepresentations: [], videoThumbnails: [], immediateThumbnailData: nil, mimeType: "image/jpeg", size: nil, attributes: [.FileName(fileName: "photo_\(dateFormatter.string(from: Date())).jpeg")], alternativeRepresentations: [])
+                                        file = TelegramMediaFile(fileId: MediaId(namespace: 0, id: arc4random64()), partialReference: nil, resource: photo.media.representations.last!.resource, previewRepresentations: [], videoThumbnails: [], immediateThumbnailData: nil, mimeType: "image/jpeg", size: nil, attributes: [.FileName(fileName: generatedPhotoName)], alternativeRepresentations: [])
                                     } else {
                                         file = nil
                                     }
@@ -1477,10 +1499,10 @@ class GalleryViewer: NSResponder {
                                         
                                         _ = (copyToDownloads(file, postbox: context.account.postbox, saveAnyway: true) |> map { _ in } |> deliverOnMainQueue |> take(1) |> then (showSaveModal(for: strongSelf.window, context: context, animation: LocalAnimatedSticker.success_saved, shouldBlur: false, text: layout, delay: 3.0))).start()
                                     } else {
-                                        savePanel(file: path.nsstring.deletingPathExtension, ext: path.nsstring.pathExtension, for: strongSelf.window)
+                                        savePanel(file: path.nsstring.deletingPathExtension, ext: path.nsstring.pathExtension, for: strongSelf.window, defaultName: casmosGallerySaveDefaultName(item))
                                     }
                                 } else {
-                                    savePanel(file: path.nsstring.deletingPathExtension, ext: path.nsstring.pathExtension, for: strongSelf.window)
+                                    savePanel(file: path.nsstring.deletingPathExtension, ext: path.nsstring.pathExtension, for: strongSelf.window, defaultName: casmosGallerySaveDefaultName(item))
                                 }
                             }
                         }))

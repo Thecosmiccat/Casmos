@@ -12,6 +12,7 @@ import Localization
 import Postbox
 import SwiftSignalKit
 import TGUIKit
+import Casmos
 
 class TelegramGenericViewController<T>: GenericViewController<T> where T:NSView {
 
@@ -297,8 +298,18 @@ var appearanceSignal:Signal<Appearance, NoError> {
     let dateUpdateSignal: Signal<Bool, NoError> = .single(true) |> then(dateSignal |> delay(1.0, queue: resourcesQueue) |> restart)
     
     let updateSignal = dateUpdateSignal |> filter {$0}
+
+    let casmosSignal: Signal<Bool, NoError> = Signal { subscriber in
+        subscriber.putNext(true)
+        let observer = NotificationCenter.default.addObserver(forName: CasmosPreferences.didChangeNotification, object: nil, queue: .main) { _ in
+            subscriber.putNext(true)
+        }
+        return ActionDisposable {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
     
-    return combineLatest(languageSignal, themeSignal, updateSignal |> deliverOnMainQueue) |> map {
+    return combineLatest(languageSignal, themeSignal, updateSignal |> deliverOnMainQueue, casmosSignal) |> map {
         return Appearance(language: $0.0, presentation: $0.1)
     }
 }
