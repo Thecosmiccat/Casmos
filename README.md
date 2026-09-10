@@ -34,7 +34,7 @@ See [INSTALL.md](INSTALL.md) for the local Mac / Xcode path: recursive submodule
 
 ## Settings
 
-Casmos Settings (General, Appearance, Chat, Translator, Passcode, Experimental) stores `casmos.pref.*` keys. Thin P1 hooks apply sticker size, extra-engine translate routing, pause-video-in-background, local translator engines (yandex / deepl) plus message / poll / todo translate, keep original file names, compact chat list, monochrome folders, and verbose logging. See [ROADMAP.md](ROADMAP.md).
+Casmos Settings (General, Appearance, Chat, Translator, Passcode, Experimental, Config) stores `casmos.pref.*` keys. Thin P1 hooks apply sticker size, extra-engine translate routing, pause-video-in-background, local translator engines (yandex / deepl) plus message / poll / todo translate, keep original file names, compact chat list, monochrome folders, verbose logging, double-click action, hide channel bottom buttons, message Repeat / Details / no-quote forward, and preference JSON export/import. See [ROADMAP.md](ROADMAP.md).
 
 ## License
 

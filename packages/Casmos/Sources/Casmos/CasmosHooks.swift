@@ -42,6 +42,15 @@ public enum CasmosHooks {
         CasmosPreferences.bool(forKey: CasmosPrefKey.Chat.sendWithCommandEnter)
     }
 
+    public static var doubleTapAction: CasmosDoubleTapAction {
+        CasmosPreferences.doubleTapAction
+    }
+
+    /// Hide the channel input-bar Mute / Discuss / gift buttons. Header actions stay available.
+    public static var hideChannelBottomButtons: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Chat.hideChannelBottomButtons)
+    }
+
     public static var confirmExternalLinks: Bool {
         CasmosPreferences.bool(forKey: CasmosPrefKey.General.confirmLinkOpens)
     }

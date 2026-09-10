@@ -1213,10 +1213,12 @@ final class ForwardMessagesObject : ShareObject {
     }
     private let disposable = MetaDisposable()
     private let album: Bool
+    private let hideNames: Bool
     private let getMessages:(([MessageId], Bool)->Signal<[Message], NoError>)?
-    init(_ context: AccountContext, messages: [Message], emptyPerformOnClose: Bool = false, album: Bool = false, getMessages:(([MessageId], Bool)->Signal<[Message], NoError>)? = nil) {
+    init(_ context: AccountContext, messages: [Message], emptyPerformOnClose: Bool = false, album: Bool = false, getMessages:(([MessageId], Bool)->Signal<[Message], NoError>)? = nil, hideNames: Bool = false) {
         self.messages = messages
         self.album = album
+        self.hideNames = hideNames
         self.getMessages = getMessages
         super.init(context, emptyPerformOnClose: emptyPerformOnClose)
     }
@@ -1304,7 +1306,7 @@ final class ForwardMessagesObject : ShareObject {
                                 let attributes:[MessageAttribute] = [TextEntitiesMessageAttribute(entities: comment.messageTextEntities(parsingUrlType))]
                                 _ = Sender.enqueue(message: EnqueueMessage.message(text: comment.inputText, attributes: attributes, inlineStickers: [:], mediaReference: nil, threadId: threadId, replyToMessageId: nil, replyToStoryId: nil, localGroupingKey: nil, correlationId: nil, bubbleUpEmojiOrStickersets: []), context: context, peerId: peerId).start()
                             }
-                            _ = Sender.forwardMessages(messageIds: messageIds, context: context, peerId: context.account.peerId, replyId: nil, threadId: threadId).start()
+                            _ = Sender.forwardMessages(messageIds: messageIds, context: context, peerId: context.account.peerId, replyId: nil, threadId: threadId, hideNames: self.hideNames).start()
                             if let controller = context.bindings.rootNavigation().controller as? ChatController {
                                 controller.chatInteraction.update({$0.withoutSelectionState()})
                             }
@@ -1316,14 +1318,15 @@ final class ForwardMessagesObject : ShareObject {
                             let comment = peer.canSendMessage() ? comment : nil
                             
                             if let controller = navigation.controller as? ChatController, controller.chatInteraction.chatLocation == .peer(peerId) {
+                                let hideNames = self.hideNames
                                 controller.chatInteraction.update({ current in
                                     current.withoutSelectionState().updatedInterfaceState {
-                                        $0.withUpdatedForwardMessageIds(messageIds).withUpdatedInputState(comment ?? current.effectiveInput)
+                                        $0.withUpdatedForwardMessageIds(messageIds).withUpdatedInputState(comment ?? current.effectiveInput).withUpdatedHideSendersName(hideNames, saveTempValue: false)
                                     }
                                 })
                             } else {
                                 
-                                let initialAction: ChatInitialAction = .forward(messageIds: messageIds, text: comment, behavior: .automatic)
+                                let initialAction: ChatInitialAction = .forward(messageIds: messageIds, text: comment, behavior: .automatic, hideNames: self.hideNames)
                                 
                                 if let threadId = threadId {
                                     return ForumUI.openTopic(threadId, peerId: peerId, context: context, animated: true, addition: true, initialAction: initialAction, isMonoforum: peer.isMonoForum) |> filter {$0}
@@ -1388,7 +1391,7 @@ final class ForwardMessagesObject : ShareObject {
                 let threadId = threadIds[peerId] ?? threadId
                 
                 signals.append(viewSignal |> mapToSignal { (peer, sendAs) in
-                    let forward: Signal<[MessageId?], NoError> = Sender.forwardMessages(messageIds: messageIds, context: context, peerId: peerId, replyId: nil, threadId: threadId, silent: FastSettings.isChannelMessagesMuted(peerId) || withoutSound, atDate: date, sendAsPeerId: sendAs)
+                    let forward: Signal<[MessageId?], NoError> = Sender.forwardMessages(messageIds: messageIds, context: context, peerId: peerId, replyId: nil, threadId: threadId, hideNames: self.hideNames, silent: FastSettings.isChannelMessagesMuted(peerId) || withoutSound, atDate: date, sendAsPeerId: sendAs)
                     var caption: Signal<[MessageId?], NoError>?
                     if let comment = comment, !comment.inputText.isEmpty, peer.canSendMessage() {
                         let parsingUrlType: ParsingType

@@ -20,6 +20,10 @@
 - Compact Chat List: 56pt rows and 36pt avatars (`casmos.pref.appearance.compactChatList`). Topic lists use the same row height.
 - Monochrome Folders: folder tags and folder tab titles use gray instead of assigned colors (`casmos.pref.appearance.monochromeFolders`).
 - Verbose Logging: off by default; console and file logs when enabled (`casmos.pref.experimental.verboseLogging`).
+- Double-click action: `casmos.pref.chat.doubleTapAction` (`reply` default, plus none / reaction / edit / copy / forward / repeat / translate / details).
+- Hide channel bottom buttons: `casmos.pref.chat.hideChannelBottomButtons` collapses the Mute / Discuss input bar on broadcast channels. Mute and discussion stay in the chat header.
+- Message menu: Repeat (resend content in the current chat), Forward without Quote (`hideNames`), Details (JSON snapshot). Translate remains on the context menu when translator is enabled.
+- Config export/import: Casmos Settings → Config writes/reads a JSON file of `casmos.pref.*` keys. Export may include a local DeepL key if one is set.
 
 ## Later (needs Jeffrey / live API — not in this overnight branch)
 - A signed Mac build with real `api_id` / `api_hash` / Team ID (placeholders stay in this tree)

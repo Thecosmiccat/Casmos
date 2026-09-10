@@ -5,7 +5,8 @@
 //  Settings shell for Casmos (General / Appearance / Chat / Translator / Passcode / Experimental).
 //  Preference keys live in the Casmos package (`casmos.pref.*`).
 //  P1 sticker size, extra translator routing, pause-video, multi-engine translator,
-//  leftover Settings toggles (file names, compact list, monochrome folders, verbose logging).
+//  leftover Settings toggles (file names, compact list, monochrome folders, verbose logging),
+//  double-click action, hide channel bottom buttons, preference JSON export/import.
 //
 
 import Cocoa
@@ -31,11 +32,17 @@ private final class CasmosSettingsArguments {
     let toggle: (String) -> Void
     let cycleStickerSize: () -> Void
     let cycleTranslatorEngine: () -> Void
-    init(context: AccountContext, toggle: @escaping (String) -> Void, cycleStickerSize: @escaping () -> Void, cycleTranslatorEngine: @escaping () -> Void) {
+    let cycleDoubleTap: () -> Void
+    let exportPrefs: () -> Void
+    let importPrefs: () -> Void
+    init(context: AccountContext, toggle: @escaping (String) -> Void, cycleStickerSize: @escaping () -> Void, cycleTranslatorEngine: @escaping () -> Void, cycleDoubleTap: @escaping () -> Void, exportPrefs: @escaping () -> Void, importPrefs: @escaping () -> Void) {
         self.context = context
         self.toggle = toggle
         self.cycleStickerSize = cycleStickerSize
         self.cycleTranslatorEngine = cycleTranslatorEngine
+        self.cycleDoubleTap = cycleDoubleTap
+        self.exportPrefs = exportPrefs
+        self.importPrefs = importPrefs
     }
 }
 
@@ -46,6 +53,8 @@ private struct CasmosSettingsState: Equatable {
     var monochromeFolders: Bool
     var sendWithCommandEnter: Bool
     var stickerSize: String
+    var doubleTapAction: String
+    var hideChannelBottomButtons: Bool
     var translatorEnabled: Bool
     var translatorEngine: String
     var translatorAuto: Bool
@@ -65,6 +74,8 @@ private struct CasmosSettingsState: Equatable {
             monochromeFolders: CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.monochromeFolders),
             sendWithCommandEnter: CasmosPreferences.bool(forKey: CasmosPrefKey.Chat.sendWithCommandEnter),
             stickerSize: CasmosPreferences.stickerSize.rawValue,
+            doubleTapAction: CasmosPreferences.doubleTapAction.displayName,
+            hideChannelBottomButtons: CasmosPreferences.bool(forKey: CasmosPrefKey.Chat.hideChannelBottomButtons),
             translatorEnabled: CasmosPreferences.bool(forKey: CasmosPrefKey.Translator.enabled),
             translatorEngine: CasmosPreferences.translatorEngine.rawValue,
             translatorAuto: CasmosPreferences.translatorAuto,
@@ -83,6 +94,10 @@ private let _id_compact_list = InputDataIdentifier("casmos.pref.appearance.compa
 private let _id_mono_folders = InputDataIdentifier("casmos.pref.appearance.monochromeFolders")
 private let _id_cmd_enter = InputDataIdentifier("casmos.pref.chat.sendWithCommandEnter")
 private let _id_sticker_size = InputDataIdentifier("casmos.pref.chat.stickerSize")
+private let _id_double_tap = InputDataIdentifier("casmos.pref.chat.doubleTapAction")
+private let _id_hide_channel_buttons = InputDataIdentifier("casmos.pref.chat.hideChannelBottomButtons")
+private let _id_export = InputDataIdentifier("casmos.pref.config.export")
+private let _id_import = InputDataIdentifier("casmos.pref.config.import")
 private let _id_translator = InputDataIdentifier("casmos.pref.translator.enabled")
 private let _id_translator_engine = InputDataIdentifier("casmos.pref.translator.engine")
 private let _id_translator_auto = InputDataIdentifier("casmos.pref.translator.auto")
@@ -133,9 +148,12 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
 
     header("CHAT")
     toggleRow(id: _id_cmd_enter, name: "Send with Command-Return", value: state.sendWithCommandEnter, key: CasmosPrefKey.Chat.sendWithCommandEnter, viewType: .firstItem)
-    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_sticker_size, data: .init(name: "Sticker Size", color: theme.colors.text, type: .nextContext(state.stickerSize), viewType: .lastItem, action: arguments.cycleStickerSize)))
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_sticker_size, data: .init(name: "Sticker Size", color: theme.colors.text, type: .nextContext(state.stickerSize), viewType: .innerItem, action: arguments.cycleStickerSize)))
     index += 1
-    footer("Command-Return sends when enabled. Sticker size scales the 208pt chat sticker box. Custom emoji size is unchanged.")
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_double_tap, data: .init(name: "Double-Click Action", color: theme.colors.text, type: .nextContext(state.doubleTapAction), viewType: .innerItem, action: arguments.cycleDoubleTap)))
+    index += 1
+    toggleRow(id: _id_hide_channel_buttons, name: "Hide Channel Bottom Buttons", value: state.hideChannelBottomButtons, key: CasmosPrefKey.Chat.hideChannelBottomButtons, viewType: .lastItem)
+    footer("Command-Return sends when enabled. Sticker size scales the 208pt chat sticker box. Double-Click Action runs on a bubble (default Reply). Hide Channel Bottom Buttons collapses the Mute / Discuss bar; mute and discussion stay in the chat header.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -164,6 +182,16 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     toggleRow(id: _id_pause_video, name: "Pause Video in Background", value: state.pauseVideoOnBackground, key: CasmosPrefKey.Experimental.pauseVideoOnBackground, viewType: .firstItem)
     toggleRow(id: _id_verbose, name: "Verbose Logging", value: state.verboseLogging, key: CasmosPrefKey.Experimental.verboseLogging, viewType: .lastItem)
     footer("Pauses inline chat video, GIFs, and round videos when Casmos is inactive. Verbose Logging is off by default; when on it writes Casmos and network logs to the console and log files.")
+
+    entries.append(.sectionId(sectionId, type: .normal))
+    sectionId += 1
+
+    header("CONFIG")
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_export, data: .init(name: "Export Preferences", color: theme.colors.text, type: .next, viewType: .firstItem, action: arguments.exportPrefs)))
+    index += 1
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_import, data: .init(name: "Import Preferences", color: theme.colors.text, type: .next, viewType: .lastItem, action: arguments.importPrefs)))
+    index += 1
+    footer("Writes or reads a JSON file of casmos.pref.* keys. Export may include a local DeepL key if one is set.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -197,6 +225,20 @@ func CasmosSettingsController(context: AccountContext) -> InputDataController {
         let next = all[(all.firstIndex(of: current)! + 1) % all.count]
         CasmosPreferences.translatorEngine = next
         updateState { _ in CasmosSettingsState.load() }
+    }, cycleDoubleTap: {
+        let current = CasmosPreferences.doubleTapAction
+        let all = CasmosDoubleTapAction.allCases
+        let next = all[(all.firstIndex(of: current)! + 1) % all.count]
+        CasmosPreferences.doubleTapAction = next
+        updateState { _ in CasmosSettingsState.load() }
+    }, exportPrefs: {
+        casmosExportPreferences(window: context.window)
+    }, importPrefs: {
+        casmosImportPreferences(window: context.window) { ok in
+            if ok {
+                updateState { _ in CasmosSettingsState.load() }
+            }
+        }
     })
 
     let signal = statePromise.get() |> deliverOnPrepareQueue |> map { state in

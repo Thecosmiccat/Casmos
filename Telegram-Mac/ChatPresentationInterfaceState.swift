@@ -13,6 +13,7 @@ import TelegramCore
 import TGUIKit
 import SwiftSignalKit
 import TelegramMedia
+import Casmos
 
 enum ChatPresentationInputContext {
     case none
@@ -356,6 +357,8 @@ enum ChatState : Equatable {
     case recording(ChatRecordingState)
     case restricted(String)
     case frozen((ChatInteraction)->Void)
+    /// Channel input bar collapsed (Casmos hide-channel-bottom-buttons).
+    case hidden
 }
 
 func ==(lhs:ChatState, rhs:ChatState) -> Bool {
@@ -416,6 +419,12 @@ func ==(lhs:ChatState, rhs:ChatState) -> Bool {
         }
     case .frozen:
         if case .frozen = rhs {
+            return true
+        } else {
+            return false
+        }
+    case .hidden:
+        if case .hidden = rhs {
             return true
         } else {
             return false
@@ -1013,6 +1022,9 @@ class ChatPresentationInterfaceState: Equatable {
                         chatInteraction.removeAndCloseChat()
                     }, right: nil, left: nil)
                 } else if !peer.canSendMessage(chatMode.isThreadMode), let notificationSettings = notificationSettings, peer.isChannel {
+                    if CasmosHooks.hideChannelBottomButtons {
+                        return .hidden
+                    }
                     return .action(notificationSettings.isMuted ? strings().chatInputUnmute : strings().chatInputMute, { chatInteraction in
                         chatInteraction.toggleNotifications(nil)
                     }, right: gift, left: monoforum)
@@ -1042,6 +1054,9 @@ class ChatPresentationInterfaceState: Equatable {
             }
             
             if let peer = peer, !peer.canSendMessage(chatMode.isThreadMode), let notificationSettings = notificationSettings, peer.isChannel {
+                if CasmosHooks.hideChannelBottomButtons {
+                    return .hidden
+                }
                 return .action(notificationSettings.isMuted ? strings().chatInputUnmute : strings().chatInputMute, { chatInteraction in
                     chatInteraction.toggleNotifications(nil)
                 }, right: nil, left: nil)

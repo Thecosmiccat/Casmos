@@ -19,6 +19,10 @@ public enum CasmosPrefKey {
         public static let sendWithCommandEnter = "casmos.pref.chat.sendWithCommandEnter"
         /// Sticker size. Applied to the 208pt chat sticker box via `CasmosHooks`.
         public static let stickerSize = "casmos.pref.chat.stickerSize"
+        /// Double-click action on a chat bubble. Default is reply (upstream Mac behavior).
+        public static let doubleTapAction = "casmos.pref.chat.doubleTapAction"
+        /// Hide Mute / Discuss / gift actions in the channel input bar. Header actions stay available.
+        public static let hideChannelBottomButtons = "casmos.pref.chat.hideChannelBottomButtons"
     }
 
     public enum Translator {
@@ -49,6 +53,8 @@ public enum CasmosPrefKey {
         Appearance.monochromeFolders,
         Chat.sendWithCommandEnter,
         Chat.stickerSize,
+        Chat.doubleTapAction,
+        Chat.hideChannelBottomButtons,
         Translator.enabled,
         Translator.engine,
         Translator.auto,
@@ -58,6 +64,14 @@ public enum CasmosPrefKey {
         Experimental.pauseVideoOnBackground,
         Experimental.verboseLogging
     ]
+
+    /// Keys stored as strings. Everything else in `allKeys` is a bool.
+    public static let stringKeys: Set<String> = [
+        Chat.stickerSize,
+        Chat.doubleTapAction,
+        Translator.engine,
+        Translator.deeplKey
+    ]
 }
 
 public enum CasmosStickerSize: String, CaseIterable {
@@ -66,6 +80,43 @@ public enum CasmosStickerSize: String, CaseIterable {
     case large
 
     public static let `default` = CasmosStickerSize.medium
+}
+
+public enum CasmosDoubleTapAction: String, CaseIterable {
+    case reply
+    case none
+    case reaction
+    case edit
+    case copy
+    case forward
+    case repeatMessage = "repeat"
+    case translate
+    case details
+
+    public static let `default` = CasmosDoubleTapAction.reply
+
+    public var displayName: String {
+        switch self {
+        case .reply:
+            return "Reply"
+        case .none:
+            return "None"
+        case .reaction:
+            return "Reaction"
+        case .edit:
+            return "Edit"
+        case .copy:
+            return "Copy"
+        case .forward:
+            return "Forward"
+        case .repeatMessage:
+            return "Repeat"
+        case .translate:
+            return "Translate"
+        case .details:
+            return "Details"
+        }
+    }
 }
 
 public enum CasmosTranslatorEngine: String, CaseIterable {
@@ -104,8 +155,14 @@ public enum CasmosPreferences {
     }
 
     public static func set(_ value: Bool, forKey key: String) {
+        set(value, forKey: key, notify: true)
+    }
+
+    public static func set(_ value: Bool, forKey key: String, notify: Bool) {
         defaults.set(value, forKey: key)
-        notifyChange()
+        if notify {
+            notifyChange()
+        }
     }
 
     public static func string(forKey key: String, default value: String) -> String {
@@ -113,8 +170,14 @@ public enum CasmosPreferences {
     }
 
     public static func set(_ value: String, forKey key: String) {
+        set(value, forKey: key, notify: true)
+    }
+
+    public static func set(_ value: String, forKey key: String, notify: Bool) {
         defaults.set(value, forKey: key)
-        notifyChange()
+        if notify {
+            notifyChange()
+        }
     }
 
     public static var stickerSize: CasmosStickerSize {
@@ -144,5 +207,70 @@ public enum CasmosPreferences {
 
     public static func toggle(_ key: String, default defaultValue: Bool = false) {
         set(!bool(forKey: key, default: defaultValue), forKey: key)
+    }
+
+    public static var doubleTapAction: CasmosDoubleTapAction {
+        get {
+            CasmosDoubleTapAction(rawValue: string(forKey: CasmosPrefKey.Chat.doubleTapAction, default: CasmosDoubleTapAction.default.rawValue)) ?? .default
+        }
+        set { set(newValue.rawValue, forKey: CasmosPrefKey.Chat.doubleTapAction) }
+    }
+
+    /// JSON export of known `casmos.pref.*` keys. May include the local DeepL key when set.
+    public static func exportJSON() -> Data? {
+        var prefs: [String: Any] = [:]
+        for key in CasmosPrefKey.allKeys {
+            if CasmosPrefKey.stringKeys.contains(key) {
+                prefs[key] = string(forKey: key, default: "")
+            } else {
+                prefs[key] = bool(forKey: key)
+            }
+        }
+        let payload: [String: Any] = [
+            "app": "casmos",
+            "version": 1,
+            "prefs": prefs
+        ]
+        return try? JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
+    }
+
+    /// Import a Casmos preferences JSON object. Unknown keys and non-`casmos.pref.*` keys are ignored.
+    @discardableResult
+    public static func importJSON(_ data: Data) -> Bool {
+        guard let object = try? JSONSerialization.jsonObject(with: data, options: []),
+              let root = object as? [String: Any] else {
+            return false
+        }
+        let prefs: [String: Any]
+        if let nested = root["prefs"] as? [String: Any] {
+            prefs = nested
+        } else if root.keys.contains(where: { $0.hasPrefix(CasmosPrefKey.prefix) }) {
+            prefs = root
+        } else {
+            return false
+        }
+        var applied = false
+        let known = Set(CasmosPrefKey.allKeys)
+        for (key, value) in prefs {
+            guard key.hasPrefix(CasmosPrefKey.prefix), known.contains(key) else {
+                continue
+            }
+            if CasmosPrefKey.stringKeys.contains(key) {
+                if let string = value as? String {
+                    set(string, forKey: key, notify: false)
+                    applied = true
+                }
+            } else if let flag = value as? Bool {
+                set(flag, forKey: key, notify: false)
+                applied = true
+            } else if let number = value as? NSNumber {
+                set(number.boolValue, forKey: key, notify: false)
+                applied = true
+            }
+        }
+        if applied {
+            notifyChange()
+        }
+        return applied
     }
 }

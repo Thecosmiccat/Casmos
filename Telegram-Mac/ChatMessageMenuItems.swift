@@ -592,6 +592,13 @@ func chatMenuItems(for message: Message, entry: ChatHistoryEntry?, textLayout: (
                 data.chatInteraction.setupReplyMessage(data.message, .init(messageId: data.message.id, quote: nil, todoItemId: todoItemId))
             }, itemImage: MenuAnimation.menu_reply.value, keyEquivalent: .cmdr))
         }
+
+        if casmosCanRepeatMessage(data.message, chatInteraction: data.chatInteraction), !isService {
+            let repeatMessages = useGroupIfNeeded ? (data.groupped ?? [data.message]) : [data.message]
+            firstBlock.append(ContextMenuItem("Repeat", handler: {
+                casmosRepeatMessages(repeatMessages, chatInteraction: data.chatInteraction)
+            }, itemImage: MenuAnimation.menu_copy.value))
+        }
         
         
         if let poll = data.message.anyMedia as? TelegramMediaPoll {
@@ -1024,6 +1031,9 @@ func chatMenuItems(for message: Message, entry: ChatHistoryEntry?, textLayout: (
            
             forwardItem.submenu = forwardMenu
             secondBlock.append(forwardItem)
+            secondBlock.append(ContextMenuItem("Forward without Quote", handler: {
+                casmosForwardWithoutQuote(msgs, chatInteraction: data.chatInteraction)
+            }, itemImage: MenuAnimation.menu_forward.value))
         }
         /*
          else if data.message.id.peerId.namespace == Namespaces.Peer.SecretChat, !data.message.containsSecretMedia {
@@ -1306,6 +1316,10 @@ func chatMenuItems(for message: Message, entry: ChatHistoryEntry?, textLayout: (
                 account.pendingUpdateMessageManager.cancel(messageId: messageId)
             }, itemImage: MenuAnimation.menu_clear_history.value))
         }
+
+        fifthBlock.append(ContextMenuItem("Details", handler: {
+            casmosShowMessageJSON(data.message, context: context)
+        }, itemImage: MenuAnimation.menu_more.value))
 
         if canDeleteMessage(data.message, account: account, chatLocation: data.chatLocation, mode: data.chatMode), !data.isLogInteraction {
             fifthBlock.append(ContextMenuItem(strings().messageContextDelete, handler: {

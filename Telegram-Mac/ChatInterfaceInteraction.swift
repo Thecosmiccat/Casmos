@@ -563,10 +563,10 @@ final class ChatInteraction : InterfaceObserver  {
                         $0.withoutInitialAction()
                     })
                 }
-            case let .forward(messageIds, inputState, _):
+            case let .forward(messageIds, inputState, _, hideNames):
                 update(animated: animated, {
                     $0.updatedInterfaceState({
-                        $0.withUpdatedForwardMessageIds(messageIds).withUpdatedInputState(inputState ?? $0.inputState)
+                        $0.withUpdatedForwardMessageIds(messageIds).withUpdatedInputState(inputState ?? $0.inputState).withUpdatedHideSendersName(hideNames, saveTempValue: false)
                     }).withoutInitialAction()
                 })
             case let .reply(subject, _):

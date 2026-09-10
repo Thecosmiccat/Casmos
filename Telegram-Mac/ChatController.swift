@@ -10138,6 +10138,9 @@ class ChatController: EditableViewController<ChatControllerView>, Notifable, Tab
             if case .block = chatInteraction.presentation.state {
                 return []
             }
+            if case .hidden = chatInteraction.presentation.state {
+                return []
+            }
             
             if let list = list, list.count > 0 {
                 

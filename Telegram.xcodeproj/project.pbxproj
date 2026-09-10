@@ -1669,6 +1669,7 @@
 		D0FCA7622434867400B72F18 /* PeerInfoHeadItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FCA7612434867400B72F18 /* PeerInfoHeadItem.swift */; };
 		D0FFC4AC23E184BA0044D305 /* ChatListFilterController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0FFC4AB23E184BA0044D305 /* ChatListFilterController.swift */; };
 		CA50A0010000000000000002 /* CasmosSettingsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50A0010000000000000001 /* CasmosSettingsController.swift */; };
+		CA50A0020000000000000002 /* CasmosChatActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50A0020000000000000001 /* CasmosChatActions.swift */; };
 		CA50A0010000000000000005 /* Casmos in Frameworks */ = {isa = PBXBuildFile; productRef = CA50A0010000000000000004 /* Casmos */; };
 /* End PBXBuildFile section */
 
@@ -3361,6 +3362,7 @@
 		D0FCA7612434867400B72F18 /* PeerInfoHeadItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeerInfoHeadItem.swift; sourceTree = "<group>"; };
 		D0FFC4AB23E184BA0044D305 /* ChatListFilterController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListFilterController.swift; sourceTree = "<group>"; };
 		CA50A0010000000000000001 /* CasmosSettingsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CasmosSettingsController.swift; sourceTree = "<group>"; };
+		CA50A0020000000000000001 /* CasmosChatActions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CasmosChatActions.swift; sourceTree = "<group>"; };
 		CA50A0010000000000000003 /* Casmos */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Casmos; path = packages/Casmos; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -5344,6 +5346,7 @@
 				C2271DD11DAF6DF5001792B6 /* EmptyChatViewController.swift */,
 				C2A71CE21DDB2EBD00C69F73 /* GeneralSettingsViewController.swift */,
 				CA50A0010000000000000001 /* CasmosSettingsController.swift */,
+				CA50A0020000000000000001 /* CasmosChatActions.swift */,
 				A767DD4023F2BB3200366F76 /* ShortcutListController.swift */,
 				27AAAD56299F5F9E00F70A9A /* LiteModeController.swift */,
 			);
@@ -8245,6 +8248,7 @@
 				C219E1F61D8C09130042F0C8 /* ChatMessageItem.swift in Sources */,
 				C2A71CE31DDB2EBD00C69F73 /* GeneralSettingsViewController.swift in Sources */,
 				CA50A0010000000000000002 /* CasmosSettingsController.swift in Sources */,
+				CA50A0020000000000000002 /* CasmosChatActions.swift in Sources */,
 				27F4F1782844D91E00A3B4D4 /* EmojiesController.swift in Sources */,
 				C2271D9C1DACC027001792B6 /* SearchController.swift in Sources */,
 				27F2BBCF27BEA4A400A37463 /* Auth_AwaitingReset.swift in Sources */,

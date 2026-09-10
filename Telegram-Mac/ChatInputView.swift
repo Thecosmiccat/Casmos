@@ -15,6 +15,7 @@ import InputView
 import Postbox
 import ColorPalette
 import TelegramMedia
+import Casmos
 
 protocol ChatInputDelegate : AnyObject {
     func inputChanged(height:CGFloat, animated:Bool);
@@ -109,6 +110,7 @@ class ChatInputView: View, Notifable {
     private let rtfAttachmentsDisposable = MetaDisposable()
     private let slowModeUntilDisposable = MetaDisposable()
     private let accessoryDisposable:MetaDisposable = MetaDisposable()
+    private var casmosPrefObserver: NSObjectProtocol?
 
     
     private var replyMarkupModel:ReplyMarkupNode?
@@ -229,6 +231,9 @@ class ChatInputView: View, Notifable {
     }
     
     func height(for width: CGFloat) -> CGFloat {
+        if case .hidden = chatState {
+            return 0
+        }
         let contentHeight:CGFloat = contentHeight(for: width)
         var sumHeight:CGFloat = contentHeight + (accessory.isVisibility() ? accessory.size.height + 5 : 0)
         if let markup = replyMarkupModel  {
@@ -270,6 +275,16 @@ class ChatInputView: View, Notifable {
         updateLayout(size: frame.size, transition: .immediate)
         
         self.updateInput(interaction.presentation, prevState: ChatPresentationInterfaceState(chatLocation: interaction.chatLocation, chatMode: interaction.mode), animated: false, initial: true)
+
+        if casmosPrefObserver == nil {
+            casmosPrefObserver = NotificationCenter.default.addObserver(forName: CasmosPreferences.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+                guard let self else {
+                    return
+                }
+                self.needUpdateChatState(with: self.chatInteraction.presentation.state, true)
+                self.inputDidUpdateLayout(animated: true)
+            }
+        }
 
     }
     
@@ -601,6 +616,9 @@ class ChatInputView: View, Notifable {
     }
     
     func contentHeight(for width: CGFloat) -> CGFloat {
+        if case .hidden = chatState {
+            return 0
+        }
         return chatState == .normal || chatState == .editing ? textViewSize(width).0.height : CGFloat(textView.min_height)
     }
     
@@ -685,6 +703,10 @@ class ChatInputView: View, Notifable {
                 performSubviewRemoval(view, animated: animated)
                 blockText = nil
             }
+        case .hidden:
+            self.contentView.isHidden = true
+            self.contentView.change(opacity: 0.0, animated: animated)
+            self.accessory.change(opacity: 0.0, animated: animated)
         case let .action(text, action, rightAddition, leftAddition):
             self.messageActionsPanelView?.removeFromSuperview()
             self.blockedActionView?.removeFromSuperview()
@@ -876,6 +898,9 @@ class ChatInputView: View, Notifable {
                 textView.isHidden = false
             case let .block(string):
                 textView.isHidden = !string.isEmpty
+            case .hidden:
+                textView.isHidden = true
+                textView.inputView.isEditable = false
             default:
                 textView.inputView.isEditable = false
             }
@@ -1109,6 +1134,10 @@ class ChatInputView: View, Notifable {
     
     
     func inputDidUpdateLayout(animated: Bool) {
+        if case .hidden = chatState {
+            delegate?.inputChanged(height: 0, animated: animated)
+            return
+        }
         let contentHeight:CGFloat = contentHeight(for: self.frame.width)
         var sumHeight:CGFloat = contentHeight + (accessory.isVisibility() ? accessory.size.height + 5 : 0)
         if let markup = replyMarkupModel  {
@@ -1175,6 +1204,9 @@ class ChatInputView: View, Notifable {
         self.rtfAttachmentsDisposable.dispose()
         self.slowModeUntilDisposable.dispose()
         self.chatInteraction.remove(observer: self)
+        if let casmosPrefObserver {
+            NotificationCenter.default.removeObserver(casmosPrefObserver)
+        }
     }
     
     func textViewSize(_ width: CGFloat) -> (NSSize, CGFloat) {
