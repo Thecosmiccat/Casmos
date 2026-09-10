@@ -91,7 +91,7 @@ func updateApplication(sharedContext: SharedAccountContext) {
     let state = stateValue.with {$0.loadingState}
     switch state {
     case let .readyToInstall(item):
-        var text: String = "Telegram was updated to \(item.versionTitle.lowercased())"
+        var text: String = "Casmos was updated to \(item.versionTitle.lowercased())"
         text += "\n\n"
         
         text += item.updateText
@@ -283,7 +283,7 @@ private final class InternalUpdaterDownloader : SPUDownloaderSession {
     }
     
     override func suggestedFilename() -> String! {
-        return "Telegram.app.zip"
+        return "Casmos.app.zip"
     }
     
     
@@ -380,7 +380,7 @@ private final class InternalUpdateDriver : ExternalUpdateDriver {
     override func downloadUpdate() {
         let downloader = InternalUpdaterDownloader(context: self.context, updateItem: self.updateItem, delegate: self)
         self.download = downloader
-        let fileName = "Telegram \(self.updateItem.versionString ?? "")"
+        let fileName = "Casmos \(self.updateItem.versionString ?? "")"
 
         downloader.startPersistentDownload(with: SPUURLRequest(), bundleIdentifier: host.bundle.bundleIdentifier!, desiredFilename: fileName)
     }
