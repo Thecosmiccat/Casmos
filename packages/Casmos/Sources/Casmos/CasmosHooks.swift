@@ -67,7 +67,7 @@ public enum CasmosHooks {
     }
 
     public static var verboseLogging: Bool {
-        CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.verboseLogging)
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.verboseLogging, default: false)
     }
 
     /// Chat list avatar side. Compact is 36pt in a 56pt row.
@@ -85,6 +85,19 @@ public enum CasmosHooks {
 
     public static var chatListRowMargin: Double {
         compactChatList ? 6 : 9
+    }
+
+    /// One-line topic rows match chat-list height (title line is ~17pt).
+    public static func topicListRowHeight(titleHeight: Double) -> Double {
+        chatListRowHeight - 17 + titleHeight
+    }
+
+    public static var topicListIconSize: Double {
+        compactChatList ? 24 : 30
+    }
+
+    public static var searchTopicRowHeight: Double {
+        compactChatList ? 40 : 50
     }
 
     public static func log(_ tag: String, _ message: String) {

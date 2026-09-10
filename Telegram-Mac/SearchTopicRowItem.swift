@@ -10,6 +10,7 @@ import Foundation
 import TelegramCore
 import TGUIKit
 import TelegramMedia
+import Casmos
 
 final class SearchTopicRowItem: GeneralRowItem {
     let item: EngineChatList.Item
@@ -28,7 +29,7 @@ final class SearchTopicRowItem: GeneralRowItem {
         
         self.nameLayout = .init(.initialize(string: title, color: theme.colors.text, font: .medium(.text)), maximumNumberOfLines: 1)
         self.nameSelectedLayout = .init(.initialize(string: title, color: theme.colors.underSelectedColor, font: .medium(.text)), maximumNumberOfLines: 1)
-        super.init(initialSize, height: 50, stableId: stableId, type: .none, viewType: .legacy, action: action, border: [.Bottom])
+        super.init(initialSize, height: CGFloat(CasmosHooks.searchTopicRowHeight), stableId: stableId, type: .none, viewType: .legacy, action: action, border: [.Bottom])
         _ = makeSize(initialSize.width)
     }
     
@@ -40,12 +41,20 @@ final class SearchTopicRowItem: GeneralRowItem {
             return peerId.toInt64()
         }
     }
+
+    var photoSize: CGFloat {
+        CGFloat(CasmosHooks.topicListIconSize)
+    }
+
+    var textInset: CGFloat {
+        10 + photoSize + 10
+    }
     
     override func makeSize(_ width: CGFloat, oldWidth: CGFloat = 0) -> Bool {
         _ = super.makeSize(width, oldWidth: oldWidth)
         
-        self.nameLayout.measure(width: width - 50 - 10)
-        self.nameSelectedLayout.measure(width: width - 50 - 10)
+        self.nameLayout.measure(width: width - textInset - 10)
+        self.nameSelectedLayout.measure(width: width - textInset - 10)
 
         return true
     }
@@ -149,9 +158,10 @@ private class SearchTopicRowView : TableRowView {
                 self.avatarControl = nil
             }
             
-            let size = NSMakeSize(30, 30)
+            let size = NSMakeSize(item.photoSize, item.photoSize)
+            let y = max(6, (item.height - size.height) / 2)
             let current: InlineStickerItemLayer
-            if let layer = self.inlineTopicPhotoLayer, layer.file?.fileId.id == info.icon {
+            if let layer = self.inlineTopicPhotoLayer, layer.file?.fileId.id == info.icon, layer.size == size {
                 current = layer
             } else {
                 if let layer = inlineTopicPhotoLayer {
@@ -167,9 +177,8 @@ private class SearchTopicRowView : TableRowView {
                 current.superview = containerView
                 self.layer?.addSublayer(current)
                 self.inlineTopicPhotoLayer = current
-                
-                current.frame = CGRect(origin: CGPoint(x: 10, y: 10), size: size)
             }
+            current.frame = CGRect(origin: CGPoint(x: 10, y: y), size: size)
         } else {
             if let inlineTopicPhotoLayer {
                 performSublayerRemoval(inlineTopicPhotoLayer, animated: animated)
@@ -181,11 +190,11 @@ private class SearchTopicRowView : TableRowView {
                 current = view
             } else {
                 current = AvatarControl(font: .avatar(4))
-                current.setFrameSize(NSMakeSize(30, 30))
-                current.setFrameOrigin(NSMakePoint(10, 10))
                 self.avatarControl = current
                 addSubview(current)
             }
+            current.setFrameSize(NSMakeSize(item.photoSize, item.photoSize))
+            current.setFrameOrigin(NSMakePoint(10, max(6, (item.height - item.photoSize) / 2)))
             current.setPeer(account: item.context.account, peer: item.item.renderedPeer.chatOrMonoforumMainPeer?._asPeer())
         }
         
@@ -194,8 +203,14 @@ private class SearchTopicRowView : TableRowView {
     override func layout() {
         super.layout()
         containerView.frame = bounds
-        nameView.centerY(x: 50)
-        borderView.frame = NSMakeRect(50, frame.height - .borderSize, frame.width - 50, .borderSize)
+        let inset: CGFloat
+        if let item = item as? SearchTopicRowItem {
+            inset = item.textInset
+        } else {
+            inset = 50
+        }
+        nameView.centerY(x: inset)
+        borderView.frame = NSMakeRect(inset, frame.height - .borderSize, frame.width - inset, .borderSize)
     }
     
     override func updateAnimatableContent() -> Void {

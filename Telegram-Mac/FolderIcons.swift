@@ -268,6 +268,17 @@ func casmosFolderTagFillColor(_ rawValue: Int) -> NSColor {
     return theme.colors.peerColors(rawValue % 7).bottom
 }
 
+func casmosFolderTabTitleColor(_ rawValue: Int?, selected: Bool, fallbackActive: NSColor, fallbackInactive: NSColor) -> NSColor {
+    guard let rawValue = rawValue else {
+        return selected ? fallbackActive : fallbackInactive
+    }
+    if CasmosHooks.monochromeFolders {
+        return selected ? fallbackActive : fallbackInactive
+    }
+    let fill = theme.colors.peerColors(rawValue % 7).bottom
+    return selected ? fill : fill.withAlphaComponent(0.75)
+}
+
 final class FolderIcon {
     let emoticon: FolderEmoticon
     

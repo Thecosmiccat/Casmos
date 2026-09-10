@@ -480,9 +480,9 @@ class AppDelegate: NSResponder, NSApplicationDelegate, NSUserNotificationCenterD
         logger.logToFile = UserDefaults.standard.bool(forKey: "enablelogs")
         
         #if DEBUG
-            MTLogSetEnabled(true)
+            MTLogSetEnabled(CasmosHooks.verboseLogging)
             logger.logToConsole = false
-            logger.logToFile = true
+            logger.logToFile = CasmosHooks.verboseLogging
         #endif
         
         initializeMimeStore()

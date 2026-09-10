@@ -1430,6 +1430,7 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
         
                 
          if let item = item as? ChatListRowItem {
+             applyAvatarFrames(item)
              
              let animated = animated && previous?.splitState == item.splitState
                           
@@ -1776,7 +1777,14 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
              case let .topic(_, data):
                  
                  if item.titleMode == .normal {
-                     let value: CGFloat = item.appearMode == .short && !item.shouldHideContent ? 20 : 30
+                     let value: CGFloat
+                     if item.appearMode == .short && !item.shouldHideContent {
+                         value = 16
+                     } else if item.shouldHideContent {
+                         value = 30
+                     } else {
+                         value = CGFloat(CasmosHooks.topicListIconSize)
+                     }
                      let size = NSMakeSize(value, value)
                      let current: InlineStickerItemLayer
                      let forumIconFile = ForumUI.makeIconFile(title: data.info.title, iconColor: data.info.iconColor, isGeneral: item.mode.isGeneralTopic)
@@ -1805,7 +1813,8 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
                          if item.appearMode == .short {
                              current.frame = CGRect(origin: NSMakePoint(10, item.margin), size: size)
                          } else {
-                             current.frame = CGRect(origin: NSMakePoint(10, 12), size: size)
+                             let y = max(6, (item.height - size.height) / 2)
+                             current.frame = CGRect(origin: NSMakePoint(10, y), size: size)
                          }
                          current.superview = contentView
                          self.contentView.layer?.addSublayer(current)
@@ -1854,11 +1863,12 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
                 photo.setState(account: item.context.account, state: .Empty)
                 photo.setSignal(generateEmptyPhoto(photo.frame.size, type: .icon(colors: theme.colors.peerColors(5), icon: icon, iconSize: icon.backingSize.aspectFitted(NSMakeSize(photo.frame.size.width - 22, photo.frame.size.height - 22)), cornerRadius: nil), bubble: false) |> map {($0, false)})
             } else if case .ArchivedChats = item.photo {
+                let archiveSize = max(24, item.avatarSize - (item.avatarStoryIndicator != nil ? 6 : 0))
                 if self.archivedPhoto == nil {
-                    self.archivedPhoto = LAnimationButton(animation: "archiveAvatar", size: NSMakeSize(46, 46), offset: NSMakeSize(0, 0))
+                    self.archivedPhoto = LAnimationButton(animation: "archiveAvatar", size: NSMakeSize(archiveSize, archiveSize), offset: NSMakeSize(0, 0))
                     photoContainer.addSubview(self.archivedPhoto!, positioned: .above, relativeTo: self.photo)
                 }
-                self.archivedPhoto?.frame = self.photo.photoRect
+                self.archivedPhoto?.frame = NSMakeRect(0, 0, archiveSize, archiveSize)
                 self.archivedPhoto?.userInteractionEnabled = false
                 self.archivedPhoto?.set(keysToColor: ["box2.box2.Fill 1"], color: item.hideStatus?.isHidden == false ? theme.colors.revealAction_accent_background : theme.colors.grayForeground)
                 self.archivedPhoto?.background = item.hideStatus?.isHidden == false ? theme.colors.revealAction_accent_background : theme.colors.grayForeground
@@ -2952,7 +2962,9 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
             if item.appearMode == .short {
                 self.inlineTopicPhotoLayer?.frame = NSMakeRect(10, item.margin, 16, 16)
             } else {
-                self.inlineTopicPhotoLayer?.frame = NSMakeRect(10, 12, 30, 30)
+                let icon = CGFloat(CasmosHooks.topicListIconSize)
+                let y = max(6, (item.height - icon) / 2)
+                self.inlineTopicPhotoLayer?.frame = NSMakeRect(10, y, icon, icon)
             }
         }
         

@@ -17,14 +17,12 @@ import MtProtoKit
 
 func applyCasmosVerboseLogging() {
     let on = CasmosHooks.verboseLogging
+    MTLogSetEnabled(on)
+    Logger.shared.logToConsole = on
+    Logger.shared.logToFile = on
+    UserDefaults.standard.set(on, forKey: "enablelogs")
     if on {
-        MTLogSetEnabled(true)
-        Logger.shared.logToConsole = true
-        Logger.shared.logToFile = true
-        UserDefaults.standard.set(true, forKey: "enablelogs")
         CasmosHooks.log("logging", "enabled")
-    } else {
-        Logger.shared.logToConsole = false
     }
 }
 
@@ -73,7 +71,7 @@ private struct CasmosSettingsState: Equatable {
             autoLockOnSleep: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.autoLockOnSleep),
             hideContentInAppSwitcher: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.hideContentInAppSwitcher),
             pauseVideoOnBackground: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.pauseVideoOnBackground),
-            verboseLogging: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.verboseLogging),
+            verboseLogging: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.verboseLogging, default: false),
             deeplKey: deeplKey
         )
     }
@@ -128,7 +126,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     header("APPEARANCE")
     toggleRow(id: _id_compact_list, name: "Compact Chat List", value: state.compactChatList, key: CasmosPrefKey.Appearance.compactChatList, viewType: .firstItem)
     toggleRow(id: _id_mono_folders, name: "Monochrome Folders", value: state.monochromeFolders, key: CasmosPrefKey.Appearance.monochromeFolders, viewType: .lastItem)
-    footer("Compact Chat List uses 56pt rows. Monochrome Folders draws folder tags in gray instead of assigned colors.")
+    footer("Compact Chat List uses 56pt rows. Monochrome Folders draws folder tags and folder tab titles in gray instead of assigned colors.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -165,7 +163,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     header("EXPERIMENTAL")
     toggleRow(id: _id_pause_video, name: "Pause Video in Background", value: state.pauseVideoOnBackground, key: CasmosPrefKey.Experimental.pauseVideoOnBackground, viewType: .firstItem)
     toggleRow(id: _id_verbose, name: "Verbose Logging", value: state.verboseLogging, key: CasmosPrefKey.Experimental.verboseLogging, viewType: .lastItem)
-    footer("Pauses inline chat video, GIFs, and round videos when Casmos is inactive. Verbose Logging writes Casmos and network logs to the console and log files.")
+    footer("Pauses inline chat video, GIFs, and round videos when Casmos is inactive. Verbose Logging is off by default; when on it writes Casmos and network logs to the console and log files.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1

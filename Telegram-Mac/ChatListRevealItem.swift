@@ -248,11 +248,12 @@ final class ChatListRevealView : TableStickView {
             let icon: CGImage? = generateIcon(tab)
             let title: String = tab.title
             let selected = item.selected == tab
+            let titleColor = casmosFolderTabTitleColor(tab.data?.color.map { Int($0.rawValue) }, selected: selected, fallbackActive: segmentTheme.activeText, fallbackInactive: segmentTheme.inactiveText)
            
             items.append(ScrollableSegmentItem(title: title, index: index, uniqueId: Int64(tab.id), selected: selected, insets: insets, icon: icon, theme: segmentTheme, equatable: UIEquatable(unreadCount), customTextView: {
                 
                 let attr = NSMutableAttributedString()
-                attr.append(string: title, color: selected ? segmentTheme.activeText : segmentTheme.inactiveText, font: segmentTheme.textFont)
+                attr.append(string: title, color: titleColor, font: segmentTheme.textFont)
                 InlineStickerItem.apply(to: attr, associatedMedia: [:], entities: tab.entities, isPremium: context.isPremium, playPolicy: tab.enableAnimations ? nil : .framesCount(1))
 
                 let layout = TextViewLayout(attr)

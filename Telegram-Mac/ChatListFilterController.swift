@@ -907,11 +907,12 @@ private func chatListFilterEntries(state: State, includePeers: [Peer], excludePe
         
         let currentColor = state.filter.data?.color
         let selected: NSColor? = currentColor != nil ? colors[Int(currentColor!.rawValue)] : nil
+        let titleColor: NSColor? = currentColor != nil ? casmosFolderTagFillColor(Int(currentColor!.rawValue)) : nil
 
         let rightText: NSAttributedString?
         if state.filter.data?.color != nil {
             let attr = NSMutableAttributedString()
-            attr.append(string: state.filter.title, color: selected, font: .bold(11))
+            attr.append(string: state.filter.title, color: titleColor, font: .bold(11))
             InlineStickerItem.apply(to: attr, associatedMedia: [:], entities: state.filter.entities, isPremium: true)
             rightText = attr
         } else {
@@ -919,7 +920,7 @@ private func chatListFilterEntries(state: State, includePeers: [Peer], excludePe
         }
         
         
-        entries.append(.desc(sectionId: sectionId, index: index, text: .plain(strings().chatListFolderColorTitle), data: .init(color: theme.colors.listGrayText, viewType: .textTopItem, rightItem: .init(isLoading: false, text: rightText, action: nil, update: nil, alignToText: true, wrap: selected?.withAlphaComponent(0.1)), context: arguments.context)))
+        entries.append(.desc(sectionId: sectionId, index: index, text: .plain(strings().chatListFolderColorTitle), data: .init(color: theme.colors.listGrayText, viewType: .textTopItem, rightItem: .init(isLoading: false, text: rightText, action: nil, update: nil, alignToText: true, wrap: titleColor?.withAlphaComponent(0.1)), context: arguments.context)))
         index += 1
         
       

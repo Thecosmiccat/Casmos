@@ -1,68 +1,144 @@
 # How to build Casmos for macOS
 
-Casmos is a branded fork of [TelegramSwift](https://github.com/overtake/TelegramSwift). Use a Mac with a recent Xcode. This environment does not compile the Mac app.
+Casmos is a branded fork of [TelegramSwift](https://github.com/overtake/TelegramSwift). The product name is **Casmos**. The app bundle ID is `app.casmos.macos`.
 
-## 1. Clone with submodules
+You need a Mac with a recent Xcode. This Linux environment does not compile the Mac app.
+
+A **free Apple ID** is enough for a local debug build (Xcode Personal Team). You do not need a paid Apple Developer Program membership to compile and run on your own Mac.
+
+`api_id` / `api_hash` stay placeholders in this tree until Jeffrey provides them. Do not invent or commit keys. DeepL is **not** required for a basic run.
+
+## 1. Clone with nested submodules
+
+HTTPS clone, recursive, so `telegram-ios` and `tg_owt` nested modules come along:
 
 ```
 git clone https://github.com/Thecosmiccat/Casmos.git --recurse-submodules
 cd Casmos
-```
-
-If you already cloned without submodules:
-
-```
 git submodule update --init --recursive
 ```
 
-`.gitmodules` uses HTTPS. If a submodule still points at `git@`, switch that URL to HTTPS.
+If you already cloned without `--recurse-submodules`:
+
+```
+git submodule sync --recursive
+git submodule update --init --recursive
+```
+
+If `configure_frameworks.sh` later fails because `tg_owt` or `telegram-ios` is incomplete:
+
+```
+git submodule update --init --recursive --force
+cd submodules/tg_owt && git submodule update --init --recursive && cd ../..
+cd submodules/telegram-ios && git submodule update --init --recursive && cd ../..
+```
+
+`.gitmodules` uses HTTPS. If a nested submodule still prints `git@github.com` / “Permission denied (publickey)”:
+
+```
+git config --global url."https://github.com/".insteadOf "git@github.com:"
+git submodule sync --recursive
+git submodule update --init --recursive
+```
+
+Confirm the top-level modules are present (`submodules/telegram-ios`, `submodules/tg_owt`, `submodules/tgcalls`, `submodules/Sparkle`, and the others listed in `.gitmodules`) before continuing.
 
 ## 2. Homebrew tools
 
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-brew install cmake ninja openssl@1.1 zlib autoconf libtool automake yasm pkg-config
+brew install cmake ninja openssl@1.1 zlib autoconf libtool automake yasm nasm meson pkg-config
 ```
+
+`nasm` is used by OpenH264; `meson` is used by dav1d. If `openssl@1.1` is unavailable from Homebrew, `brew install openssl` is enough for the host tools — the in-tree `core-xprojects/openssl` project still builds the copy the app links.
 
 ## 3. Configure frameworks
 
-In `scripts/rebuild`, set the rebuild flag from `no` to `yes`, then:
+`scripts/rebuild` is `no` on a clean tree. Leave it `no` for the first configure. Set it to `yes` only to wipe leftover `core-xprojects/*/build` dirs after a failed run.
 
 ```
+# After a failed configure only:
+#   printf 'yes\n' > scripts/rebuild
+#   rm -rf core-xprojects/webrtc/build
 sh ./scripts/configure_frameworks.sh
 ```
 
-## 4. API credentials (required)
+That script needs Xcode’s command-line tools (`xcode-select -p` should point at an Xcode.app). It builds OpenH264, OpenSSL, libopus, libvpx, Mozjpeg, libwebp, dav1d, ffmpeg, webrtc, and tde2e, then copies headers. First run can take a long time.
 
-Open `packages/ApiCredentials/Sources/ApiCredentials/Config.swift`.
+If webrtc configure dies on a half-filled build dir:
 
-- Replace `CASMOS_PLACEHOLDER_API_ID` (currently `apiId` returns `0`) with your own integer api_id.
-- Replace `CASMOS_PLACEHOLDER_API_HASH` with your own api_hash string.
-- Set `teamId` to your 10-character Apple Team ID so it matches Xcode application groups (`$(TeamIdentifierPrefix)` in entitlements).
+```
+rm -rf core-xprojects/webrtc/build
+cd submodules/tg_owt && git submodule update --init --recursive && cd ../..
+printf 'yes\n' > scripts/rebuild
+sh ./scripts/configure_frameworks.sh
+```
 
-Get credentials at https://core.telegram.org/api/obtaining_api_id. Never commit real secrets.
+Xcode 26: install the Metal Toolchain from Xcode → Settings → Components if the webrtc/ffmpeg steps complain about `metal`.
 
-Also set the same Team ID in:
+When it finishes, set `scripts/rebuild` back to `no`.
 
+## 4. API credentials — placeholders until Jeffrey provides them
+
+Leave these values as-is for a compile and first launch. Login and network will not work until real credentials are pasted. **Do not commit real secrets.**
+
+When Jeffrey sends `api_id` / `api_hash`, paste them only in:
+
+`packages/ApiCredentials/Sources/ApiCredentials/Config.swift`
+
+- `apiId` — replace `0` (marker `CASMOS_PLACEHOLDER_API_ID`) with the integer api_id.
+- `apiHash` — replace `"CASMOS_PLACEHOLDER_API_HASH"` with the api_hash string.
+
+Do not put keys anywhere else. Do not replace the placeholders in git.
+
+### Team ID (local signing)
+
+Xcode → target **Telegram** (product name Casmos) → Signing & Capabilities → Team. The 10-character Team ID must match these placeholders (`CASMOS_PLACEHOLDER_TEAM_ID` / `CASM0STEAM`):
+
+- `packages/ApiCredentials/Sources/ApiCredentials/Config.swift` (`teamId`)
 - `Telegram-Mac/LocalAuth.swift` (`bundleSeedId`)
 - `submodules/BuildConfig/Sources/BuildConfig.m` (`bundleSeedId`)
 
-## 5. Open in Xcode
+A free Apple ID Personal Team ID is fine for a local run. App Groups use `$(TeamIdentifierPrefix)app.casmos.macos`. If Xcode reports an App Group capability error on a free account, you can still compile; some multi-process features may not activate until a paid team is used.
 
-Open `Telegram-Mac.xcworkspace` (not the `.xcodeproj` alone) in the latest Xcode.
+Get your own keys later at https://core.telegram.org/api/obtaining_api_id only if you are not waiting on Jeffrey. Never commit them.
 
-- Signing: select your team on the Casmos (Telegram) target, Share, and FocusIntents.
-- Bundle IDs are already `app.casmos.macos`, `app.casmos.macos.Share`, and `app.casmos.macos.FocusIntents`.
+## 5. Open in Xcode and sign
+
+Open **`Telegram-Mac.xcworkspace`** (not the `.xcodeproj` alone) in the latest Xcode.
+
+- Signing: Automatic signing. Select your team (free Apple ID Personal Team is OK) on:
+  - **Telegram** target (display name Casmos, bundle `app.casmos.macos`)
+  - **TelegramShare** (`app.casmos.macos.Share`)
+  - **FocusIntents** (`app.casmos.macos.FocusIntents`)
 - Display name is Casmos (`PRODUCT_NAME` / `CFBundleDisplayName`).
 - Sparkle `SFEED_URL` and `APPCENTER_SECRET` are blank on purpose.
 
-Build the **Telegram** target. The product name is Casmos.
+Scheme / target to build: **Telegram**. The built app is **Casmos.app**, bundle ID `app.casmos.macos`.
 
-## Translator (Mac QA)
+## 6. First launch / Gatekeeper
+
+A local unsigned or ad-hoc signed build is expected. macOS Gatekeeper will often block the first open.
+
+- In Finder: right-click **Casmos.app** → **Open** → **Open**.
+- Or System Settings → Privacy & Security → **Open Anyway**.
+- If the app was downloaded/copied and still quarantined:
+
+```
+xattr -cr /path/to/Casmos.app
+```
+
+Then right-click Open again. This is a local unsigned build, not a notarized distribution.
+
+## DeepL is not required
+
+A basic run does not need a DeepL key, the DeepL engine, or translator enabled. Casmos Settings → Translator stays off. Leave the DeepL field empty (`CASMOS_PLACEHOLDER_DEEPL_KEY` is treated as unset).
+
+## Translator (optional Mac QA)
 
 Casmos Settings → Translator: enable, cycle Engine (`system` / `extra` / `yandex` / `deepl`), optional Auto-translate Chats, optional DeepL key field. Message context menu Translate uses the selected engine. Poll and todo lists use the local engine when translator is enabled. DeepL without a local key uses the public web endpoint.
 
-Casmos Settings → General: Keep Original File Names uses the document name in Save and Downloads. Appearance: Compact Chat List (56pt rows) and Monochrome Folders (gray folder tags). Experimental: Verbose Logging writes to the console and log files.
+Casmos Settings → General: Keep Original File Names uses the document name in Save and Downloads. Appearance: Compact Chat List (56pt rows) and Monochrome Folders (gray folder tags). Experimental: Verbose Logging is **off by default**; turn it on only when you want console and log files.
 
 This Linux environment cannot compile the Mac app.
 
@@ -72,7 +148,7 @@ In-app Sparkle / App Center feeds that pointed at osx.telegram.org, mac-updates.
 
 ## Fork notes from upstream
 
-1. Use your own API ID.
+1. Use your own API ID (Jeffrey’s keys in this project; do not use Telegram’s).
 2. Do not call the app Telegram.
 3. Do not use the official white paper-plane logo.
 4. Follow Telegram’s [security guidelines](https://core.telegram.org/mtproto/security_guidelines).

@@ -1409,7 +1409,7 @@ class ChatListRowItem: TableRowItem {
                 if appearMode == .short {
                     return 35
                 } else {
-                    return 30 + (10 * 2.0)
+                    return CGFloat(CasmosHooks.topicListIconSize) + (10 * 2.0)
                 }
             }
         }
@@ -2275,7 +2275,7 @@ class ChatListRowItem: TableRowItem {
         case .chat, .savedMessages:
             return CGFloat(CasmosHooks.chatListRowHeight)
         case .topic:
-            return 53 + (displayLayout?.layoutSize.height ?? 17)
+            return CGFloat(CasmosHooks.topicListRowHeight(titleHeight: Double(displayLayout?.layoutSize.height ?? 17)))
         }
     }
     

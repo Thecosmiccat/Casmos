@@ -7,7 +7,7 @@
 - Casmos Settings shell: General, Appearance, Chat, Translator, Passcode, Experimental (`casmos.pref.*`)
 - Modular `packages/Casmos`
 - Official Sparkle and App Center update endpoints blanked
-- Mac Xcode build notes in INSTALL.md
+- Mac Xcode build notes in INSTALL.md (free Apple ID, Gatekeeper, recursive submodules, placeholders until Jeffrey provides keys)
 - Send with Command-Return, confirm external links, lock on sleep, hide content in App Switcher
 
 ## P1 (thin hooks in this tree)
@@ -17,9 +17,9 @@
 - Pause video when the app is in the background: inline chat video, GIFs, and round videos pause when Casmos is not the active app.
 - Multi-engine translator: `yandex` and `deepl` are local engines (DeepL uses `casmos.pref.translator.deeplKey` when set). Message context menu Translate uses the selected engine when translator is enabled. Auto-translate chats is `casmos.pref.translator.auto`. Poll and todo messages use the local engine when translator is on (official attributes still apply when present).
 - Keep Original File Names: Save / Downloads prefer the document name (`casmos.pref.general.keepOriginalFileNames`).
-- Compact Chat List: 56pt rows and 36pt avatars (`casmos.pref.appearance.compactChatList`).
-- Monochrome Folders: folder tags use gray instead of assigned colors (`casmos.pref.appearance.monochromeFolders`).
-- Verbose Logging: console and file logs (`casmos.pref.experimental.verboseLogging`).
+- Compact Chat List: 56pt rows and 36pt avatars (`casmos.pref.appearance.compactChatList`). Topic lists use the same row height.
+- Monochrome Folders: folder tags and folder tab titles use gray instead of assigned colors (`casmos.pref.appearance.monochromeFolders`).
+- Verbose Logging: off by default; console and file logs when enabled (`casmos.pref.experimental.verboseLogging`).
 
-## Later
+## Later (needs Jeffrey / live API — not in this overnight branch)
 - A signed Mac build with real `api_id` / `api_hash` / Team ID (placeholders stay in this tree)

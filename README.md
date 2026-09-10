@@ -18,13 +18,19 @@ This repository is licensed under the GNU General Public License, version 2.0. S
 | Focus Intents | `app.casmos.macos.FocusIntents` |
 | Preference keys | `casmos.pref.*` |
 
-API credentials in this tree are **placeholders only** (`CASMOS_PLACEHOLDER_*`). Obtain your own [api_id / api_hash](https://core.telegram.org/api/obtaining_api_id) before building a usable client. Do not commit real secrets.
+API credentials in this tree are **placeholders only** (`CASMOS_PLACEHOLDER_*`) until Jeffrey provides `api_id` / `api_hash`. Paste them in `packages/ApiCredentials/Sources/ApiCredentials/Config.swift`. Do not commit real secrets. DeepL is not required for a basic run.
 
 Official Sparkle and App Center update endpoints are blanked. Casmos does not ship in-app updates from osx.telegram.org or App Center.
 
 ## Build
 
-See [INSTALL.md](INSTALL.md) for the Mac / Xcode steps.
+See [INSTALL.md](INSTALL.md) for the local Mac / Xcode path: recursive submodules, a free Apple ID, Gatekeeper “Open Anyway”, and where to paste API keys later.
+
+| | |
+| --- | --- |
+| Product / display name | Casmos |
+| Target to build | **Telegram** in `Telegram-Mac.xcworkspace` |
+| Bundle ID | `app.casmos.macos` |
 
 ## Settings
 
