@@ -1672,6 +1672,7 @@
 		CA50A0020000000000000002 /* CasmosChatActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50A0020000000000000001 /* CasmosChatActions.swift */; };
 		CA50A0030000000000000002 /* CasmosAccountPasscodeUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50A0030000000000000001 /* CasmosAccountPasscodeUI.swift */; };
 		CA50A0010000000000000005 /* Casmos in Frameworks */ = {isa = PBXBuildFile; productRef = CA50A0010000000000000004 /* Casmos */; };
+		CA50A0040000000000000001 /* Casmos in Frameworks */ = {isa = PBXBuildFile; productRef = CA50A0040000000000000002 /* Casmos */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -3400,6 +3401,7 @@
 				27A7FBDC2CF73E8600AE9432 /* libdav1d.a in Frameworks */,
 				278926CB27550CA100923087 /* KeyboardKey in Frameworks */,
 				2745FED9274F95CF00546B05 /* ApiCredentials in Frameworks */,
+				CA50A0040000000000000001 /* Casmos in Frameworks */,
 				270375EB2C9CCE11003EC235 /* InAppSettings in Frameworks */,
 				270376112CA1ECF1003EC235 /* RingBuffer in Frameworks */,
 				27D43DC5279191B0006968A6 /* OpenSSLEncryption in Frameworks */,
@@ -6970,6 +6972,7 @@
 				2745FED4274F952600546B05 /* Localization */,
 				2745FED6274F952D00546B05 /* ThemeSettings */,
 				2745FED8274F95CF00546B05 /* ApiCredentials */,
+				CA50A0040000000000000002 /* Casmos */,
 				278926C227550BB200923087 /* ColorPalette */,
 				278926C427550C8200923087 /* FoundationUtils */,
 				278926C627550C8800923087 /* Strings */,
@@ -7007,7 +7010,7 @@
 				C23D0D7B1F1A648600AF5151 /* Fonts */,
 				C2786FF51FEC128F001FB044 /* Palettes */,
 				C2D85FD51F25FE5400EDEA15 /* ShellScript */,
-				9F193BD82130B968001C0800 /* ShellScript */,
+				9F193BD82130B968001C0800 /* Fix Firebase macOS frameworks */,
 			);
 			buildRules = (
 			);
@@ -7695,19 +7698,20 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		9F193BD82130B968001C0800 /* ShellScript */ = {
+		9F193BD82130B968001C0800 /* Fix Firebase macOS frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
+			name = "Fix Firebase macOS frameworks";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "
-";
+			shellScript = "sh \"${PROJECT_DIR}/tools/fix-firebase-macos-frameworks.sh\"\n";
 		};
 		C2D85FD51F25FE5400EDEA15 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -8974,7 +8978,7 @@
 				CLANG_WARN_INT_CONVERSION = NO;
 				CLANG_WARN_SUSPICIOUS_MOVE = NO;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_ENTITLEMENTS = "Telegram-Mac/Telegram-Sandbox.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "Telegram-Mac/Telegram-Mac.entitlements";
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -9028,6 +9032,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = app.casmos.macos;
+				PRODUCT_MODULE_NAME = CasmosApp;
 				PRODUCT_NAME = Casmos;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = PRODUCTION;
@@ -9038,6 +9043,7 @@
 				SWIFT_OPTIMIZE_OBJECT_LIFETIME = YES;
 				SWIFT_REFLECTION_METADATA_LEVEL = none;
 				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = NO;
 			};
 			name = Release;
 		};
@@ -9260,6 +9266,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = app.casmos.macos;
+				PRODUCT_MODULE_NAME = CasmosApp;
 				PRODUCT_NAME = Casmos;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
@@ -9270,6 +9277,7 @@
 				SWIFT_OPTIMIZE_OBJECT_LIFETIME = YES;
 				SWIFT_REFLECTION_METADATA_LEVEL = none;
 				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = NO;
 			};
 			name = Debug;
 		};
@@ -9785,6 +9793,10 @@
 			productName = TelegramMedia;
 		};
 		CA50A0010000000000000004 /* Casmos */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Casmos;
+		};
+		CA50A0040000000000000002 /* Casmos */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Casmos;
 		};

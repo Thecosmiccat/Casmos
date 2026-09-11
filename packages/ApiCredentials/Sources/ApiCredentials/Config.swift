@@ -23,13 +23,49 @@ public final class ApiEnvironment {
     
     
     public static var containerURL: URL? {
+        return resolvedContainerURL
+    }
+
+    private static let resolvedContainerURL: URL? = resolveContainerURL()
+
+    private static func resolveContainerURL() -> URL? {
         let appGroupName = ApiEnvironment.group
-        let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupName)?.appendingPathComponent(prefix)
-        if let containerUrl = containerUrl {
-            try? FileManager.default.createDirectory(at: containerUrl, withIntermediateDirectories: true, attributes: nil)
-            return containerUrl
+        let groupURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupName)?.appendingPathComponent(prefix)
+        if let groupURL = groupURL, probeWritableDirectory(groupURL) {
+            return groupURL
         }
+        if let groupURL = groupURL {
+            NSLog("[Casmos] App group container is not writable (%@); falling back to Application Support", groupURL.path)
+        } else {
+            NSLog("[Casmos] App group container is nil for group %@; falling back to Application Support", appGroupName)
+        }
+        return applicationSupportContainerURL()
+    }
+
+    private static func applicationSupportContainerURL() -> URL? {
+        guard let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            NSLog("[Casmos] Application Support directory is unavailable")
+            return nil
+        }
+        let fallback = base.appendingPathComponent("Casmos", isDirectory: true).appendingPathComponent(prefix, isDirectory: true)
+        if probeWritableDirectory(fallback) {
+            return fallback
+        }
+        NSLog("[Casmos] Application Support fallback is not writable (%@)", fallback.path)
         return nil
+    }
+
+    private static func probeWritableDirectory(_ url: URL) -> Bool {
+        do {
+            try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
+            let probe = url.appendingPathComponent(".casmos-write-probe")
+            try Data().write(to: probe, options: .atomic)
+            try FileManager.default.removeItem(at: probe)
+            return true
+        } catch {
+            NSLog("[Casmos] container write probe failed at %@: %@", url.path, error.localizedDescription)
+            return false
+        }
     }
     
     public static func migrate() {

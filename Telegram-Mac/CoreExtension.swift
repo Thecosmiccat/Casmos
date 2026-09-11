@@ -4016,7 +4016,7 @@ extension NSAttributedString {
 extension String {
     var isSavedMessagesText: Bool {
         let query = self.lowercased()
-        if Telegram.strings().peerSavedMessages.lowercased().hasPrefix(query) {
+        if strings().peerSavedMessages.lowercased().hasPrefix(query) {
             return true
         }
         if NSLocalizedString("Peer.SavedMessages", comment: "nil").hasPrefix(query.lowercased()) {
