@@ -12,6 +12,7 @@ import TelegramCore
 import Localization
 import Postbox
 import SwiftSignalKit
+import Casmos
 
 let normalAccountsLimit: Int = 3
 
@@ -550,6 +551,9 @@ private func accountInfoEntries(peerView:PeerView, context: AccountContext, acco
     if !context.isSupport {
         for account in accounts {
             if account.account.id != context.account.id {
+                if CasmosAccountPasscode.shouldHideFromSwitcher(accountId: account.account.id.int64, currentId: context.account.id.int64) {
+                    continue
+                }
                 entries.append(.accountRecord(index: index, viewType: .singleItem, info: account))
                 index += 1
             }

@@ -14,6 +14,9 @@ let package = Package(
     targets: [
         .target(
             name: "Casmos",
-            dependencies: []),
+            dependencies: [],
+            linkerSettings: [
+                .linkedFramework("Security")
+            ]),
     ]
 )

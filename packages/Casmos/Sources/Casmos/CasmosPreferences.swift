@@ -49,6 +49,10 @@ public enum CasmosPrefKey {
     public enum Passcode {
         public static let autoLockOnSleep = "casmos.pref.passcode.autoLockOnSleep"
         public static let hideContentInAppSwitcher = "casmos.pref.passcode.hideContentInAppSwitcher"
+        /// Touch ID on the lock overlay also reveals hidden accounts this session. Off until LocalAuthentication succeeds.
+        public static let useTouchIdForAccounts = "casmos.pref.passcode.useTouchIdForAccounts"
+        /// Destructive: panic logs out included accounts. Off by default.
+        public static let logoutOnPanic = "casmos.pref.passcode.logoutOnPanic"
     }
 
     public enum Experimental {
@@ -76,6 +80,8 @@ public enum CasmosPrefKey {
         Translator.keepFormatting,
         Passcode.autoLockOnSleep,
         Passcode.hideContentInAppSwitcher,
+        Passcode.useTouchIdForAccounts,
+        Passcode.logoutOnPanic,
         Experimental.pauseVideoOnBackground,
         Experimental.verboseLogging
     ]
@@ -188,6 +194,11 @@ public enum CasmosPreferences {
 
     private static func notifyChange() {
         NotificationCenter.default.post(name: didChangeNotification, object: nil)
+    }
+
+    /// For helpers that write Keychain passcode storage outside `set(_:forKey:)`.
+    public static func notifyDidChange() {
+        notifyChange()
     }
 
     public static func bool(forKey key: String, default value: Bool? = nil) -> Bool {

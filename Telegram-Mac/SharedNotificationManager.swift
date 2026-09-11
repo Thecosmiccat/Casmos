@@ -147,9 +147,16 @@ final class SharedNotificationManager : NSObject, NSUserNotificationCenterDelega
                 appDelegate?.enumerateAccountContexts({ context in
                     closeAllModals(window: context.window)
                     _ = context.sharedContext.getAudioPlayer()?.pause()
+                    CasmosAccountPasscode.lockAllSessions()
                     let controller = PasscodeLockController(accountManager, useTouchId: settings.useTouchId, logoutImpl: {
                         return self.logout()
-                    }, updateCurrectController: bindings.updateCurrectController)
+                    }, updateCurrectController: bindings.updateCurrectController, casmosHandler: { [weak self] passcode in
+                        guard let self else {
+                            return false
+                        }
+                        let context = self.find(self.activeAccounts.primary?.id)
+                        return casmosApplyPasscodeMatch(CasmosAccountPasscode.match(passcode), context: context)
+                    })
                     
                     self.lockers.append(controller)
                     showModal(with: controller, for: context.window, isOverlay: true)
@@ -253,6 +260,7 @@ final class SharedNotificationManager : NSObject, NSUserNotificationCenterDelega
     
     @objc func screenIsLocked() {
         
+        CasmosAccountPasscode.lockAllSessions()
         if !_lockedValue.passcodeLock {
             _passlock.set(accountManager.transaction { transaction -> Bool in
                 switch transaction.getAccessChallengeData() {
@@ -271,6 +279,7 @@ final class SharedNotificationManager : NSObject, NSUserNotificationCenterDelega
     }
     
     @objc func casmosComputerWillSleep() {
+        CasmosAccountPasscode.lockAllSessions()
         guard CasmosHooks.autoLockOnSleep else {
             return
         }

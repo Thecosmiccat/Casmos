@@ -17,6 +17,7 @@ import ApiCredentials
 
 #if !SHARE
 import PrivateCallScreen
+import Casmos
 #endif
 
 
@@ -175,6 +176,11 @@ class SharedAccountContext {
                     }
                 }
                 for account in activeAccountsInfoValue.accounts {
+                    #if !SHARE
+                    if CasmosAccountPasscode.shouldHideFromSwitcher(accountId: account.account.id.int64, currentId: activeAccountsInfoValue.primary?.int64) {
+                        continue
+                    }
+                    #endif
                     let state: NSControl.StateValue?
                     if account.account.id == activeAccountsInfoValue.primary {
                         state = .on

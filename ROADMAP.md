@@ -33,6 +33,12 @@
 - Do not translate: `casmos.pref.translator.doNotTranslate` is a comma-separated language-code list in Casmos Settings → Translator. Combined with Language settings. Empty Casmos + empty official lists skip the app language.
 - Keep formatting: `casmos.pref.translator.keepFormatting` (default on). Yandex sends HTML (`format=html`) and restores bold / italic / underline / strike / code / links / spoilers / quotes. DeepL does the same via official `tag_handling` when a local key is set. Extra web fallback and DeepL-without-key stay plain. Poll and todo option entities stay plain.
 
+## P3 (this tree)
+
+- Per-account passcode: Casmos Settings → Passcode stores a PBKDF2 hash in the Keychain (`WhenUnlockedThisDeviceOnly`). Hide This Account drops the account from Settings / tab / status-bar switchers until you type that passcode (or Touch ID, when enabled).
+- Panic passcode: hides included accounts for this session. Hide This Account stays after quit. Logout on Panic (`casmos.pref.passcode.logoutOnPanic`) also signs those accounts out and stays **off** by default.
+- Touch ID reveal: `casmos.pref.passcode.useTouchIdForAccounts` stays **off** until LocalAuthentication biometrics succeed. Without Touch ID / Face ID the row is **NOT WIRED** (not a fake on toggle). Cold-start lock only accepts the app passcode (**NOT WIRED** for panic / hide).
+
 ## Later (needs Jeffrey / live API — not in this overnight branch)
 - A signed Mac build with real `api_id` / `api_hash` / Team ID (placeholders stay in this tree)
 - Workers AI / Cloudflare transcription (no free anonymous path; not stubbed in this tree)

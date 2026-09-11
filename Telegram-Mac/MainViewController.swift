@@ -13,6 +13,7 @@ import InAppSettings
 import Postbox
 import SwiftSignalKit
 import KeyboardKey
+import Casmos
 
 #if !APP_STORE
 import Sparkle
@@ -491,6 +492,9 @@ class MainViewController: TelegramViewController {
         if !context.isSupport {
             for account in accounts {
                 if account.account.id != context.account.id {
+                    if CasmosAccountPasscode.shouldHideFromSwitcher(accountId: account.account.id.int64, currentId: context.account.id.int64) {
+                        continue
+                    }
                     items.append(makeItem(account))
                 }
             }

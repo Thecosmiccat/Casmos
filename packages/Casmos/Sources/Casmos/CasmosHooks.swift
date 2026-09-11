@@ -3,7 +3,7 @@ import Foundation
 /// Thin hooks over `CasmosPreferences` for layout, translate routing,
 /// skip-translate languages, formatting, inline playback, send-key,
 /// link confirm, passcode, file names, stories, own-profile identifiers,
-/// and logging.
+/// hide-account / panic, and logging.
 public enum CasmosHooks {
     /// Scale for the 208pt chat sticker box. Custom-emoji 112pt boxes stay unchanged.
     public static var stickerLayoutScale: Double {
@@ -84,6 +84,16 @@ public enum CasmosHooks {
 
     public static var hideContentInAppSwitcher: Bool {
         CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.hideContentInAppSwitcher, default: true)
+    }
+
+    /// Reveal hidden accounts this session after a successful LocalAuthentication. Off by default.
+    public static var useTouchIdForAccounts: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.useTouchIdForAccounts)
+    }
+
+    /// Panic also signs included accounts out. Off by default.
+    public static var logoutOnPanic: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.logoutOnPanic)
     }
 
     public static var keepOriginalFileNames: Bool {

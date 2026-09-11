@@ -14,6 +14,7 @@ import Postbox
 import SwiftSignalKit
 import LocalAuthentication
 import BuildConfig
+import Casmos
 
 private class TouchIdContainerView : View {
     fileprivate let button: TextButton = TextButton()
@@ -368,11 +369,13 @@ class PasscodeLockController: ModalViewController {
     }
     private let updateCurrectController: ()->Void
     private let logoutImpl:() -> Signal<Never, NoError>
-    init(_ accountManager: AccountManager<TelegramAccountManagerTypes>, useTouchId: Bool, logoutImpl:@escaping()->Signal<Never, NoError> = { .complete() }, updateCurrectController: @escaping()->Void) {
+    private let casmosHandler: ((String) -> Bool)?
+    init(_ accountManager: AccountManager<TelegramAccountManagerTypes>, useTouchId: Bool, logoutImpl:@escaping()->Signal<Never, NoError> = { .complete() }, updateCurrectController: @escaping()->Void, casmosHandler: ((String) -> Bool)? = nil) {
         self.accountManager = accountManager
         self.logoutImpl = logoutImpl
         self.useTouchId = useTouchId
         self.updateCurrectController = updateCurrectController
+        self.casmosHandler = casmosHandler
         super.init(frame: NSMakeRect(0, 0, 350, 350))
         self.bar = .init(height: 0)
     }
@@ -402,6 +405,9 @@ class PasscodeLockController: ModalViewController {
             self._doneValue.set(.single(true))
             self.close()
             
+        } else if let casmosHandler = self.casmosHandler, casmosHandler(passcode) {
+            self._doneValue.set(.single(true))
+            self.close()
         } else {
             genericView.input.shake()
         }
@@ -428,6 +434,7 @@ class PasscodeLockController: ModalViewController {
         laContext.evaluatePolicy(tryAnotherWay ? .deviceOwnerAuthentication : .applicationPolicy, localizedReason: strings().passcodeUnlockTouchIdReason) { [weak self] (success, evaluateError) in
             if (success) {
                 Queue.mainQueue().async {
+                    casmosRevealHiddenAccountsAfterTouchId()
                     self?._doneValue.set(.single(true))
                     self?.close()
                 }

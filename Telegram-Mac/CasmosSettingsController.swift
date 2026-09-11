@@ -8,7 +8,8 @@
 //  leftover Settings toggles (file names, compact list, monochrome folders, verbose logging),
 //  double-click action, hide channel bottom buttons, preference JSON export/import,
 //  do-not-translate languages, keep-formatting,
-//  hide stories (default on), hide own phone and @username (default on).
+//  hide stories (default on), hide own phone and @username (default on),
+//  per-account passcode / hide account / panic (Touch ID session reveal).
 //
 
 import Cocoa
@@ -44,7 +45,12 @@ private final class CasmosSettingsArguments {
     let toggleDoNotTranslate: (String) -> Void
     let exportPrefs: () -> Void
     let importPrefs: () -> Void
-    init(context: AccountContext, toggle: @escaping (String) -> Void, cycleStickerSize: @escaping () -> Void, cycleTranslatorEngine: @escaping () -> Void, cycleDoubleTap: @escaping () -> Void, toggleDoNotTranslate: @escaping (String) -> Void, exportPrefs: @escaping () -> Void, importPrefs: @escaping () -> Void) {
+    let setAccountPasscode: () -> Void
+    let removeAccountPasscode: () -> Void
+    let setPanicPasscode: () -> Void
+    let removePanicPasscode: () -> Void
+    let unlockHidden: () -> Void
+    init(context: AccountContext, toggle: @escaping (String) -> Void, cycleStickerSize: @escaping () -> Void, cycleTranslatorEngine: @escaping () -> Void, cycleDoubleTap: @escaping () -> Void, toggleDoNotTranslate: @escaping (String) -> Void, exportPrefs: @escaping () -> Void, importPrefs: @escaping () -> Void, setAccountPasscode: @escaping () -> Void, removeAccountPasscode: @escaping () -> Void, setPanicPasscode: @escaping () -> Void, removePanicPasscode: @escaping () -> Void, unlockHidden: @escaping () -> Void) {
         self.context = context
         self.toggle = toggle
         self.cycleStickerSize = cycleStickerSize
@@ -53,6 +59,11 @@ private final class CasmosSettingsArguments {
         self.toggleDoNotTranslate = toggleDoNotTranslate
         self.exportPrefs = exportPrefs
         self.importPrefs = importPrefs
+        self.setAccountPasscode = setAccountPasscode
+        self.removeAccountPasscode = removeAccountPasscode
+        self.setPanicPasscode = setPanicPasscode
+        self.removePanicPasscode = removePanicPasscode
+        self.unlockHidden = unlockHidden
     }
 }
 
@@ -74,11 +85,18 @@ private struct CasmosSettingsState: Equatable {
     var doNotTranslateTitle: String
     var autoLockOnSleep: Bool
     var hideContentInAppSwitcher: Bool
+    var hasAccountPasscode: Bool
+    var hideThisAccount: Bool
+    var allowPanic: Bool
+    var hasPanicPasscode: Bool
+    var touchIdAvailable: Bool
+    var useTouchIdForAccounts: Bool
+    var logoutOnPanic: Bool
     var pauseVideoOnBackground: Bool
     var verboseLogging: Bool
     var deeplKey: String
 
-    static func load() -> CasmosSettingsState {
+    static func load(accountId: Int64? = nil) -> CasmosSettingsState {
         let storedKey = CasmosPreferences.deeplKey
         let deeplKey = storedKey == "CASMOS_PLACEHOLDER_DEEPL_KEY" ? "" : storedKey
         let skip = CasmosPreferences.doNotTranslate
@@ -112,6 +130,13 @@ private struct CasmosSettingsState: Equatable {
             doNotTranslateTitle: skipTitle,
             autoLockOnSleep: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.autoLockOnSleep, default: true),
             hideContentInAppSwitcher: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.hideContentInAppSwitcher, default: true),
+            hasAccountPasscode: accountId.map { CasmosAccountPasscode.hasPasscode(accountId: $0) } ?? false,
+            hideThisAccount: accountId.map { CasmosAccountPasscode.isHidden(accountId: $0) } ?? false,
+            allowPanic: accountId.map { CasmosAccountPasscode.allowPanic(accountId: $0) } ?? true,
+            hasPanicPasscode: CasmosAccountPasscode.hasPanicPasscode(),
+            touchIdAvailable: casmosTouchIdAvailable(),
+            useTouchIdForAccounts: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.useTouchIdForAccounts),
+            logoutOnPanic: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.logoutOnPanic),
             pauseVideoOnBackground: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.pauseVideoOnBackground),
             verboseLogging: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.verboseLogging, default: false),
             deeplKey: deeplKey
@@ -139,6 +164,15 @@ private let _id_do_not_translate = InputDataIdentifier("casmos.pref.translator.d
 private let _id_deepl_key = InputDataIdentifier("casmos.pref.translator.deeplKey")
 private let _id_autolock = InputDataIdentifier("casmos.pref.passcode.autoLockOnSleep")
 private let _id_hide_switcher = InputDataIdentifier("casmos.pref.passcode.hideContentInAppSwitcher")
+private let _id_account_passcode = InputDataIdentifier("casmos.pref.passcode.account")
+private let _id_remove_account_passcode = InputDataIdentifier("casmos.pref.passcode.account.remove")
+private let _id_hide_account = InputDataIdentifier("casmos.pref.passcode.hideAccount")
+private let _id_allow_panic = InputDataIdentifier("casmos.pref.passcode.allowPanic")
+private let _id_panic_passcode = InputDataIdentifier("casmos.pref.passcode.panic")
+private let _id_remove_panic = InputDataIdentifier("casmos.pref.passcode.panic.remove")
+private let _id_touchid_accounts = InputDataIdentifier("casmos.pref.passcode.useTouchIdForAccounts")
+private let _id_logout_panic = InputDataIdentifier("casmos.pref.passcode.logoutOnPanic")
+private let _id_unlock_hidden = InputDataIdentifier("casmos.pref.passcode.unlockHidden")
 private let _id_pause_video = InputDataIdentifier("casmos.pref.experimental.pauseVideoOnBackground")
 private let _id_verbose = InputDataIdentifier("casmos.pref.experimental.verboseLogging")
 
@@ -232,8 +266,31 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
 
     header("PASSCODE")
     toggleRow(id: _id_autolock, name: "Lock on Sleep", value: state.autoLockOnSleep, key: CasmosPrefKey.Passcode.autoLockOnSleep, viewType: .firstItem)
-    toggleRow(id: _id_hide_switcher, name: "Hide Content in App Switcher", value: state.hideContentInAppSwitcher, key: CasmosPrefKey.Passcode.hideContentInAppSwitcher, viewType: .lastItem)
-    footer("Lock on Sleep shows the passcode overlay if a passcode is set. Hide Content in App Switcher blanks window snapshots. Both are on by default.")
+    toggleRow(id: _id_hide_switcher, name: "Hide Content in App Switcher", value: state.hideContentInAppSwitcher, key: CasmosPrefKey.Passcode.hideContentInAppSwitcher, viewType: .innerItem)
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_account_passcode, data: .init(name: state.hasAccountPasscode ? "Change Account Passcode" : "Set Account Passcode", color: theme.colors.text, type: .next, viewType: .innerItem, action: arguments.setAccountPasscode)))
+    index += 1
+    if state.hasAccountPasscode {
+        entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_remove_account_passcode, data: .init(name: "Remove Account Passcode", color: theme.colors.text, type: .next, viewType: .innerItem, action: arguments.removeAccountPasscode)))
+        index += 1
+        toggleRow(id: _id_hide_account, name: "Hide This Account", value: state.hideThisAccount, key: "casmos.passcode.hideAccount", viewType: .innerItem)
+        toggleRow(id: _id_allow_panic, name: "Include in Panic", value: state.allowPanic, key: "casmos.passcode.allowPanic", viewType: .innerItem)
+    }
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_panic_passcode, data: .init(name: state.hasPanicPasscode ? "Change Panic Passcode" : "Set Panic Passcode", color: theme.colors.text, type: .next, viewType: .innerItem, action: arguments.setPanicPasscode)))
+    index += 1
+    if state.hasPanicPasscode {
+        entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_remove_panic, data: .init(name: "Remove Panic Passcode", color: theme.colors.text, type: .next, viewType: .innerItem, action: arguments.removePanicPasscode)))
+        index += 1
+    }
+    if state.touchIdAvailable {
+        toggleRow(id: _id_touchid_accounts, name: "Touch ID Reveals Hidden Accounts", value: state.useTouchIdForAccounts, key: CasmosPrefKey.Passcode.useTouchIdForAccounts, viewType: .innerItem)
+    } else {
+        entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_touchid_accounts, data: .init(name: "Touch ID Reveals Hidden Accounts", color: theme.colors.text, type: .nextContext("NOT WIRED"), viewType: .innerItem, enabled: false)))
+        index += 1
+    }
+    toggleRow(id: _id_logout_panic, name: "Logout on Panic", value: state.logoutOnPanic, key: CasmosPrefKey.Passcode.logoutOnPanic, viewType: .innerItem)
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_unlock_hidden, data: .init(name: "Unlock Hidden Account", color: theme.colors.text, type: .next, viewType: .lastItem, action: arguments.unlockHidden)))
+    index += 1
+    footer("Lock on Sleep and Hide Content in App Switcher are on by default. Account passcode hashes stay in the Keychain. Hide This Account drops the account from the switcher until you type that passcode. Panic hides included accounts for this session; Hide This Account stays after quit. Logout on Panic also signs those accounts out and is off by default. Touch ID Reveals Hidden Accounts stays off until LocalAuthentication succeeds; without biometrics it shows NOT WIRED. Cold-start lock only accepts the app passcode (NOT WIRED for panic / hide). This is local hide, not network anonymity.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -260,7 +317,9 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
 }
 
 func CasmosSettingsController(context: AccountContext) -> InputDataController {
-    let initialState = CasmosSettingsState.load()
+    let accountId = context.account.id.int64
+    let reload: () -> CasmosSettingsState = { CasmosSettingsState.load(accountId: accountId) }
+    let initialState = reload()
     let statePromise = ValuePromise(initialState, ignoreRepeated: true)
     let stateValue = Atomic(value: initialState)
     let updateState: ((CasmosSettingsState) -> CasmosSettingsState) -> Void = { f in
@@ -268,6 +327,37 @@ func CasmosSettingsController(context: AccountContext) -> InputDataController {
     }
 
     let arguments = CasmosSettingsArguments(context: context, toggle: { key in
+        if key == "casmos.passcode.hideAccount" {
+            guard CasmosAccountPasscode.hasPasscode(accountId: accountId) else {
+                return
+            }
+            CasmosAccountPasscode.setHidden(!CasmosAccountPasscode.isHidden(accountId: accountId), accountId: accountId)
+            updateState { _ in reload() }
+            return
+        }
+        if key == "casmos.passcode.allowPanic" {
+            CasmosAccountPasscode.setAllowPanic(!CasmosAccountPasscode.allowPanic(accountId: accountId), accountId: accountId)
+            updateState { _ in reload() }
+            return
+        }
+        if key == CasmosPrefKey.Passcode.useTouchIdForAccounts {
+            if !casmosTouchIdAvailable() {
+                updateState { _ in reload() }
+                return
+            }
+            if CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.useTouchIdForAccounts) {
+                CasmosPreferences.set(false, forKey: CasmosPrefKey.Passcode.useTouchIdForAccounts)
+                updateState { _ in reload() }
+                return
+            }
+            casmosEvaluateTouchId(reason: "Allow Touch ID to reveal hidden accounts this session") { ok in
+                if ok {
+                    CasmosPreferences.set(true, forKey: CasmosPrefKey.Passcode.useTouchIdForAccounts)
+                }
+                updateState { _ in reload() }
+            }
+            return
+        }
         CasmosPreferences.toggle(key)
         if key == CasmosPrefKey.Experimental.verboseLogging {
             applyCasmosVerboseLogging()
@@ -275,36 +365,56 @@ func CasmosSettingsController(context: AccountContext) -> InputDataController {
         if key == CasmosPrefKey.Passcode.hideContentInAppSwitcher {
             applyCasmosAppSwitcherPrivacy()
         }
-        updateState { _ in CasmosSettingsState.load() }
+        updateState { _ in reload() }
     }, cycleStickerSize: {
         let current = CasmosPreferences.stickerSize
         let all = CasmosStickerSize.allCases
         let next = all[(all.firstIndex(of: current)! + 1) % all.count]
         CasmosPreferences.stickerSize = next
-        updateState { _ in CasmosSettingsState.load() }
+        updateState { _ in reload() }
     }, cycleTranslatorEngine: {
         let current = CasmosPreferences.translatorEngine
         let all = CasmosTranslatorEngine.allCases
         let next = all[(all.firstIndex(of: current)! + 1) % all.count]
         CasmosPreferences.translatorEngine = next
-        updateState { _ in CasmosSettingsState.load() }
+        updateState { _ in reload() }
     }, cycleDoubleTap: {
         let current = CasmosPreferences.doubleTapAction
         let all = CasmosDoubleTapAction.allCases
         let next = all[(all.firstIndex(of: current)! + 1) % all.count]
         CasmosPreferences.doubleTapAction = next
-        updateState { _ in CasmosSettingsState.load() }
+        updateState { _ in reload() }
     }, toggleDoNotTranslate: { code in
         CasmosPreferences.toggleDoNotTranslate(code)
-        updateState { _ in CasmosSettingsState.load() }
+        updateState { _ in reload() }
     }, exportPrefs: {
         casmosExportPreferences(window: context.window)
     }, importPrefs: {
         casmosImportPreferences(window: context.window) { ok in
             if ok {
                 applyCasmosAppSwitcherPrivacy()
-                updateState { _ in CasmosSettingsState.load() }
+                updateState { _ in reload() }
             }
+        }
+    }, setAccountPasscode: {
+        casmosPresentSetAccountPasscode(context: context) {
+            updateState { _ in reload() }
+        }
+    }, removeAccountPasscode: {
+        casmosPresentRemoveAccountPasscode(context: context) {
+            updateState { _ in reload() }
+        }
+    }, setPanicPasscode: {
+        casmosPresentSetPanicPasscode(context: context) {
+            updateState { _ in reload() }
+        }
+    }, removePanicPasscode: {
+        casmosPresentRemovePanicPasscode(context: context) {
+            updateState { _ in reload() }
+        }
+    }, unlockHidden: {
+        casmosPresentUnlockHidden(context: context) {
+            updateState { _ in reload() }
         }
     })
 
