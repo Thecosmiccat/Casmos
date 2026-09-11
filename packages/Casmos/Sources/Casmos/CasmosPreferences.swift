@@ -35,19 +35,8 @@ public enum CasmosPrefKey {
         public static let deeplKey = "casmos.pref.translator.deeplKey"
         /// Comma-separated language codes skipped by auto-translate and the Translate menu.
         public static let doNotTranslate = "casmos.pref.translator.doNotTranslate"
-        /// Send HTML to local engines and restore bold / italic / links / code after translate.
+        /// Send HTML to engines that honor tags and restore bold / italic / links / code after translate.
         public static let keepFormatting = "casmos.pref.translator.keepFormatting"
-    }
-
-    public enum Transcription {
-        /// Workers AI transcription. Off by default; this tree does not upload audio.
-        public static let workersAiEnabled = "casmos.pref.transcription.workersAiEnabled"
-        /// Cloudflare account id. Local only; never commit a real value.
-        public static let accountId = "casmos.pref.transcription.accountId"
-        /// Cloudflare API token. Local only; never commit a real token.
-        public static let apiToken = "casmos.pref.transcription.apiToken"
-        /// Workers AI model id (placeholder default `@cf/openai/whisper`).
-        public static let model = "casmos.pref.transcription.model"
     }
 
     public enum Passcode {
@@ -76,10 +65,6 @@ public enum CasmosPrefKey {
         Translator.deeplKey,
         Translator.doNotTranslate,
         Translator.keepFormatting,
-        Transcription.workersAiEnabled,
-        Transcription.accountId,
-        Transcription.apiToken,
-        Transcription.model,
         Passcode.autoLockOnSleep,
         Passcode.hideContentInAppSwitcher,
         Experimental.pauseVideoOnBackground,
@@ -92,15 +77,7 @@ public enum CasmosPrefKey {
         Chat.doubleTapAction,
         Translator.engine,
         Translator.deeplKey,
-        Translator.doNotTranslate,
-        Transcription.accountId,
-        Transcription.apiToken,
-        Transcription.model
-    ]
-
-    /// Bool keys whose unset value is true (export / first toggle).
-    public static let trueDefaultKeys: Set<String> = [
-        Translator.keepFormatting
+        Translator.doNotTranslate
     ]
 
     /// Unset bool keys use these defaults. Verbose logging stays off.
@@ -175,6 +152,18 @@ public enum CasmosTranslatorEngine: String, CaseIterable {
             return false
         }
     }
+
+    /// Yandex HTML format and DeepL official `tag_handling`. Extra web and DeepL-without-key stay plain.
+    public var supportsHtmlFormatting: Bool {
+        switch self {
+        case .yandex:
+            return true
+        case .deepl:
+            return CasmosPreferences.hasLiveDeeplKey
+        case .extra, .system:
+            return false
+        }
+    }
 }
 
 public enum CasmosPreferences {
@@ -245,6 +234,12 @@ public enum CasmosPreferences {
         set { set(newValue, forKey: CasmosPrefKey.Translator.deeplKey) }
     }
 
+    /// A stored DeepL key that is not the empty placeholder.
+    public static var hasLiveDeeplKey: Bool {
+        let key = deeplKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !key.isEmpty && key != "CASMOS_PLACEHOLDER_DEEPL_KEY"
+    }
+
     /// Language codes skipped by Casmos auto-translate and the Translate menu.
     public static var doNotTranslate: Set<String> {
         get {
@@ -271,30 +266,10 @@ public enum CasmosPreferences {
         doNotTranslate = current
     }
 
-    /// Keep message formatting (bold / italic / links / code) when using local engines. Default on.
+    /// Keep message formatting (bold / italic / links / code) when using engines that honor HTML. Default on.
     public static var keepTranslateFormatting: Bool {
         get { bool(forKey: CasmosPrefKey.Translator.keepFormatting, default: true) }
         set { set(newValue, forKey: CasmosPrefKey.Translator.keepFormatting) }
-    }
-
-    public static var workersAiTranscriptionEnabled: Bool {
-        get { bool(forKey: CasmosPrefKey.Transcription.workersAiEnabled) }
-        set { set(newValue, forKey: CasmosPrefKey.Transcription.workersAiEnabled) }
-    }
-
-    public static var transcriptionAccountId: String {
-        get { string(forKey: CasmosPrefKey.Transcription.accountId, default: "") }
-        set { set(newValue, forKey: CasmosPrefKey.Transcription.accountId) }
-    }
-
-    public static var transcriptionApiToken: String {
-        get { string(forKey: CasmosPrefKey.Transcription.apiToken, default: "") }
-        set { set(newValue, forKey: CasmosPrefKey.Transcription.apiToken) }
-    }
-
-    public static var transcriptionModel: String {
-        get { string(forKey: CasmosPrefKey.Transcription.model, default: "") }
-        set { set(newValue, forKey: CasmosPrefKey.Transcription.model) }
     }
 
     public static func toggle(_ key: String, default defaultValue: Bool? = nil) {
@@ -308,14 +283,14 @@ public enum CasmosPreferences {
         set { set(newValue.rawValue, forKey: CasmosPrefKey.Chat.doubleTapAction) }
     }
 
-    /// JSON export of known `casmos.pref.*` keys. May include local DeepL / Cloudflare fields when set.
+    /// JSON export of known `casmos.pref.*` keys. May include a local DeepL key when set.
     public static func exportJSON() -> Data? {
         var prefs: [String: Any] = [:]
         for key in CasmosPrefKey.allKeys {
             if CasmosPrefKey.stringKeys.contains(key) {
                 prefs[key] = string(forKey: key, default: "")
             } else {
-                prefs[key] = bool(forKey: key, default: CasmosPrefKey.trueDefaultKeys.contains(key))
+                prefs[key] = bool(forKey: key)
             }
         }
         let payload: [String: Any] = [

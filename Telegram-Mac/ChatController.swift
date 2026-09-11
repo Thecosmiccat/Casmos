@@ -5984,9 +5984,6 @@ class ChatController: EditableViewController<ChatControllerView>, Notifable, Tab
                     return state
                 }
             } else {
-                if CasmosPreferences.workersAiTranscriptionEnabled {
-                    _ = CasmosTranscription.skipLiveCall()
-                }
                 
                 let currentTime = Int32(Date().timeIntervalSince1970)
                 if !context.isPremium, message.audioTranscription == nil {
