@@ -239,7 +239,7 @@ enum FolderEmoticon {
             case "🎨":
                 return "Icon_Sidebar_Paint"
             case "✈️":
-                return "Icon_Sidebar_Plane"
+                return "Icon_Sidebar_Telegram"
             case "⚽️":
                 return "Icon_Sidebar_Sport"
             case "⭐":

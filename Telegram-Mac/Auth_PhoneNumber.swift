@@ -180,7 +180,7 @@ final class Auth_CountryManager {
 }
 
 final class Auth_LoginHeader : View {
-    private let logo:LottiePlayerView = LottiePlayerView(frame: Auth_Insets.logoSize.bounds)
+    private let logo: ImageView = ImageView(frame: Auth_Insets.logoSize.bounds)
     private let header: TextView = TextView()
     private let desc: TextView = TextView()
     private var descAttr: NSAttributedString?
@@ -218,8 +218,12 @@ final class Auth_LoginHeader : View {
     }
     
     private func updateLottie() {
-        // Static Casmos mark (login_140) will land with the Option B asset pack.
-        self.logo.set(nil)
+        // Casmos Option B eyes-mark still (login_140); paper-plane Lottie retired.
+        if let image = NSImage(named: "CasmosLoginMark")?.precomposed() {
+            self.logo.image = image
+        } else {
+            self.logo.image = nil
+        }
     }
     
     override func viewDidMoveToWindow() {

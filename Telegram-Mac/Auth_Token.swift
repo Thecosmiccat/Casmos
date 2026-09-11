@@ -71,7 +71,7 @@ final class Auth_TokenView : View {
     private var progressView: InfiniteProgressView?
     fileprivate let imageView: ImageView = ImageView(frame: Auth_Insets.qrSize.bounds)
     private let animation: LottiePlayerView = LottiePlayerView(frame: Auth_Insets.qrAnimSize.bounds)
-    fileprivate let logoView = LottiePlayerView(frame: NSMakeRect(0, 0, 40, 40))
+    fileprivate let logoView: ImageView = ImageView(frame: NSMakeRect(0, 0, 40, 40))
     private let containerView = View()
     private let titleView = TextView()
     fileprivate let cancelButton = TextButton()
@@ -156,8 +156,12 @@ final class Auth_TokenView : View {
     }
     
     private func updateLottie() {
-        // Static Casmos QR chip (qr_chip_40) will land with the Option B asset pack.
-        self.logoView.set(nil)
+        // Casmos Option B QR chip (qr_chip_40); paper-plane Lottie retired.
+        if let image = NSImage(named: "CasmosQRChip")?.precomposed() {
+            self.logoView.image = image
+        } else {
+            self.logoView.image = nil
+        }
     }
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
