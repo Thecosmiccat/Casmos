@@ -169,7 +169,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     toggleRow(id: _id_keep_names, name: "Keep Original File Names", value: state.keepOriginalFileNames, key: CasmosPrefKey.General.keepOriginalFileNames, viewType: .firstItem)
     toggleRow(id: _id_confirm_links, name: "Confirm External Links", value: state.confirmLinkOpens, key: CasmosPrefKey.General.confirmLinkOpens, viewType: .innerItem)
     toggleRow(id: _id_hide_own_ids, name: "Hide Phone and Username", value: state.hideOwnPhoneAndUsername, key: CasmosPrefKey.Privacy.hideOwnPhoneAndUsername, viewType: .lastItem)
-    footer("Keep Original File Names uses the document name in Save and Downloads. Confirm External Links prompts before opening http(s) URLs and is on by default. Hide Phone and Username removes your number and @username from your own profile, Settings header, and Edit Account values (on by default).")
+    footer("Keep Original File Names uses the document name in Save and Downloads. Confirm External Links prompts before opening http(s) URLs and is on by default. Hide Phone and Username removes your number and @username from your own profile, Settings header, and Edit Account values. Username and Change Number stay tappable without blank values (on by default).")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -178,7 +178,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     toggleRow(id: _id_compact_list, name: "Compact Chat List", value: state.compactChatList, key: CasmosPrefKey.Appearance.compactChatList, viewType: .firstItem)
     toggleRow(id: _id_mono_folders, name: "Monochrome Folders", value: state.monochromeFolders, key: CasmosPrefKey.Appearance.monochromeFolders, viewType: .innerItem)
     toggleRow(id: _id_hide_stories, name: "Hide Stories", value: state.hideStories, key: CasmosPrefKey.Appearance.hideStories, viewType: .lastItem)
-    footer("Compact Chat List uses 56pt rows. Monochrome Folders draws folder tags and folder tab titles in gray. Hide Stories removes the chat-list Stories strip and is on by default.")
+    footer("Compact Chat List uses 56pt rows. Monochrome Folders draws folder tags and folder tab titles in gray. Hide Stories removes the chat-list Stories strip and avatar story rings and is on by default.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1

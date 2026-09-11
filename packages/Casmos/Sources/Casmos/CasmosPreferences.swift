@@ -13,7 +13,7 @@ public enum CasmosPrefKey {
     public enum Appearance {
         public static let compactChatList = "casmos.pref.appearance.compactChatList"
         public static let monochromeFolders = "casmos.pref.appearance.monochromeFolders"
-        /// Hide the chat-list Stories strip. Default on.
+        /// Hide the chat-list Stories strip and avatar story rings. Default on.
         public static let hideStories = "casmos.pref.appearance.hideStories"
     }
 

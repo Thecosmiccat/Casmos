@@ -98,7 +98,7 @@ public enum CasmosHooks {
         CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.monochromeFolders)
     }
 
-    /// Hide the chat-list Stories strip. Default on.
+    /// Hide the chat-list Stories strip and avatar story rings. Default on.
     public static var hideStories: Bool {
         CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.hideStories)
     }

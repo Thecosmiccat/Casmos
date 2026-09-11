@@ -300,29 +300,29 @@ private func editInfoEntries(state: EditInfoState, arguments: EditInfoController
     sectionId += 1
     
     let hideOwnIds = CasmosHooks.hideOwnPhoneAndUsername
-    let username: String
+    let usernameType: GeneralInteractedType
     if hideOwnIds {
-        username = ""
+        usernameType = .next
     } else if let name = state.username {
-        username = "@\(name)"
+        usernameType = .nextContext("@\(name)")
     } else if let name = state.peer?.username {
-        username = "@\(name)"
+        usernameType = .nextContext("@\(name)")
     } else {
-        username = ""
+        usernameType = .nextContext("")
     }
     
-    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_username, data: InputDataGeneralData(name: strings().editAccountUsername, color: theme.colors.text, icon: nil, type: .nextContext(username), viewType: .firstItem, action: nil)))
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_username, data: InputDataGeneralData(name: strings().editAccountUsername, color: theme.colors.text, icon: nil, type: usernameType, viewType: .firstItem, action: nil)))
     index += 1
 
-    let phoneText: String
+    let phoneType: GeneralInteractedType
     if hideOwnIds {
-        phoneText = ""
+        phoneType = .next
     } else if let phone = state.phone {
-        phoneText = formatPhoneNumber(context: arguments.context, number: phone)
+        phoneType = .nextContext(formatPhoneNumber(context: arguments.context, number: phone))
     } else {
-        phoneText = ""
+        phoneType = .nextContext("")
     }
-    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_phone, data: InputDataGeneralData(name: strings().editAccountChangeNumber, color: theme.colors.text, icon: nil, type: .nextContext(phoneText), viewType: .innerItem, action: nil)))
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_phone, data: InputDataGeneralData(name: strings().editAccountChangeNumber, color: theme.colors.text, icon: nil, type: phoneType, viewType: .innerItem, action: nil)))
     index += 1
     
     entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_name_color, data: InputDataGeneralData(name: strings().appearanceYourNameColor, color: theme.colors.text, type: .imageContext(generateSettingsMenuPeerColorsLabelIcon(peer: state.peer, context: arguments.context), ""), viewType: .innerItem, action: arguments.userNameColor)))

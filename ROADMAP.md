@@ -11,7 +11,7 @@
 - Send with Command-Return
 - Confirm external links, lock on sleep, hide content in App Switcher — **on by default** (`casmos.pref.general.confirmLinkOpens`, `casmos.pref.passcode.autoLockOnSleep`, `casmos.pref.passcode.hideContentInAppSwitcher`)
 - Hide phone and @username on your own profile UI — **on by default** (`casmos.pref.privacy.hideOwnPhoneAndUsername`)
-- Hide Stories strip on the chat list — **on by default** (`casmos.pref.appearance.hideStories`)
+- Hide Stories strip and chat-list avatar story rings — **on by default** (`casmos.pref.appearance.hideStories`)
 
 ## P1 (thin hooks in this tree)
 

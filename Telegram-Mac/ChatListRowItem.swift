@@ -503,7 +503,7 @@ class ChatListRowItem: TableRowItem {
         self.folders = nil
         self.tags = nil
         self.canPreviewChat = false
-        if let storyState = storyState, storyState.items.count > 0 {
+        if !CasmosHooks.hideStories, let storyState = storyState, storyState.items.count > 0 {
             let unseenCount: Int = storyState.items.reduce(0, {
                 $0 + ($1.unseenCount > 0 ? 1 : 0)
             })
@@ -866,7 +866,7 @@ class ChatListRowItem: TableRowItem {
         self.isMuted = isMuted
         self.readState = readState
         
-        if let story = story, peer?.id != context.peerId {
+        if !CasmosHooks.hideStories, let story = story, peer?.id != context.peerId {
             self.avatarStoryIndicator = .init(stats: story, presentation: theme, isRoundedRect: peer?.isForum == true)
         } else {
             self.avatarStoryIndicator = nil
