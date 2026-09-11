@@ -566,14 +566,35 @@ enum UpdaterSource : Equatable {
 private func resetUpdater() {
     
     #if !GITHUB
+        func skipSparkle(_ reason: String) {
+            NSLog("[Casmos] SUFeedURL is %@; skipping Sparkle", reason)
+            updateState {
+                $0.withUpdatedLoadingState(.uptodate)
+            }
+            disposable.set(nil)
+        }
+
+        guard let raw = Bundle.main.infoDictionary?["SUFeedURL"] as? String else {
+            skipSparkle("missing")
+            return
+        }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            skipSparkle("empty")
+            return
+        }
+        guard let feedURL = URL(string: trimmed), let scheme = feedURL.scheme?.lowercased(), (scheme == "http" || scheme == "https"), let hostName = feedURL.host, !hostName.isEmpty else {
+            skipSparkle("invalid")
+            return
+        }
+
         let update:()->Void = {
-            let url = Bundle.main.infoDictionary!["SUFeedURL"] as! String
             let state = stateValue.with { $0.loadingState }
             switch state {
             case .readyToInstall, .installing, .unarchiving, .loading:
                 break
             default:
-                driver?.checkForUpdates(at: URL(string: url)!, host: host, domain: updater.host)
+                driver?.checkForUpdates(at: feedURL, host: host, domain: updater.host)
             }
         }
     
