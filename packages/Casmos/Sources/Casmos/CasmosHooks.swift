@@ -1,9 +1,9 @@
 import Foundation
 
 /// Thin hooks over `CasmosPreferences` for layout, translate routing,
-/// skip-translate languages, formatting, transcription placeholders,
-/// inline playback, send-key, link confirm, passcode, file names,
-/// stories, own-profile identifiers, and logging.
+/// skip-translate languages, formatting, inline playback, send-key,
+/// link confirm, passcode, file names, stories, own-profile identifiers,
+/// and logging.
 public enum CasmosHooks {
     /// Scale for the 208pt chat sticker box. Custom-emoji 112pt boxes stay unchanged.
     public static var stickerLayoutScale: Double {
@@ -41,8 +41,9 @@ public enum CasmosHooks {
     }
 
     /// Restore bold / italic / links / code after local translate. Default on.
+    /// Only true when the selected engine honors HTML tags (Yandex, or DeepL with a local key).
     public static var keepTranslateFormatting: Bool {
-        translatorEnabled && CasmosPreferences.keepTranslateFormatting
+        translatorEnabled && CasmosPreferences.keepTranslateFormatting && CasmosPreferences.translatorEngine.supportsHtmlFormatting
     }
 
     /// Casmos skip list only. Union with Language settings at the call site.
@@ -58,11 +59,6 @@ public enum CasmosHooks {
             return languageCode.isEmpty ? [] : [languageCode]
         }
         return combined.union(languageCode.isEmpty ? [] : [languageCode])
-    }
-
-    /// Workers AI toggle. Off by default; live Cloudflare calls are skipped in this tree.
-    public static var workersAiTranscriptionEnabled: Bool {
-        CasmosPreferences.workersAiTranscriptionEnabled
     }
 
     public static var sendWithCommandEnter: Bool {

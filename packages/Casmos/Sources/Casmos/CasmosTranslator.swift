@@ -191,7 +191,7 @@ public enum CasmosTranslator {
 
     private static func translateDeepl(text: String, from: String?, to: String, html: Bool, completion: @escaping (Result<CasmosTranslationResult, Error>) -> Void) -> URLSessionDataTask? {
         let key = CasmosPreferences.deeplKey.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !key.isEmpty && key != "CASMOS_PLACEHOLDER_DEEPL_KEY" {
+        if CasmosPreferences.hasLiveDeeplKey {
             return translateDeeplOfficial(text: text, from: from, to: to, key: key, html: html, completion: completion)
         }
         return translateDeeplWeb(text: text, from: from, to: to, completion: completion)

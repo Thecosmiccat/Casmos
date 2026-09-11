@@ -26,7 +26,7 @@ public struct CasmosFormattedText: Equatable {
     }
 }
 
-/// Wrap / unwrap Telegram-style HTML so local translate engines can keep formatting.
+/// Wrap / unwrap message HTML so local translate engines can keep formatting.
 public enum CasmosHtmlFormat {
     private struct TagPair {
         let open: String
