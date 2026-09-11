@@ -40,6 +40,10 @@ class ShareViewController: NSViewController {
         System.updateScaleFactor(NSScreen.main?.backingScaleFactor ?? 1)
         
 
+        // Application Support/Casmos via ApiEnvironment — not an app-group container.
+        // Sandboxed Share cannot read the unsandboxed main app's App Support without
+        // application-groups. Unsigned personal builds strip groups (TCC). Share-into-
+        // Casmos is NOT WIRED here. App Store signed Share would still need groups.
         guard let containerUrl = ApiEnvironment.containerURL else {
             return
         }

@@ -12,7 +12,6 @@ import TelegramCore
 import Postbox
 import SwiftSignalKit
 import InAppSettings
-import ApiCredentials
 
 
 @available(macOS 13, *)
@@ -60,10 +59,10 @@ struct FocusFilter: SetFocusFilterIntent {
     }
     
     func perform() async throws -> some IntentResult {
-        let model = AppIntentDataModel(alwaysUseDarkMode: self.alwaysUseDarkMode, useUnableStatus: self.unableStatus)
-        if let model = model.encoded() {
-            UserDefaults(suiteName: ApiEnvironment.intentsBundleId)?.set(model, forKey: AppIntentDataModel.key)
-        }
+        // NOT WIRED: unsigned Casmos does not declare application-groups.
+        // UserDefaults(suiteName:) on the intents bundle ID probes a group container.
+        // Main-app AppIntentObserver is already commented out. Do not half-wire a file
+        // drop; App Store signed builds would still need groups + that observer.
         return .result()
     }
 }

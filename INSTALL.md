@@ -99,7 +99,7 @@ Xcode → target **Telegram** (product name Casmos) → Signing & Capabilities �
 - `Telegram-Mac/LocalAuth.swift` (`bundleSeedId`)
 - `submodules/BuildConfig/Sources/BuildConfig.m` (`bundleSeedId`)
 
-A free Apple ID Personal Team ID is fine for a local run. App Groups use `$(TeamIdentifierPrefix)app.casmos.macos`. If Xcode reports an App Group capability error on a free account, you can still compile; some multi-process features may not activate until a paid team is used.
+A free Apple ID Personal Team ID is fine for a local run. Unsigned Casmos does not declare application-groups (main, Share, FocusIntents). Data lives under Application Support/Casmos. Share-into-Casmos and Focus filter persistence are **NOT WIRED** without groups (sandboxed extensions cannot read the unsandboxed app’s App Support). `Telegram-Sandbox.entitlements` still lists groups for a future signed App Store path — do not half-wire that here.
 
 Get your own keys later at https://core.telegram.org/api/obtaining_api_id only if you are not waiting on Jeffrey. Never commit them.
 
