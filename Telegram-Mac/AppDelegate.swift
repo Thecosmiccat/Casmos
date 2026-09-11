@@ -217,6 +217,7 @@ class AppDelegate: NSResponder, NSApplicationDelegate, NSUserNotificationCenterD
         didSet {
             window.delegate = self
             window.isOpaque = true
+            applyCasmosAppSwitcherPrivacy(to: window)
             let notInitial = window.initSaver()
             
             if !notInitial {
@@ -459,6 +460,7 @@ class AppDelegate: NSResponder, NSApplicationDelegate, NSUserNotificationCenterD
        // applyMainMenuLocalization(window)
         
         mw = window
+        applyCasmosAppSwitcherPrivacy(to: window)
         
         
         #if BETA || DEBUG
@@ -1477,7 +1479,7 @@ class AppDelegate: NSResponder, NSApplicationDelegate, NSUserNotificationCenterD
     }
     
     func applicationWillBecomeActive(_ notification: Notification) {
-        casmosApplyAppSwitcherPrivacy()
+        applyCasmosAppSwitcherPrivacy()
         if contextValue != nil, !self.window.isMiniaturized {
             if !self.window.isVisible {
                 self.window.makeKeyAndOrderFront(self)
@@ -1491,10 +1493,6 @@ class AppDelegate: NSResponder, NSApplicationDelegate, NSUserNotificationCenterD
         }
     }
     
-    private func casmosApplyAppSwitcherPrivacy() {
-        window.sharingType = CasmosHooks.hideContentInAppSwitcher ? .none : .readWrite
-    }
-    
     func updateActiveContexts() {
         let records = [self.contextValue?.context.account.id].compactMap { $0 } + (supportAccountContextValue?.accountIds ?? [])
         BrowserStateContext.focus(records)
@@ -1502,11 +1500,11 @@ class AppDelegate: NSResponder, NSApplicationDelegate, NSUserNotificationCenterD
     
     
     func applicationWillResignActive(_ notification: Notification) {
-        casmosApplyAppSwitcherPrivacy()
+        applyCasmosAppSwitcherPrivacy()
     }
     
     func applicationDidResignActive(_ notification: Notification) {
-        casmosApplyAppSwitcherPrivacy()
+        applyCasmosAppSwitcherPrivacy()
         updatePeerPresence()
         if viewer != nil, NSScreen.main == viewer?.window.screen {
             viewer?.window.orderOut(nil)

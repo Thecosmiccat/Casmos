@@ -8,7 +8,8 @@
 - Modular `packages/Casmos`
 - Official Sparkle and App Center update endpoints blanked
 - Mac Xcode build notes in INSTALL.md (free Apple ID, Gatekeeper, recursive submodules, placeholders until Jeffrey provides keys)
-- Send with Command-Return, confirm external links, lock on sleep, hide content in App Switcher
+- Send with Command-Return
+- Confirm external links, lock on sleep, hide content in App Switcher — **on by default** (`casmos.pref.general.confirmLinkOpens`, `casmos.pref.passcode.autoLockOnSleep`, `casmos.pref.passcode.hideContentInAppSwitcher`)
 
 ## P1 (thin hooks in this tree)
 
@@ -19,7 +20,7 @@
 - Keep Original File Names: Save / Downloads prefer the document name (`casmos.pref.general.keepOriginalFileNames`).
 - Compact Chat List: 56pt rows and 36pt avatars (`casmos.pref.appearance.compactChatList`). Topic lists use the same row height.
 - Monochrome Folders: folder tags and folder tab titles use gray instead of assigned colors (`casmos.pref.appearance.monochromeFolders`).
-- Verbose Logging: off by default; console and file logs when enabled (`casmos.pref.experimental.verboseLogging`).
+- Verbose Logging: **off by default**; console and file logs when enabled (`casmos.pref.experimental.verboseLogging`).
 - Double-click action: `casmos.pref.chat.doubleTapAction` (`reply` default, plus none / reaction / edit / copy / forward / repeat / translate / details).
 - Hide channel bottom buttons: `casmos.pref.chat.hideChannelBottomButtons` collapses the Mute / Discuss input bar on broadcast channels. Mute and discussion stay in the chat header.
 - Message menu: Repeat (resend content in the current chat), Forward without Quote (`hideNames`), Details (JSON snapshot). Translate remains on the context menu when translator is enabled.

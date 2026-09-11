@@ -52,15 +52,15 @@ public enum CasmosHooks {
     }
 
     public static var confirmExternalLinks: Bool {
-        CasmosPreferences.bool(forKey: CasmosPrefKey.General.confirmLinkOpens)
+        CasmosPreferences.bool(forKey: CasmosPrefKey.General.confirmLinkOpens, default: true)
     }
 
     public static var autoLockOnSleep: Bool {
-        CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.autoLockOnSleep)
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.autoLockOnSleep, default: true)
     }
 
     public static var hideContentInAppSwitcher: Bool {
-        CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.hideContentInAppSwitcher)
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.hideContentInAppSwitcher, default: true)
     }
 
     public static var keepOriginalFileNames: Bool {

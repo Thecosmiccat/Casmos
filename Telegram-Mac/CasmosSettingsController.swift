@@ -27,6 +27,11 @@ func applyCasmosVerboseLogging() {
     }
 }
 
+func applyCasmosAppSwitcherPrivacy(to window: NSWindow? = nil) {
+    let target = window ?? appDelegate?.window
+    target?.sharingType = CasmosHooks.hideContentInAppSwitcher ? .none : .readWrite
+}
+
 private final class CasmosSettingsArguments {
     let context: AccountContext
     let toggle: (String) -> Void
@@ -69,7 +74,7 @@ private struct CasmosSettingsState: Equatable {
         let deeplKey = storedKey == "CASMOS_PLACEHOLDER_DEEPL_KEY" ? "" : storedKey
         return CasmosSettingsState(
             keepOriginalFileNames: CasmosPreferences.bool(forKey: CasmosPrefKey.General.keepOriginalFileNames),
-            confirmLinkOpens: CasmosPreferences.bool(forKey: CasmosPrefKey.General.confirmLinkOpens),
+            confirmLinkOpens: CasmosPreferences.bool(forKey: CasmosPrefKey.General.confirmLinkOpens, default: true),
             compactChatList: CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.compactChatList),
             monochromeFolders: CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.monochromeFolders),
             sendWithCommandEnter: CasmosPreferences.bool(forKey: CasmosPrefKey.Chat.sendWithCommandEnter),
@@ -79,8 +84,8 @@ private struct CasmosSettingsState: Equatable {
             translatorEnabled: CasmosPreferences.bool(forKey: CasmosPrefKey.Translator.enabled),
             translatorEngine: CasmosPreferences.translatorEngine.rawValue,
             translatorAuto: CasmosPreferences.translatorAuto,
-            autoLockOnSleep: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.autoLockOnSleep),
-            hideContentInAppSwitcher: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.hideContentInAppSwitcher),
+            autoLockOnSleep: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.autoLockOnSleep, default: true),
+            hideContentInAppSwitcher: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.hideContentInAppSwitcher, default: true),
             pauseVideoOnBackground: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.pauseVideoOnBackground),
             verboseLogging: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.verboseLogging, default: false),
             deeplKey: deeplKey
@@ -133,7 +138,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     header("GENERAL")
     toggleRow(id: _id_keep_names, name: "Keep Original File Names", value: state.keepOriginalFileNames, key: CasmosPrefKey.General.keepOriginalFileNames, viewType: .firstItem)
     toggleRow(id: _id_confirm_links, name: "Confirm External Links", value: state.confirmLinkOpens, key: CasmosPrefKey.General.confirmLinkOpens, viewType: .lastItem)
-    footer("Keep Original File Names uses the document name in Save and Downloads. Confirm External Links prompts before opening http(s) URLs.")
+    footer("Keep Original File Names uses the document name in Save and Downloads. Confirm External Links prompts before opening http(s) URLs and is on by default.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -173,7 +178,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     header("PASSCODE")
     toggleRow(id: _id_autolock, name: "Lock on Sleep", value: state.autoLockOnSleep, key: CasmosPrefKey.Passcode.autoLockOnSleep, viewType: .firstItem)
     toggleRow(id: _id_hide_switcher, name: "Hide Content in App Switcher", value: state.hideContentInAppSwitcher, key: CasmosPrefKey.Passcode.hideContentInAppSwitcher, viewType: .lastItem)
-    footer("Lock on Sleep shows the passcode overlay if a passcode is set. Hide Content in App Switcher blanks window snapshots.")
+    footer("Lock on Sleep shows the passcode overlay if a passcode is set. Hide Content in App Switcher blanks window snapshots. Both are on by default.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -212,6 +217,9 @@ func CasmosSettingsController(context: AccountContext) -> InputDataController {
         if key == CasmosPrefKey.Experimental.verboseLogging {
             applyCasmosVerboseLogging()
         }
+        if key == CasmosPrefKey.Passcode.hideContentInAppSwitcher {
+            applyCasmosAppSwitcherPrivacy()
+        }
         updateState { _ in CasmosSettingsState.load() }
     }, cycleStickerSize: {
         let current = CasmosPreferences.stickerSize
@@ -236,6 +244,7 @@ func CasmosSettingsController(context: AccountContext) -> InputDataController {
     }, importPrefs: {
         casmosImportPreferences(window: context.window) { ok in
             if ok {
+                applyCasmosAppSwitcherPrivacy()
                 updateState { _ in CasmosSettingsState.load() }
             }
         }

@@ -72,6 +72,16 @@ public enum CasmosPrefKey {
         Translator.engine,
         Translator.deeplKey
     ]
+
+    /// Unset bool keys use these defaults. Verbose logging stays off.
+    public static func boolDefault(for key: String) -> Bool {
+        switch key {
+        case General.confirmLinkOpens, Passcode.autoLockOnSleep, Passcode.hideContentInAppSwitcher:
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 public enum CasmosStickerSize: String, CaseIterable {
@@ -147,9 +157,9 @@ public enum CasmosPreferences {
         NotificationCenter.default.post(name: didChangeNotification, object: nil)
     }
 
-    public static func bool(forKey key: String, default value: Bool = false) -> Bool {
+    public static func bool(forKey key: String, default value: Bool? = nil) -> Bool {
         if defaults.object(forKey: key) == nil {
-            return value
+            return value ?? CasmosPrefKey.boolDefault(for: key)
         }
         return defaults.bool(forKey: key)
     }
@@ -205,7 +215,7 @@ public enum CasmosPreferences {
         set { set(newValue, forKey: CasmosPrefKey.Translator.deeplKey) }
     }
 
-    public static func toggle(_ key: String, default defaultValue: Bool = false) {
+    public static func toggle(_ key: String, default defaultValue: Bool? = nil) {
         set(!bool(forKey: key, default: defaultValue), forKey: key)
     }
 
