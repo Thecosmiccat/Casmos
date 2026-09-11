@@ -14,6 +14,7 @@ import Reactions
 import SwiftSignalKit
 import InAppSettings
 import FetchManager
+import Casmos
 
 struct PeerListHiddenItems : Equatable {
     var archive: ItemHideStatus
@@ -301,6 +302,7 @@ struct PeerListState : Equatable {
     var hiddenItems: PeerListHiddenItems
     var selectedForum: PeerId?
     var stories: EngineStorySubscriptions?
+    var hideStories: Bool = false
     var isContacts: Bool
     var filterData: FilterData
     var presentation: TelegramPresentationTheme
@@ -324,6 +326,9 @@ struct PeerListState : Equatable {
     var hashtag: Hashtag?
     
     var hasStories: Bool {
+        if hideStories || CasmosHooks.hideStories {
+            return false
+        }
         if let stories = self.stories, !isContacts, !mode.isForumLike {
             if self.splitState == .minimisize {
                 return false
@@ -339,7 +344,7 @@ struct PeerListState : Equatable {
     }
     
     static func initialize(_ isContacts: Bool) -> PeerListState {
-        return .init(proxySettings: .defaultSettings, connectionStatus: .waitingForNetwork, splitState: .dual, searchState: .None, peer: nil, forumPeer: nil, mode: .plain, activities: .init(activities: [:]), appear: .normal, controllerAppear: .normal, hiddenItems: .default, selectedForum: nil, stories: nil, isContacts: isContacts, filterData: FilterData(), presentation: theme, privacy: nil, displaySavedAsTopics: false)
+        return .init(proxySettings: .defaultSettings, connectionStatus: .waitingForNetwork, splitState: .dual, searchState: .None, peer: nil, forumPeer: nil, mode: .plain, activities: .init(activities: [:]), appear: .normal, controllerAppear: .normal, hiddenItems: .default, selectedForum: nil, stories: nil, hideStories: CasmosHooks.hideStories, isContacts: isContacts, filterData: FilterData(), presentation: theme, privacy: nil, displaySavedAsTopics: false)
 
     }
 }
@@ -2554,6 +2559,7 @@ class PeersListController: TelegramGenericViewController<PeerListContainerView>,
                 current.mode = mode
                 current.activities = inputActivities
                 current.stories = storyState
+                current.hideStories = CasmosHooks.hideStories
                 current.appear = layout == .minimisize ? .normal : appearMode
                 current.isContacts = isContacts
                 current.presentation = appearance.presentation

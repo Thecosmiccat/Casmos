@@ -6,7 +6,8 @@
 //  Preference keys live in the Casmos package (`casmos.pref.*`).
 //  P1 sticker size, extra translator routing, pause-video, multi-engine translator,
 //  leftover Settings toggles (file names, compact list, monochrome folders, verbose logging),
-//  double-click action, hide channel bottom buttons, preference JSON export/import.
+//  double-click action, hide channel bottom buttons, preference JSON export/import,
+//  hide stories (default on), hide own phone and @username (default on).
 //
 
 import Cocoa
@@ -56,6 +57,8 @@ private struct CasmosSettingsState: Equatable {
     var confirmLinkOpens: Bool
     var compactChatList: Bool
     var monochromeFolders: Bool
+    var hideStories: Bool
+    var hideOwnPhoneAndUsername: Bool
     var sendWithCommandEnter: Bool
     var stickerSize: String
     var doubleTapAction: String
@@ -77,6 +80,8 @@ private struct CasmosSettingsState: Equatable {
             confirmLinkOpens: CasmosPreferences.bool(forKey: CasmosPrefKey.General.confirmLinkOpens, default: true),
             compactChatList: CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.compactChatList),
             monochromeFolders: CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.monochromeFolders),
+            hideStories: CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.hideStories),
+            hideOwnPhoneAndUsername: CasmosPreferences.bool(forKey: CasmosPrefKey.Privacy.hideOwnPhoneAndUsername),
             sendWithCommandEnter: CasmosPreferences.bool(forKey: CasmosPrefKey.Chat.sendWithCommandEnter),
             stickerSize: CasmosPreferences.stickerSize.rawValue,
             doubleTapAction: CasmosPreferences.doubleTapAction.displayName,
@@ -97,6 +102,8 @@ private let _id_keep_names = InputDataIdentifier("casmos.pref.general.keepOrigin
 private let _id_confirm_links = InputDataIdentifier("casmos.pref.general.confirmLinkOpens")
 private let _id_compact_list = InputDataIdentifier("casmos.pref.appearance.compactChatList")
 private let _id_mono_folders = InputDataIdentifier("casmos.pref.appearance.monochromeFolders")
+private let _id_hide_stories = InputDataIdentifier("casmos.pref.appearance.hideStories")
+private let _id_hide_own_ids = InputDataIdentifier("casmos.pref.privacy.hideOwnPhoneAndUsername")
 private let _id_cmd_enter = InputDataIdentifier("casmos.pref.chat.sendWithCommandEnter")
 private let _id_sticker_size = InputDataIdentifier("casmos.pref.chat.stickerSize")
 private let _id_double_tap = InputDataIdentifier("casmos.pref.chat.doubleTapAction")
@@ -137,16 +144,18 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
 
     header("GENERAL")
     toggleRow(id: _id_keep_names, name: "Keep Original File Names", value: state.keepOriginalFileNames, key: CasmosPrefKey.General.keepOriginalFileNames, viewType: .firstItem)
-    toggleRow(id: _id_confirm_links, name: "Confirm External Links", value: state.confirmLinkOpens, key: CasmosPrefKey.General.confirmLinkOpens, viewType: .lastItem)
-    footer("Keep Original File Names uses the document name in Save and Downloads. Confirm External Links prompts before opening http(s) URLs and is on by default.")
+    toggleRow(id: _id_confirm_links, name: "Confirm External Links", value: state.confirmLinkOpens, key: CasmosPrefKey.General.confirmLinkOpens, viewType: .innerItem)
+    toggleRow(id: _id_hide_own_ids, name: "Hide Phone and Username", value: state.hideOwnPhoneAndUsername, key: CasmosPrefKey.Privacy.hideOwnPhoneAndUsername, viewType: .lastItem)
+    footer("Keep Original File Names uses the document name in Save and Downloads. Confirm External Links prompts before opening http(s) URLs and is on by default. Hide Phone and Username removes your number and @username from your own profile, Settings header, and Edit Account values (on by default).")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
 
     header("APPEARANCE")
     toggleRow(id: _id_compact_list, name: "Compact Chat List", value: state.compactChatList, key: CasmosPrefKey.Appearance.compactChatList, viewType: .firstItem)
-    toggleRow(id: _id_mono_folders, name: "Monochrome Folders", value: state.monochromeFolders, key: CasmosPrefKey.Appearance.monochromeFolders, viewType: .lastItem)
-    footer("Compact Chat List uses 56pt rows. Monochrome Folders draws folder tags and folder tab titles in gray instead of assigned colors.")
+    toggleRow(id: _id_mono_folders, name: "Monochrome Folders", value: state.monochromeFolders, key: CasmosPrefKey.Appearance.monochromeFolders, viewType: .innerItem)
+    toggleRow(id: _id_hide_stories, name: "Hide Stories", value: state.hideStories, key: CasmosPrefKey.Appearance.hideStories, viewType: .lastItem)
+    footer("Compact Chat List uses 56pt rows. Monochrome Folders draws folder tags and folder tab titles in gray. Hide Stories removes the chat-list Stories strip and is on by default.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1

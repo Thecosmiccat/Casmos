@@ -13,6 +13,7 @@ import TelegramCore
 import Reactions
 import SwiftSignalKit
 import TelegramMedia
+import Casmos
 
 
 class AccountInfoItem: GeneralRowItem {
@@ -56,14 +57,16 @@ class AccountInfoItem: GeneralRowItem {
         activeTitle.addAttribute(.foregroundColor, value: theme.colors.underSelectedColor, range: titleAttr.range)
         self.titleActiveLayout = .init(activeTitle, maximumNumberOfLines: 1)
         
-        if let phone = peer.phone {
-            _ = attr.append(string: formatPhoneNumber(context: context, number: phone), color: theme.colors.grayText, font: .normal(.text))
-        }
-        if let username = peer.username, !username.isEmpty {
-            if !attr.string.isEmpty {
-                _ = attr.append(string: "\n")
+        if !CasmosHooks.hideOwnPhoneAndUsername {
+            if let phone = peer.phone {
+                _ = attr.append(string: formatPhoneNumber(context: context, number: phone), color: theme.colors.grayText, font: .normal(.text))
             }
-            _ = attr.append(string: "@\(username)", color: theme.colors.grayText, font: .normal(.text))
+            if let username = peer.username, !username.isEmpty {
+                if !attr.string.isEmpty {
+                    _ = attr.append(string: "\n")
+                }
+                _ = attr.append(string: "@\(username)", color: theme.colors.grayText, font: .normal(.text))
+            }
         }
         
         textLayout = TextViewLayout(attr, maximumNumberOfLines: 4)

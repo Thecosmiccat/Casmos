@@ -12,6 +12,7 @@ import CurrencyFormat
 import SwiftSignalKit
 import Postbox
 import TGUIKit
+import Casmos
 
 
 struct UserInfoEditingState: Equatable {
@@ -2364,7 +2365,9 @@ func userInfoEntries(view: PeerView, arguments: PeerInfoArguments, mediaTabsData
                 }
                 
                 if let phoneNumber = user.phone, !phoneNumber.isEmpty {
-                    infoBlock.append(.phoneNumber(sectionId: sectionId, index: 0, value: PhoneNumberWithLabel(label: phoneNumber.hasPrefix("888") ? strings().peerInfoAnonymousPhone : strings().peerInfoPhone, number: phoneNumber), canCopy: true, viewType: .singleItem))
+                    if !(user.id == arguments.context.peerId && CasmosHooks.hideOwnPhoneAndUsername) {
+                        infoBlock.append(.phoneNumber(sectionId: sectionId, index: 0, value: PhoneNumberWithLabel(label: phoneNumber.hasPrefix("888") ? strings().peerInfoAnonymousPhone : strings().peerInfoPhone, number: phoneNumber), canCopy: true, viewType: .singleItem))
+                    }
                 } else if view.peerIsContact {
                     infoBlock.append(.phoneNumber(sectionId: sectionId, index: 0, value: PhoneNumberWithLabel(label: strings().peerInfoPhone, number: strings().newContactPhoneHidden), canCopy: false, viewType: .singleItem))
                 }
@@ -2406,7 +2409,9 @@ func userInfoEntries(view: PeerView, arguments: PeerInfoArguments, mediaTabsData
                     usernames.append(.init(username: address, collectable: false))
                 }
                 if !usernames.isEmpty {
-                    infoBlock.append(.userName(sectionId: sectionId, value: usernames, viewType: .singleItem))
+                    if !(user.id == arguments.context.peerId && CasmosHooks.hideOwnPhoneAndUsername) {
+                        infoBlock.append(.userName(sectionId: sectionId, value: usernames, viewType: .singleItem))
+                    }
                 }
                 
           

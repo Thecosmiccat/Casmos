@@ -13,6 +13,13 @@ public enum CasmosPrefKey {
     public enum Appearance {
         public static let compactChatList = "casmos.pref.appearance.compactChatList"
         public static let monochromeFolders = "casmos.pref.appearance.monochromeFolders"
+        /// Hide the chat-list Stories strip. Default on.
+        public static let hideStories = "casmos.pref.appearance.hideStories"
+    }
+
+    public enum Privacy {
+        /// Hide phone and @username on your own profile UI. Default on.
+        public static let hideOwnPhoneAndUsername = "casmos.pref.privacy.hideOwnPhoneAndUsername"
     }
 
     public enum Chat {
@@ -51,6 +58,8 @@ public enum CasmosPrefKey {
         General.confirmLinkOpens,
         Appearance.compactChatList,
         Appearance.monochromeFolders,
+        Appearance.hideStories,
+        Privacy.hideOwnPhoneAndUsername,
         Chat.sendWithCommandEnter,
         Chat.stickerSize,
         Chat.doubleTapAction,
@@ -76,7 +85,11 @@ public enum CasmosPrefKey {
     /// Unset bool keys use these defaults. Verbose logging stays off.
     public static func boolDefault(for key: String) -> Bool {
         switch key {
-        case General.confirmLinkOpens, Passcode.autoLockOnSleep, Passcode.hideContentInAppSwitcher:
+        case General.confirmLinkOpens,
+             Appearance.hideStories,
+             Privacy.hideOwnPhoneAndUsername,
+             Passcode.autoLockOnSleep,
+             Passcode.hideContentInAppSwitcher:
             return true
         default:
             return false

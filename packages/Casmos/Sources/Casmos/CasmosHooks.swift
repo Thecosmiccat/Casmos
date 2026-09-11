@@ -1,7 +1,8 @@
 import Foundation
 
 /// Thin hooks over `CasmosPreferences` for layout, translate routing,
-/// inline playback, send-key, link confirm, passcode, file names, and logging.
+/// inline playback, send-key, link confirm, passcode, file names,
+/// stories, own-profile identifiers, and logging.
 public enum CasmosHooks {
     /// Scale for the 208pt chat sticker box. Custom-emoji 112pt boxes stay unchanged.
     public static var stickerLayoutScale: Double {
@@ -73,6 +74,16 @@ public enum CasmosHooks {
 
     public static var monochromeFolders: Bool {
         CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.monochromeFolders)
+    }
+
+    /// Hide the chat-list Stories strip. Default on.
+    public static var hideStories: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.hideStories)
+    }
+
+    /// Hide phone and @username on your own profile UI. Default on.
+    public static var hideOwnPhoneAndUsername: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Privacy.hideOwnPhoneAndUsername)
     }
 
     public static var verboseLogging: Bool {

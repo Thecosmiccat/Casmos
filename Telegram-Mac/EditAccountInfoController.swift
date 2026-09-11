@@ -13,6 +13,7 @@ import TelegramCore
 import Postbox
 import SwiftSignalKit
 import CalendarUtils
+import Casmos
 
 
 func editAccountUpdateBirthday(_ date: Date, context: AccountContext) {
@@ -298,8 +299,11 @@ private func editInfoEntries(state: EditInfoState, arguments: EditInfoController
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
     
+    let hideOwnIds = CasmosHooks.hideOwnPhoneAndUsername
     let username: String
-    if let name = state.username {
+    if hideOwnIds {
+        username = ""
+    } else if let name = state.username {
         username = "@\(name)"
     } else if let name = state.peer?.username {
         username = "@\(name)"
@@ -310,7 +314,15 @@ private func editInfoEntries(state: EditInfoState, arguments: EditInfoController
     entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_username, data: InputDataGeneralData(name: strings().editAccountUsername, color: theme.colors.text, icon: nil, type: .nextContext(username), viewType: .firstItem, action: nil)))
     index += 1
 
-    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_phone, data: InputDataGeneralData(name: strings().editAccountChangeNumber, color: theme.colors.text, icon: nil, type: .nextContext(state.phone != nil ? formatPhoneNumber(context: arguments.context, number: state.phone!) : ""), viewType: .innerItem, action: nil)))
+    let phoneText: String
+    if hideOwnIds {
+        phoneText = ""
+    } else if let phone = state.phone {
+        phoneText = formatPhoneNumber(context: arguments.context, number: phone)
+    } else {
+        phoneText = ""
+    }
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_phone, data: InputDataGeneralData(name: strings().editAccountChangeNumber, color: theme.colors.text, icon: nil, type: .nextContext(phoneText), viewType: .innerItem, action: nil)))
     index += 1
     
     entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_name_color, data: InputDataGeneralData(name: strings().appearanceYourNameColor, color: theme.colors.text, type: .imageContext(generateSettingsMenuPeerColorsLabelIcon(peer: state.peer, context: arguments.context), ""), viewType: .innerItem, action: arguments.userNameColor)))
