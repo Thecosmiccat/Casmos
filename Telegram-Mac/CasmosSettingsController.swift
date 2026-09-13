@@ -2,14 +2,14 @@
 //  CasmosSettingsController.swift
 //  Casmos
 //
-//  Settings shell for Casmos (General / Appearance / Chat / Translator / Passcode / Experimental).
+//  Settings shell for Casmos (General / Appearance / Chat / Passcode / Experimental).
 //  Preference keys live in the Casmos package (`casmos.pref.*`).
-//  P1 sticker size, extra translator routing, pause-video, multi-engine translator,
+//  P1 sticker size, pause-video,
 //  leftover Settings toggles (file names, compact list, monochrome folders, verbose logging),
 //  double-click action, hide channel bottom buttons, preference JSON export/import,
-//  do-not-translate languages, keep-formatting,
 //  hide stories (default on), hide own phone and @username (default on),
 //  per-account passcode / hide account / panic (Touch ID session reveal).
+//  Translator lives in Language (Translate Messages).
 //
 
 import Cocoa
@@ -18,7 +18,6 @@ import SwiftSignalKit
 import TelegramCore
 import Casmos
 import MtProtoKit
-import Translate
 
 func applyCasmosVerboseLogging() {
     let on = CasmosHooks.verboseLogging
@@ -33,32 +32,36 @@ func applyCasmosVerboseLogging() {
 
 func applyCasmosAppSwitcherPrivacy(to window: NSWindow? = nil) {
     let target = window ?? appDelegate?.window
-    target?.sharingType = CasmosHooks.hideContentInAppSwitcher ? .none : .readWrite
+    var hide = CasmosHooks.hideContentInAppSwitcher
+    if hide, let delegate = appDelegate, delegate.appEncryption != nil {
+        hide = delegate.appEncryption.hasPasscode()
+    } else {
+        hide = false
+    }
+    target?.sharingType = hide ? .none : .readWrite
 }
 
 private final class CasmosSettingsArguments {
     let context: AccountContext
     let toggle: (String) -> Void
     let cycleStickerSize: () -> Void
-    let cycleTranslatorEngine: () -> Void
     let cycleDoubleTap: () -> Void
-    let toggleDoNotTranslate: (String) -> Void
     let exportPrefs: () -> Void
     let importPrefs: () -> Void
+    let openDeletedLog: () -> Void
     let setAccountPasscode: () -> Void
     let removeAccountPasscode: () -> Void
     let setPanicPasscode: () -> Void
     let removePanicPasscode: () -> Void
     let unlockHidden: () -> Void
-    init(context: AccountContext, toggle: @escaping (String) -> Void, cycleStickerSize: @escaping () -> Void, cycleTranslatorEngine: @escaping () -> Void, cycleDoubleTap: @escaping () -> Void, toggleDoNotTranslate: @escaping (String) -> Void, exportPrefs: @escaping () -> Void, importPrefs: @escaping () -> Void, setAccountPasscode: @escaping () -> Void, removeAccountPasscode: @escaping () -> Void, setPanicPasscode: @escaping () -> Void, removePanicPasscode: @escaping () -> Void, unlockHidden: @escaping () -> Void) {
+    init(context: AccountContext, toggle: @escaping (String) -> Void, cycleStickerSize: @escaping () -> Void, cycleDoubleTap: @escaping () -> Void, exportPrefs: @escaping () -> Void, importPrefs: @escaping () -> Void, openDeletedLog: @escaping () -> Void, setAccountPasscode: @escaping () -> Void, removeAccountPasscode: @escaping () -> Void, setPanicPasscode: @escaping () -> Void, removePanicPasscode: @escaping () -> Void, unlockHidden: @escaping () -> Void) {
         self.context = context
         self.toggle = toggle
         self.cycleStickerSize = cycleStickerSize
-        self.cycleTranslatorEngine = cycleTranslatorEngine
         self.cycleDoubleTap = cycleDoubleTap
-        self.toggleDoNotTranslate = toggleDoNotTranslate
         self.exportPrefs = exportPrefs
         self.importPrefs = importPrefs
+        self.openDeletedLog = openDeletedLog
         self.setAccountPasscode = setAccountPasscode
         self.removeAccountPasscode = removeAccountPasscode
         self.setPanicPasscode = setPanicPasscode
@@ -74,15 +77,11 @@ private struct CasmosSettingsState: Equatable {
     var monochromeFolders: Bool
     var hideStories: Bool
     var hideOwnPhoneAndUsername: Bool
+    var keepDeletedMessages: Bool
     var sendWithCommandEnter: Bool
     var stickerSize: String
     var doubleTapAction: String
     var hideChannelBottomButtons: Bool
-    var translatorEnabled: Bool
-    var translatorEngine: String
-    var translatorAuto: Bool
-    var keepFormatting: Bool
-    var doNotTranslateTitle: String
     var autoLockOnSleep: Bool
     var hideContentInAppSwitcher: Bool
     var hasAccountPasscode: Bool
@@ -94,24 +93,8 @@ private struct CasmosSettingsState: Equatable {
     var logoutOnPanic: Bool
     var pauseVideoOnBackground: Bool
     var verboseLogging: Bool
-    var deeplKey: String
 
     static func load(accountId: Int64? = nil) -> CasmosSettingsState {
-        let storedKey = CasmosPreferences.deeplKey
-        let deeplKey = storedKey == "CASMOS_PLACEHOLDER_DEEPL_KEY" ? "" : storedKey
-        let skip = CasmosPreferences.doNotTranslate
-        let skipTitle: String
-        if skip.isEmpty {
-            skipTitle = "None"
-        } else {
-            let names = skip.compactMap { code -> String? in
-                if let value = Translate.find(code) {
-                    return value.language
-                }
-                return code
-            }.sorted()
-            skipTitle = names.isEmpty ? "None" : names.joined(separator: ", ")
-        }
         return CasmosSettingsState(
             keepOriginalFileNames: CasmosPreferences.bool(forKey: CasmosPrefKey.General.keepOriginalFileNames),
             confirmLinkOpens: CasmosPreferences.bool(forKey: CasmosPrefKey.General.confirmLinkOpens, default: true),
@@ -119,15 +102,11 @@ private struct CasmosSettingsState: Equatable {
             monochromeFolders: CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.monochromeFolders),
             hideStories: CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.hideStories),
             hideOwnPhoneAndUsername: CasmosPreferences.bool(forKey: CasmosPrefKey.Privacy.hideOwnPhoneAndUsername),
+            keepDeletedMessages: CasmosPreferences.bool(forKey: CasmosPrefKey.Privacy.keepDeletedMessages),
             sendWithCommandEnter: CasmosPreferences.bool(forKey: CasmosPrefKey.Chat.sendWithCommandEnter),
             stickerSize: CasmosPreferences.stickerSize.rawValue,
             doubleTapAction: CasmosPreferences.doubleTapAction.displayName,
             hideChannelBottomButtons: CasmosPreferences.bool(forKey: CasmosPrefKey.Chat.hideChannelBottomButtons),
-            translatorEnabled: CasmosPreferences.bool(forKey: CasmosPrefKey.Translator.enabled),
-            translatorEngine: CasmosPreferences.translatorEngine.rawValue,
-            translatorAuto: CasmosPreferences.translatorAuto,
-            keepFormatting: CasmosPreferences.keepTranslateFormatting,
-            doNotTranslateTitle: skipTitle,
             autoLockOnSleep: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.autoLockOnSleep, default: true),
             hideContentInAppSwitcher: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.hideContentInAppSwitcher, default: true),
             hasAccountPasscode: accountId.map { CasmosAccountPasscode.hasPasscode(accountId: $0) } ?? false,
@@ -138,8 +117,7 @@ private struct CasmosSettingsState: Equatable {
             useTouchIdForAccounts: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.useTouchIdForAccounts),
             logoutOnPanic: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.logoutOnPanic),
             pauseVideoOnBackground: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.pauseVideoOnBackground),
-            verboseLogging: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.verboseLogging, default: false),
-            deeplKey: deeplKey
+            verboseLogging: CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.verboseLogging, default: false)
         )
     }
 }
@@ -150,18 +128,14 @@ private let _id_compact_list = InputDataIdentifier("casmos.pref.appearance.compa
 private let _id_mono_folders = InputDataIdentifier("casmos.pref.appearance.monochromeFolders")
 private let _id_hide_stories = InputDataIdentifier("casmos.pref.appearance.hideStories")
 private let _id_hide_own_ids = InputDataIdentifier("casmos.pref.privacy.hideOwnPhoneAndUsername")
+private let _id_keep_deleted = InputDataIdentifier("casmos.pref.privacy.keepDeletedMessages")
+private let _id_open_deleted = InputDataIdentifier("casmos.pref.privacy.openDeletedLog")
 private let _id_cmd_enter = InputDataIdentifier("casmos.pref.chat.sendWithCommandEnter")
 private let _id_sticker_size = InputDataIdentifier("casmos.pref.chat.stickerSize")
 private let _id_double_tap = InputDataIdentifier("casmos.pref.chat.doubleTapAction")
 private let _id_hide_channel_buttons = InputDataIdentifier("casmos.pref.chat.hideChannelBottomButtons")
 private let _id_export = InputDataIdentifier("casmos.pref.config.export")
 private let _id_import = InputDataIdentifier("casmos.pref.config.import")
-private let _id_translator = InputDataIdentifier("casmos.pref.translator.enabled")
-private let _id_translator_engine = InputDataIdentifier("casmos.pref.translator.engine")
-private let _id_translator_auto = InputDataIdentifier("casmos.pref.translator.auto")
-private let _id_keep_formatting = InputDataIdentifier("casmos.pref.translator.keepFormatting")
-private let _id_do_not_translate = InputDataIdentifier("casmos.pref.translator.doNotTranslate")
-private let _id_deepl_key = InputDataIdentifier("casmos.pref.translator.deeplKey")
 private let _id_autolock = InputDataIdentifier("casmos.pref.passcode.autoLockOnSleep")
 private let _id_hide_switcher = InputDataIdentifier("casmos.pref.passcode.hideContentInAppSwitcher")
 private let _id_account_passcode = InputDataIdentifier("casmos.pref.passcode.account")
@@ -208,6 +182,15 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
 
+    header("DELETED MESSAGES")
+    toggleRow(id: _id_keep_deleted, name: "Keep Deleted Messages", value: state.keepDeletedMessages, key: CasmosPrefKey.Privacy.keepDeletedMessages, viewType: .firstItem)
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_open_deleted, data: .init(name: "Open Deleted Log", color: theme.colors.text, type: .next, viewType: .lastItem, action: arguments.openDeletedLog)))
+    index += 1
+    footer("Off by default. When on, Casmos writes text of wiped messages to a local file before they leave the database. Chat rows still vanish. Secret chats and never-downloaded messages are not stored.")
+
+    entries.append(.sectionId(sectionId, type: .normal))
+    sectionId += 1
+
     header("APPEARANCE")
     toggleRow(id: _id_compact_list, name: "Compact Chat List", value: state.compactChatList, key: CasmosPrefKey.Appearance.compactChatList, viewType: .firstItem)
     toggleRow(id: _id_mono_folders, name: "Monochrome Folders", value: state.monochromeFolders, key: CasmosPrefKey.Appearance.monochromeFolders, viewType: .innerItem)
@@ -225,41 +208,6 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     index += 1
     toggleRow(id: _id_hide_channel_buttons, name: "Hide Channel Bottom Buttons", value: state.hideChannelBottomButtons, key: CasmosPrefKey.Chat.hideChannelBottomButtons, viewType: .lastItem)
     footer("Command-Return sends when enabled. Sticker size scales the 208pt chat sticker box. Double-Click Action runs on a bubble (default Reply). Hide Channel Bottom Buttons collapses the Mute / Discuss bar; mute and discussion stay in the chat header.")
-
-    entries.append(.sectionId(sectionId, type: .normal))
-    sectionId += 1
-
-    header("TRANSLATOR")
-    toggleRow(id: _id_translator, name: "Enable Translator", value: state.translatorEnabled, key: CasmosPrefKey.Translator.enabled, viewType: .firstItem)
-    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_translator_engine, data: .init(name: "Engine", color: theme.colors.text, type: .nextContext(state.translatorEngine), viewType: .innerItem, action: arguments.cycleTranslatorEngine)))
-    index += 1
-    entries.append(.input(sectionId: sectionId, index: index, value: .string(state.deeplKey), error: nil, identifier: _id_deepl_key, mode: .secure, data: .init(viewType: .innerItem), placeholder: nil, inputPlaceholder: "DeepL key (local)", filter: { $0 }, limit: 255))
-    index += 1
-    toggleRow(id: _id_keep_formatting, name: "Keep Formatting", value: state.keepFormatting, key: CasmosPrefKey.Translator.keepFormatting, viewType: .innerItem)
-    let skipCodes = CasmosPreferences.doNotTranslate
-    let codes = Translate.codes.sorted(by: { lhs, rhs in
-        let lhsSelected = skipCodes.contains(where: { lhs.code.contains($0) })
-        let rhsSelected = skipCodes.contains(where: { rhs.code.contains($0) })
-        if lhsSelected && !rhsSelected {
-            return true
-        } else if !lhsSelected && rhsSelected {
-            return false
-        } else {
-            return lhs.language < rhs.language
-        }
-    })
-    let skipItems: [ContextMenuItem] = codes.map { code in
-        let selected = code.code.contains(where: { skipCodes.contains($0) })
-        return ContextMenuItem(code.language, handler: {
-            if let first = code.code.first {
-                arguments.toggleDoNotTranslate(first)
-            }
-        }, itemImage: selected ? MenuAnimation.menu_check_selected.value : nil)
-    }
-    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_do_not_translate, data: .init(name: "Do Not Translate", color: theme.colors.text, type: .contextSelector(state.doNotTranslateTitle, skipItems), viewType: .innerItem)))
-    index += 1
-    toggleRow(id: _id_translator_auto, name: "Auto-translate Chats", value: state.translatorAuto, key: CasmosPrefKey.Translator.auto, viewType: .lastItem)
-    footer("System keeps the official path. Extra uses the existing web fallback. Yandex and DeepL are local engines. DeepL uses the key above when set (local only); otherwise the public web endpoint. Keep Formatting sends HTML to Yandex, and to DeepL when a local key is set, so bold, italic, links, and code survive. Extra and DeepL-without-key stay plain. Do Not Translate skips those languages in auto-translate and the Translate menu (combined with Language settings). Auto-translate applies the selected engine to chat messages, including polls and todo lists.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -290,7 +238,7 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     toggleRow(id: _id_logout_panic, name: "Logout on Panic", value: state.logoutOnPanic, key: CasmosPrefKey.Passcode.logoutOnPanic, viewType: .innerItem)
     entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_unlock_hidden, data: .init(name: "Unlock Hidden Account", color: theme.colors.text, type: .next, viewType: .lastItem, action: arguments.unlockHidden)))
     index += 1
-    footer("Lock on Sleep and Hide Content in App Switcher are on by default. Account passcode hashes stay in the Keychain. Hide This Account drops the account from the switcher until you type that passcode. Panic hides included accounts for this session; Hide This Account stays after quit. Logout on Panic also signs those accounts out and is off by default. Touch ID Reveals Hidden Accounts stays off until LocalAuthentication succeeds; without biometrics it shows NOT WIRED. Cold-start lock only accepts the app passcode (NOT WIRED for panic / hide). This is local hide, not network anonymity.")
+    footer("Lock on Sleep and Hide Content in App Switcher are on by default. Hide Content in App Switcher blanks App Switcher when a passcode is set. Account passcode hashes stay in the Keychain. Hide This Account drops the account from the switcher until you type that passcode. Panic hides included accounts for this session; Hide This Account stays after quit. Logout on Panic also signs those accounts out and is off by default. Touch ID Reveals Hidden Accounts stays off until LocalAuthentication succeeds; without biometrics it shows NOT WIRED. Cold-start lock only accepts the app passcode (NOT WIRED for panic / hide). This is local hide, not network anonymity.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -372,20 +320,11 @@ func CasmosSettingsController(context: AccountContext) -> InputDataController {
         let next = all[(all.firstIndex(of: current)! + 1) % all.count]
         CasmosPreferences.stickerSize = next
         updateState { _ in reload() }
-    }, cycleTranslatorEngine: {
-        let current = CasmosPreferences.translatorEngine
-        let all = CasmosTranslatorEngine.allCases
-        let next = all[(all.firstIndex(of: current)! + 1) % all.count]
-        CasmosPreferences.translatorEngine = next
-        updateState { _ in reload() }
     }, cycleDoubleTap: {
         let current = CasmosPreferences.doubleTapAction
         let all = CasmosDoubleTapAction.allCases
         let next = all[(all.firstIndex(of: current)! + 1) % all.count]
         CasmosPreferences.doubleTapAction = next
-        updateState { _ in reload() }
-    }, toggleDoNotTranslate: { code in
-        CasmosPreferences.toggleDoNotTranslate(code)
         updateState { _ in reload() }
     }, exportPrefs: {
         casmosExportPreferences(window: context.window)
@@ -396,6 +335,8 @@ func CasmosSettingsController(context: AccountContext) -> InputDataController {
                 updateState { _ in reload() }
             }
         }
+    }, openDeletedLog: {
+        casmosOpenDeletedMessagesLog(window: context.window)
     }, setAccountPasscode: {
         casmosPresentSetAccountPasscode(context: context) {
             updateState { _ in reload() }
@@ -422,13 +363,6 @@ func CasmosSettingsController(context: AccountContext) -> InputDataController {
         InputDataSignalValue(entries: casmosSettingsEntries(state: state, arguments: arguments))
     }
 
-    let controller = InputDataController(dataSignal: signal, title: "Casmos Settings", hasDone: false)
-    controller.updateDatas = { data in
-        if let value = data[_id_deepl_key]?.stringValue {
-            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-            CasmosPreferences.deeplKey = trimmed == "CASMOS_PLACEHOLDER_DEEPL_KEY" ? "" : trimmed
-        }
-        return .none
-    }
+    let controller = InputDataController(dataSignal: signal, title: "Casmos Settings", removeAfterDisappear: false, hasDone: false, identifier: "casmos")
     return controller
 }

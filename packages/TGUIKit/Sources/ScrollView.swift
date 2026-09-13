@@ -51,6 +51,11 @@ final class Scroller : NSScroller {
         dirtyRect.fill()
         if let scrollView = self.scrollView {
             if scrollView.contentView.documentRect.height > scrollView.frame.height {
+                let overlay = scrollView as? ScrollView
+                let live = (scrollView as? TableView)?.liveScrolling == true
+                if overlay != nil && overlay?.showsOverlayKnob != true && !live {
+                    return
+                }
                 self.drawKnob()
             }
         }
@@ -102,6 +107,24 @@ open class ScrollView: NSScrollView{
     public var deltaCorner:Int64 = 60
     
     public var applyExternalScroll:((NSEvent)->Bool)? = nil
+    private var overlayKnobVisible = false
+    private var hideOverlayScrollerWork: DispatchWorkItem?
+
+    public var showsOverlayKnob: Bool {
+        overlayKnobVisible
+    }
+
+    public func revealOverlayScroller() {
+        overlayKnobVisible = true
+        verticalScroller?.needsDisplay = true
+        hideOverlayScrollerWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            self?.overlayKnobVisible = false
+            self?.verticalScroller?.needsDisplay = true
+        }
+        hideOverlayScrollerWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7, execute: work)
+    }
   
     override public static var isCompatibleWithResponsiveScrolling: Bool {
         return true
@@ -209,12 +232,9 @@ open class ScrollView: NSScrollView{
         //self.hasVerticalScroller = false
         
         self.scrollerStyle = .overlay
-         
-         if NSScroller.preferredScrollerStyle == .legacy {
-             let scroller = Scroller()
-             scroller.scrollView = self
-             self.verticalScroller = scroller
-         } 
+        let scroller = Scroller()
+        scroller.scrollView = self
+        self.verticalScroller = scroller 
  
     }
     
@@ -240,6 +260,7 @@ open class ScrollView: NSScrollView{
         
         if !window.inLiveSwiping {
             super.scrollWheel(with: event)
+            revealOverlayScroller()
         }
 //
     }

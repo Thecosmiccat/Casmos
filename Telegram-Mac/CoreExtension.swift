@@ -553,20 +553,20 @@ public extension Message {
     }
     
     func displayedTranslation(toLang: String) -> (text: String, entities: [MessageTextEntity])? {
-        if let attr = translationAttribute(toLang: toLang) {
+        if let attr = translationAttribute(toLang: toLang), !attr.text.isEmpty {
             return (attr.text, attr.entities)
         }
-        if let formatted = CasmosLocalTranslations.formatted(for: casmosTranslationKey, toLang: toLang) {
+        if let formatted = CasmosLocalTranslations.formatted(for: casmosTranslationKey, toLang: toLang), !formatted.text.isEmpty {
             return (formatted.text, casmosEntities(from: formatted.spans))
         }
-        if let text = CasmosLocalTranslations.text(for: casmosTranslationKey, toLang: toLang) {
+        if let text = CasmosLocalTranslations.text(for: casmosTranslationKey, toLang: toLang), !text.isEmpty {
             return (text, [])
         }
         return nil
     }
     
     func hasDisplayedTranslation(toLang: String) -> Bool {
-        hasTranslationAttribute(toLang: toLang) || CasmosLocalTranslations.contains(key: casmosTranslationKey, toLang: toLang)
+        displayedTranslation(toLang: toLang) != nil
     }
     
     func hasTranslationAttribute(toLang: String) -> Bool {

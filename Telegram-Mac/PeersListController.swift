@@ -1607,15 +1607,16 @@ class PeerListContainerView : Control {
         
 
         borderView.backgroundColor = theme.colors.border
-                
         self.backgroundColor = theme.colors.background
         self.backgroundView.backgroundColor = theme.colors.listBackground
+        self.containerView.backgroundColor = theme.colors.background
+        borderView.isHidden = false
+        tguiApplyFrostedChrome(self, enabled: false)
+        tguiApplyFrostedChrome(self.containerView, enabled: false)
                 
         searchView.searchTheme = .init(theme.search.backgroundColor, theme.search.searchImage, theme.search.clearImage, {
             return strings().chatListSearchPlaceholder
         }, theme.search.textColor, theme.search.placeholderColor)
-        
-        self.containerView.backgroundColor = theme.colors.background
         
         
         super.updateLocalizationAndTheme(theme: theme)
@@ -1700,6 +1701,7 @@ class PeerListContainerView : Control {
         let containerSize = NSMakeSize(state.splitState == .minimisize ? 70 : size.width, offset)
                 
         transition.updateFrame(view: self.containerView, frame: NSMakeRect(0, inset, containerSize.width, offset))
+        tguiApplyFrostedChrome(self.containerView, enabled: false)
         
         
         transition.updateFrame(view: self.statusContainer, frame: NSMakeRect(0, 0, containerSize.width, statusHeight))

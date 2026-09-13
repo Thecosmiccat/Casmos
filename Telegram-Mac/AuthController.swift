@@ -440,6 +440,9 @@ class AuthController : GenericViewController<AuthView> {
                 }, error: { error in
                     updateState { current in
                         var current = current
+                        if case .displayToken? = current.tokenResult {
+                            return current
+                        }
                         current.tokenResult = nil
                         return current
                     }
@@ -634,7 +637,9 @@ class AuthController : GenericViewController<AuthView> {
                     })
                 }
             }
-            refreshToken()
+            if state.tokenResult == nil {
+                refreshToken()
+            }
         } else {
             switch currentState {
             case .phoneEntry, .empty:

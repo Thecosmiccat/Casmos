@@ -49,22 +49,30 @@ public enum CasmosLocalTranslations {
     private static var formatted: [String: CasmosFormattedText] = [:]
 
     public static func set(key: String, toLang: String, text: String, spans: [CasmosFormatSpan] = []) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return
+        }
         lock.lock()
         let storage = storageKey(key, toLang: toLang)
-        texts[storage] = text
+        texts[storage] = trimmed
         if spans.isEmpty {
             formatted.removeValue(forKey: storage)
         } else {
-            formatted[storage] = CasmosFormattedText(text: text, spans: spans)
+            formatted[storage] = CasmosFormattedText(text: trimmed, spans: spans)
         }
         lock.unlock()
     }
 
     public static func setMedia(key: String, toLang: String, value: CasmosMediaTranslation) {
+        let trimmed = value.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return
+        }
         lock.lock()
         let storage = storageKey(key, toLang: toLang)
         media[storage] = value
-        texts[storage] = value.text
+        texts[storage] = trimmed
         lock.unlock()
     }
 
@@ -90,7 +98,10 @@ public enum CasmosLocalTranslations {
     }
 
     public static func contains(key: String, toLang: String) -> Bool {
-        text(for: key, toLang: toLang) != nil || media(for: key, toLang: toLang) != nil
+        if let value = text(for: key, toLang: toLang), !value.isEmpty {
+            return true
+        }
+        return media(for: key, toLang: toLang) != nil
     }
 }
 

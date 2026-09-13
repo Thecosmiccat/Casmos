@@ -179,15 +179,14 @@ open class Control: View {
     
     public func apply(state:ControlState) -> Void {
         let state:ControlState = self.isSelected ? .Highlight : state
+        let color: NSColor
         if isEnabled {
-            if let color = backgroundState[state] {
-                self.layer?.backgroundColor = color.cgColor
-            } else {
-                self.layer?.backgroundColor = backgroundState[.Normal]?.cgColor ?? self.backgroundColor.cgColor
-            }
+            color = backgroundState[state] ?? backgroundState[.Normal] ?? self.backgroundColor
         } else {
-            self.layer?.backgroundColor = backgroundState[.Normal]?.cgColor ?? self.backgroundColor.cgColor
+            color = backgroundState[.Normal] ?? self.backgroundColor
         }
+        self.layer?.backgroundColor = color.cgColor
+        self.layer?.isOpaque = color.alphaComponent >= 1
         if animates {
             self.layer?.animateBackground()
         }

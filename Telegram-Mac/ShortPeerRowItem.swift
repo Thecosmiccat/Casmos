@@ -13,6 +13,12 @@ import TelegramCore
 import Postbox
 import SwiftSignalKit
 
+#if SHARE
+private func casmosTranslatedDisplayName(_ original: String, peerId: PeerId) -> String {
+    original
+}
+#endif
+
 final class SelectPeerPresentation : Equatable {
     
     struct Comment : Equatable {
@@ -380,9 +386,12 @@ class ShortPeerRowItem: GeneralRowItem {
         }
         
         if let monoforumPeer, peer.isMonoForum {
-            let _ = tAttr.append(string: monoforumPeer.displayTitle, color: enabled ? titleStyle.foregroundColor : customTheme?.grayTextColor ?? theme.colors.grayText, font: self.titleStyle.font)
+            let _ = tAttr.append(string: casmosTranslatedDisplayName(monoforumPeer.displayTitle, peerId: monoforumPeer.id), color: enabled ? titleStyle.foregroundColor : customTheme?.grayTextColor ?? theme.colors.grayText, font: self.titleStyle.font)
         } else {
-            let _ = tAttr.append(string: isLookSavedMessage && account.peerId == peer.id ? strings().peerSavedMessages : (compactText ? peer.compactDisplayTitle + (account.testingEnvironment ? " [🤖]" : "") : peer.displayTitle), color: enabled ? titleStyle.foregroundColor : customTheme?.grayTextColor ?? theme.colors.grayText, font: self.titleStyle.font)
+            let saved = isLookSavedMessage && account.peerId == peer.id
+            let raw = saved ? strings().peerSavedMessages : (compactText ? peer.compactDisplayTitle + (account.testingEnvironment ? " [🤖]" : "") : peer.displayTitle)
+            let title = saved ? raw : casmosTranslatedDisplayName(raw, peerId: peer.id)
+            let _ = tAttr.append(string: title, color: enabled ? titleStyle.foregroundColor : customTheme?.grayTextColor ?? theme.colors.grayText, font: self.titleStyle.font)
         }
         
         

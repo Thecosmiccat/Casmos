@@ -26,18 +26,7 @@ func canTranscribeMessage(_ message: Message, context: AccountContext) -> Bool {
     if message.autoclearTimeout != nil {
         return false
     }
-    let file = message.media.first! as! TelegramMediaFile
-    if context.isPremium {
-        return true
-    } else {
-        let has_trial = context.appConfiguration.getGeneralValue("transcribe_audio_trial_weekly_number", orElse: 0) > 0
-        let max_trial_duration = context.appConfiguration.getGeneralValue("transcribe_audio_trial_duration_max", orElse: 0)
-        if has_trial, max_trial_duration > Int(file.duration ?? 0) {
-            return true
-        } else {
-            return false
-        }
-    }
+    return message.media.first is TelegramMediaFile
 }
 
 class ChatMediaVoiceLayoutParameters : ChatMediaLayoutParameters {
@@ -214,13 +203,7 @@ class ChatVoiceRowItem: ChatMediaItem {
             } else if let attributes = message.audioTranscription {
                 parameters.transcribeData = .init(state: .state(.collapsed(true)), text: nil, isPending: false, fontColor: transcribtedColor, backgroundColor: bgColor)
             } else {
-                let locked: Bool
-                if let cooldown = context.audioTranscriptionTrial.cooldownUntilTime, cooldown > Int32(Date().timeIntervalSince1970) {
-                    locked = true
-                } else {
-                    locked = false
-                }
-                parameters.transcribeData = .init(state: locked ? .locked : .possible, text: nil, isPending: pending, fontColor: transcribtedColor, backgroundColor: bgColor)
+                parameters.transcribeData = .init(state: .possible, text: nil, isPending: pending, fontColor: transcribtedColor, backgroundColor: bgColor)
             }
             parameters.transcribe = { [weak self] in
                 self?.chatInteraction.transcribeAudio(message)

@@ -15,11 +15,15 @@ public enum CasmosPrefKey {
         public static let monochromeFolders = "casmos.pref.appearance.monochromeFolders"
         /// Hide the chat-list Stories strip and avatar story rings. Default on.
         public static let hideStories = "casmos.pref.appearance.hideStories"
+        /// Casmos dock / app icon variant. Default void (bundled cat).
+        public static let dockIcon = "casmos.pref.appearance.dockIcon"
     }
 
     public enum Privacy {
         /// Hide phone and @username on your own profile UI. Default on.
         public static let hideOwnPhoneAndUsername = "casmos.pref.privacy.hideOwnPhoneAndUsername"
+        /// Keep a local log of deleted messages before Postbox wipes them. Default off.
+        public static let keepDeletedMessages = "casmos.pref.privacy.keepDeletedMessages"
     }
 
     public enum Chat {
@@ -44,6 +48,8 @@ public enum CasmosPrefKey {
         public static let doNotTranslate = "casmos.pref.translator.doNotTranslate"
         /// Send HTML to engines that honor tags and restore bold / italic / links / code after translate.
         public static let keepFormatting = "casmos.pref.translator.keepFormatting"
+        /// Translate chat titles and one-line list names. Default off.
+        public static let translateUsernames = "casmos.pref.translator.translateUsernames"
     }
 
     public enum Passcode {
@@ -67,7 +73,9 @@ public enum CasmosPrefKey {
         Appearance.compactChatList,
         Appearance.monochromeFolders,
         Appearance.hideStories,
+        Appearance.dockIcon,
         Privacy.hideOwnPhoneAndUsername,
+        Privacy.keepDeletedMessages,
         Chat.sendWithCommandEnter,
         Chat.stickerSize,
         Chat.doubleTapAction,
@@ -78,6 +86,7 @@ public enum CasmosPrefKey {
         Translator.deeplKey,
         Translator.doNotTranslate,
         Translator.keepFormatting,
+        Translator.translateUsernames,
         Passcode.autoLockOnSleep,
         Passcode.hideContentInAppSwitcher,
         Passcode.useTouchIdForAccounts,
@@ -92,7 +101,8 @@ public enum CasmosPrefKey {
         Chat.doubleTapAction,
         Translator.engine,
         Translator.deeplKey,
-        Translator.doNotTranslate
+        Translator.doNotTranslate,
+        Appearance.dockIcon
     ]
 
     /// Unset bool keys use these defaults. Verbose logging stays off.
@@ -170,6 +180,19 @@ public enum CasmosTranslatorEngine: String, CaseIterable {
             return true
         case .system:
             return false
+        }
+    }
+
+    public var settingsLabel: String {
+        switch self {
+        case .system:
+            return "System"
+        case .extra:
+            return "Extra — web fallback"
+        case .yandex:
+            return "Yandex — free local"
+        case .deepl:
+            return "DeepL — quality"
         }
     }
 

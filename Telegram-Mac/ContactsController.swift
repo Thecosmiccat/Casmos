@@ -237,7 +237,7 @@ fileprivate func prepareEntries(from:[AppearanceWrapperEntry<ContactsEntry>]?, t
                     let timestamp = CFAbsoluteTimeGetCurrent() + NSTimeIntervalSince1970
                     (string, _, color) = stringAndActivityForUserPresence(presence, timeDifference: context.timeDifference, relativeTo: Int32(timestamp))
                 }
-                item = ShortPeerRowItem(initialSize, peer: peer, account: context.account, context: context, stableId: entry.stableId,statusStyle: ControlStyle(foregroundColor:color), status: string, borderType: [.Right], highlightVerified: true, story: nil, openStory: { initialId in
+                item = ShortPeerRowItem(initialSize, peer: peer, account: context.account, context: context, stableId: entry.stableId,statusStyle: ControlStyle(foregroundColor:color), status: string, borderType: [.Right], highlightOnHover: true, highlightVerified: true, story: nil, openStory: { initialId in
                     arguments.openStory(initialId, true)
                 })
             case .addContact:
@@ -258,7 +258,7 @@ fileprivate func prepareEntries(from:[AppearanceWrapperEntry<ContactsEntry>]?, t
                     }, itemImage: MenuAnimation.menu_show_message.value))
                     
                     return .single(items)
-                }, highlightVerified: true, story: story, openStory: { initialId in
+                }, highlightOnHover: true, highlightVerified: true, story: story, openStory: { initialId in
                     arguments.openStory(initialId, true)
                 })
             case let .separator(text, _):

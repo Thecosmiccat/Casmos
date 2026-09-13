@@ -13,6 +13,7 @@ import SwiftSignalKit
 import TelegramCore
 import ColorPalette
 import TelegramMedia
+import Casmos
 
 final class ActionButton : Control {
     fileprivate let imageView: ImageView = ImageView()
@@ -450,7 +451,7 @@ private func actionItems(item: PeerInfoHeadItem, width: CGFloat, theme: Telegram
     
     if let cachedData = item.peerView.cachedData as? CachedChannelData, item.threadId == nil {
         let disabledTranslation = cachedData.flags.contains(.translationHidden)
-        let canTranslate = item.context.sharedContext.baseSettings.translateChats
+        let canTranslate = item.context.sharedContext.baseSettings.translateChats || CasmosHooks.translatorEnabled
         
         if canTranslate && disabledTranslation {
             let item = ActionItem(text: strings().peerInfoTranslate, color: item.accentColor, image: theme.icons.profile_translate, animation: .menu_translate, action: { [weak item] in

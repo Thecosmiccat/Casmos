@@ -304,7 +304,7 @@ final class ChatLiveTranslateContext {
         
     private func activateTranslation(for msgIds: [MessageId], state: State) -> Void {
         let queued = state.queued.filter { msgIds.contains($0.id) }
-        if CasmosHooks.usesLocalTranslatorEngine {
+        if CasmosHooks.translatorEnabled {
             self.updateState { current in
                 var current = current
                 current.queued.removeAll()
@@ -326,10 +326,23 @@ final class ChatLiveTranslateContext {
                         parts.append(solution)
                     }
                     if parts.allSatisfy({ $0.isEmpty }) {
+                        self.updateState { current in
+                            var current = current
+                            current.result.removeValue(forKey: .Key(id: messageId, toLang: current.to))
+                            return current
+                        }
                         continue
                     }
                     actionsDisposable.add((casmosLocalTranslateParts(texts: parts, from: from, to: toLang) |> deliverOnMainQueue).start(next: { [weak self] translated in
-                        let question = translated.first ?? ""
+                        let question = (translated.first ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !question.isEmpty else {
+                            self?.updateState { current in
+                                var current = current
+                                current.result.removeValue(forKey: .Key(id: messageId, toLang: current.to))
+                                return current
+                            }
+                            return
+                        }
                         let optionCount = poll.options.count
                         let additional = Array(translated.dropFirst().prefix(optionCount))
                         let solution: String?
@@ -357,10 +370,23 @@ final class ChatLiveTranslateContext {
                     var parts: [String] = [todo.text]
                     parts.append(contentsOf: todo.items.map { $0.text })
                     if parts.allSatisfy({ $0.isEmpty }) {
+                        self.updateState { current in
+                            var current = current
+                            current.result.removeValue(forKey: .Key(id: messageId, toLang: current.to))
+                            return current
+                        }
                         continue
                     }
                     actionsDisposable.add((casmosLocalTranslateParts(texts: parts, from: from, to: toLang) |> deliverOnMainQueue).start(next: { [weak self] translated in
-                        let title = translated.first ?? ""
+                        let title = (translated.first ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !title.isEmpty else {
+                            self?.updateState { current in
+                                var current = current
+                                current.result.removeValue(forKey: .Key(id: messageId, toLang: current.to))
+                                return current
+                            }
+                            return
+                        }
                         let additional = Array(translated.dropFirst())
                         CasmosLocalTranslations.setMedia(key: key, toLang: toLang, value: CasmosMediaTranslation(text: title, additional: additional))
                         self?.updateState { current in
@@ -379,6 +405,11 @@ final class ChatLiveTranslateContext {
                 }
                 let text = msg.text
                 if text.isEmpty {
+                    self.updateState { current in
+                        var current = current
+                        current.result.removeValue(forKey: .Key(id: messageId, toLang: current.to))
+                        return current
+                    }
                     continue
                 }
                 let entities = msg.textEntities?.entities ?? []
@@ -399,7 +430,16 @@ final class ChatLiveTranslateContext {
                     formattedSignal = signal |> map { (detect: $0.detect, result: $0.result, entities: []) }
                 }
                 actionsDisposable.add((formattedSignal |> deliverOnMainQueue).start(next: { [weak self] result in
-                    CasmosLocalTranslations.set(key: key, toLang: toLang, text: result.result, spans: casmosSpans(from: result.entities))
+                    let translated = result.result.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !translated.isEmpty else {
+                        self?.updateState { current in
+                            var current = current
+                            current.result.removeValue(forKey: .Key(id: messageId, toLang: current.to))
+                            return current
+                        }
+                        return
+                    }
+                    CasmosLocalTranslations.set(key: key, toLang: toLang, text: translated, spans: casmosSpans(from: result.entities))
                     self?.updateState { current in
                         var current = current
                         current.result[.Key(id: messageId, toLang: current.to)] = .complete(toLang: current.to)

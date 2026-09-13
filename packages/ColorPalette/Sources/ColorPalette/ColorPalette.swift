@@ -1146,6 +1146,10 @@ public class ColorPalette : Equatable {
             return dayClassicPalette
         case systemPalette.name:
             return systemPalette
+        case discordPalette.name:
+            return discordPalette
+        case frostedPalette.name:
+            return frostedPalette
         case "Mojave":
             return darkPalette
         default:
@@ -1153,13 +1157,13 @@ public class ColorPalette : Equatable {
         }
     }
     
-    public func withUpdatedName(_ name: String) -> ColorPalette {
+    public func withUpdatedName(_ name: String, parent: TelegramBuiltinTheme? = nil, copyright: String? = nil) -> ColorPalette {
         return ColorPalette(isNative: self.isNative, isDark: isDark,
                             tinted: tinted,
                             name: name,
-                            parent: parent,
+                            parent: parent ?? self.parent,
                             wallpaper: wallpaper,
-                            copyright: copyright,
+                            copyright: copyright ?? self.copyright,
                             accentList: accentList,
                             basicAccent: basicAccent,
                             background: background,
@@ -1700,6 +1704,8 @@ public enum TelegramBuiltinTheme : String {
     case dark = "dark"
     case nightAccent = "nightAccent"
     case system = "system"
+    case discord = "discord"
+    case frosted = "frosted"
     
     public init?(rawValue: String) {
         switch rawValue {
@@ -1725,6 +1731,10 @@ public enum TelegramBuiltinTheme : String {
             self = .system
         case "system":
             self = .system
+        case "discord", "Discord":
+            self = .discord
+        case "frosted", "Frosted", "glacer", "Glacer":
+            self = .frosted
         default:
             return nil
         }
@@ -1742,6 +1752,10 @@ public enum TelegramBuiltinTheme : String {
             return systemPalette
         case .nightAccent:
             return nightAccentPalette
+        case .discord:
+            return discordPalette
+        case .frosted:
+            return frostedPalette
         }
     }
 }
@@ -2615,6 +2629,14 @@ public let systemPalette: ColorPalette = {
 
 
 
+
+public let discordPalette = darkPalette
+    .withAccentColor(PaletteAccentColor(NSColor(0x5865F2)))
+    .withUpdatedName("discord", parent: .discord, copyright: "Casmos")
+
+public let frostedPalette = nightAccentPalette
+    .withAccentColor(PaletteAccentColor(NSColor(0x8B9DC3)))
+    .withUpdatedName("glacer", parent: .frosted, copyright: "Casmos")
 
 public extension ColorPalette {
     var appearance: NSAppearance {

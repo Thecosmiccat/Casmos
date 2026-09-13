@@ -15,7 +15,10 @@ import DetectSpeech
 
 
 func navigateToChat(navigation: NavigationViewController?, context: AccountContext, chatLocation:ChatLocation, mode: ChatMode = .history, focusTarget:ChatFocusTarget? = nil, initialAction: ChatInitialAction? = nil, chatLocationContextHolder: Atomic<ChatLocationContextHolder?>? = nil, additional: Bool = false, animated: Bool = true, navigationStyle: ViewControllerStyle? = nil) {
-    
+    if !additional, case .history = mode, case .peer = chatLocation {
+        _ = updateLaunchSettings(context.account.postbox) { $0.withUpdatedNavigation(.chat(chatLocation.peerId, necessary: true)) }.start()
+    }
+
     let open:()->Void = { [weak navigation] in
         if additional {
             navigation?.push(ChatAdditionController(context: context, chatLocation: chatLocation, mode: mode, focusTarget: focusTarget, initialAction: initialAction, chatLocationContextHolder: chatLocationContextHolder), animated, style: navigationStyle)
@@ -173,14 +176,12 @@ private final class ApplicationContainerView: View {
     
     override func layout() {
         super.layout()
-        
         if let leftSideView = leftSideView {
             leftSideView.frame = NSMakeRect(0, 0, leftSidebarWidth, frame.height)
             splitView.frame = NSMakeRect(leftSideView.frame.maxX, 0, frame.width - leftSideView.frame.maxX, frame.height)
         } else {
             splitView.frame = bounds
         }
-        
     }
 }
 

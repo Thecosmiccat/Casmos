@@ -292,9 +292,7 @@ final class WidgetController : TelegramGenericViewController<WidgetListView> {
         super.viewDidLoad()
         
         controllers.append(WidgetAppearanceController(context))
-        #if BETA || STABLE
         controllers.append(WidgetAppIconController(context))
-        #endif
 
         controllers.append(WidgetStickersController(context))
         controllers.append(WidgetRecentPeersController(context))

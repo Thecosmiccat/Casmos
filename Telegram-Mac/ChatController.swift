@@ -837,7 +837,7 @@ class ChatControllerView : View, ChatInputDelegate {
         
         let inputRect = NSMakeRect(0, inputY, frame.width, inputHeight)
         transition.updateFrame(view: inputView, frame: inputRect)
-        inputView.updateLayout(size: NSMakeSize(frame.width, inputView.frame.height), transition: transition)
+        inputView.updateLayout(size: NSMakeSize(inputRect.width, inputView.frame.height), transition: transition)
 
 
         
@@ -5393,7 +5393,7 @@ class ChatController: EditableViewController<ChatControllerView>, Notifable, Tab
         
         chatInteraction.toggleTranslate = { [weak self] in
             let enabled = self?.uiState.with { $0.translate?.translate } == true
-            if !context.isPremium && !enabled {
+            if !context.isPremium && !enabled && !CasmosHooks.translatorEnabled {
                 prem(with: PremiumBoardingController(context: context, source: .translations, openFeatures: true), for: context.window)
             } else {
                 self?.liveTranslate?.toggleTranslate()
@@ -5401,7 +5401,7 @@ class ChatController: EditableViewController<ChatControllerView>, Notifable, Tab
             self?.genericView.tableView.notifyScrollHandlers()
         }
         chatInteraction.hideTranslation = { [weak self] in
-            if !context.isPremium {
+            if !context.isPremium && !CasmosHooks.translatorEnabled {
                 self?.liveTranslate?.disablePaywall()
                 showModalText(for: context.window, text: strings().chatTranslateMenuHidePaywallTooltip)
             } else {
@@ -5984,10 +5984,58 @@ class ChatController: EditableViewController<ChatControllerView>, Notifable, Tab
                     return state
                 }
             } else {
-                
+                strongSelf.updateState { state in
+                    var state = state
+                    state.transribe[messageId] = .loading
+                    return state
+                }
+
+                if let file = message.media.first as? TelegramMediaFile {
+                    let path = context.account.postbox.mediaBox.resourcePath(file.resource)
+                    if FileManager.default.fileExists(atPath: path) {
+                        casmosTranscribeAudioFile(path: path, locale: Locale.current.identifier) { [weak strongSelf] text in
+                            if let text {
+                                _ = context.engine.messages.storeLocallyTranscribedAudio(messageId: messageId, text: text, isFinal: true, error: nil).start()
+                                strongSelf?.updateState { state in
+                                    var state = state
+                                    state.transribe[messageId] = .revealed(true)
+                                    return state
+                                }
+                            } else if context.isPremium {
+                                let signal = context.engine.messages.transcribeAudio(messageId: messageId) |> deliverOnMainQueue
+                                strongSelf?.transcribeDisposable.set(signal.start(next: { [weak strongSelf] result in
+                                    strongSelf?.updateState { state in
+                                        var state = state
+                                        switch result {
+                                        case .success:
+                                            state.transribe[messageId] = .revealed(true)
+                                        case .error:
+                                            state.transribe[messageId] = .revealed(false)
+                                        }
+                                        return state
+                                    }
+                                }), forKey: messageId)
+                            } else {
+                                strongSelf?.updateState { state in
+                                    var state = state
+                                    state.transribe[messageId] = .revealed(false)
+                                    return state
+                                }
+                                showModalText(for: context.window, text: "On-device transcription failed. Grant Speech Recognition in System Settings if asked.")
+                            }
+                        }
+                        return
+                    }
+                }
+
                 let currentTime = Int32(Date().timeIntervalSince1970)
                 if !context.isPremium, message.audioTranscription == nil {
                     if let cooldownUntilTime = context.audioTranscriptionTrial.cooldownUntilTime, cooldownUntilTime > currentTime {
+                        strongSelf.updateState { state in
+                            var state = state
+                            state.transribe[messageId] = nil
+                            return state
+                        }
                         let time = stringForMediumDate(timestamp: Int32(cooldownUntilTime))
                         let trialCount = context.appConfiguration.getGeneralValue("transcribe_audio_trial_weekly_number", orElse: 0)
                         let usedString = strings().conversationFreeTranscriptionCooldownTooltipCountable(Int(trialCount))
@@ -6002,12 +6050,6 @@ class ChatController: EditableViewController<ChatControllerView>, Notifable, Tab
                         let text = strings().conversationFreeTranscriptionLimitTooltipCountable(Int(remainingCount))
                         showModalText(for: context.window, text: text)
                     }
-                }
-                
-                strongSelf.updateState { state in
-                    var state = state
-                    state.transribe[messageId] = .loading
-                    return state
                 }
                 
                 let signal = context.engine.messages.transcribeAudio(messageId: messageId)
@@ -9112,6 +9154,12 @@ class ChatController: EditableViewController<ChatControllerView>, Notifable, Tab
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        
+        if mode == .history, case let .peer(peerId) = chatLocation, !(self is ChatAdditionController) {
+            _ = updateLaunchSettings(context.account.postbox) { current in
+                current.withUpdatedNavigation(.chat(peerId, necessary: true))
+            }.start()
+        }
         
         if let initialAction = self.chatInteraction.presentation.initialAction {
             switch initialAction {

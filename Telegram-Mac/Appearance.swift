@@ -3554,6 +3554,9 @@ func telegramUpdateTheme(_ theme: TelegramPresentationTheme, window: Window? = n
         
         window.backgroundColor = theme.colors.grayBackground
         window.titlebarAppearsTransparent = true//theme.dark
+        #if !SHARE
+        applyCasmosFrostedWindow(window, enabled: theme.colors.name == "frosted" || theme.colors.name == "glacer")
+        #endif
         
     }
     _themeSignal.set(theme)

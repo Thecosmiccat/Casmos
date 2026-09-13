@@ -377,6 +377,7 @@ class ChatInputView: View, Notifable {
         super.updateLocalizationAndTheme(theme: theme)
         let theme = (theme as! TelegramPresentationTheme)
         _ts.backgroundColor = theme.colors.border
+        _ts.isHidden = false
         backgroundColor = theme.colors.background
         contentView.backgroundColor = theme.colors.background
         actionsView.backgroundColor = theme.colors.background
@@ -388,6 +389,8 @@ class ChatInputView: View, Notifable {
         accessory.update(with: chatInteraction.presentation, context: chatInteraction.context, animated: false)
         accessory.backgroundColor = theme.colors.background
         accessory.container.backgroundColor = theme.colors.background
+        
+        tguiApplyFrostedChrome(self, enabled: false)
         
         blockText?.backgroundColor = theme.colors.background
         

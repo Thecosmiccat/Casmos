@@ -29,6 +29,11 @@ public enum CasmosHooks {
         translatorEnabled && CasmosPreferences.translatorAuto
     }
 
+    /// Translate chat titles and one-line list names. Default off.
+    public static var translateUsernamesEnabled: Bool {
+        translatorEnabled && CasmosPreferences.bool(forKey: CasmosPrefKey.Translator.translateUsernames)
+    }
+
     /// When translator is on and engine is extra, use the existing web fallback
     /// instead of the official translate API. `system` leaves routing unchanged.
     public static var prefersExtraTranslatorEngine: Bool {
@@ -116,6 +121,11 @@ public enum CasmosHooks {
     /// Hide phone and @username on your own profile UI. Default on.
     public static var hideOwnPhoneAndUsername: Bool {
         CasmosPreferences.bool(forKey: CasmosPrefKey.Privacy.hideOwnPhoneAndUsername)
+    }
+
+    /// Local deleted-message archive. Default off.
+    public static var keepDeletedMessages: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Privacy.keepDeletedMessages)
     }
 
     public static var verboseLogging: Bool {

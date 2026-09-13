@@ -1081,8 +1081,6 @@ final class AccountContext {
         account.callSessionManager.updateVersions(versions: OngoingCallContext.versions(includeExperimental: true, includeReference: true).map { version, supportsVideo -> CallSessionManagerImplementationVersion in
             CallSessionManagerImplementationVersion(version: version, supportsVideo: supportsVideo)
         })
-        
-        actionsDisposable.add(requestApplicationIcons(engine: engine).start())
 
 //        let focusIntentStatus = someAccountSetings(postbox: account.postbox) 
 //        |> distinctUntilChanged(isEqual: { 

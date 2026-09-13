@@ -1671,6 +1671,8 @@
 		CA50A0010000000000000002 /* CasmosSettingsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50A0010000000000000001 /* CasmosSettingsController.swift */; };
 		CA50A0020000000000000002 /* CasmosChatActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50A0020000000000000001 /* CasmosChatActions.swift */; };
 		CA50A0030000000000000002 /* CasmosAccountPasscodeUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50A0030000000000000001 /* CasmosAccountPasscodeUI.swift */; };
+		CA50A0060000000000000002 /* CasmosDockIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50A0060000000000000001 /* CasmosDockIcons.swift */; };
+		CA50A0070000000000000002 /* CasmosClientExtras.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50A0070000000000000001 /* CasmosClientExtras.swift */; };
 		CA50A0010000000000000005 /* Casmos in Frameworks */ = {isa = PBXBuildFile; productRef = CA50A0010000000000000004 /* Casmos */; };
 		CA50A0040000000000000001 /* Casmos in Frameworks */ = {isa = PBXBuildFile; productRef = CA50A0040000000000000002 /* Casmos */; };
 /* End PBXBuildFile section */
@@ -3366,6 +3368,8 @@
 		CA50A0010000000000000001 /* CasmosSettingsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CasmosSettingsController.swift; sourceTree = "<group>"; };
 		CA50A0020000000000000001 /* CasmosChatActions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CasmosChatActions.swift; sourceTree = "<group>"; };
 		CA50A0030000000000000001 /* CasmosAccountPasscodeUI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CasmosAccountPasscodeUI.swift; sourceTree = "<group>"; };
+		CA50A0060000000000000001 /* CasmosDockIcons.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CasmosDockIcons.swift; sourceTree = "<group>"; };
+		CA50A0070000000000000001 /* CasmosClientExtras.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CasmosClientExtras.swift; sourceTree = "<group>"; };
 		CA50A0010000000000000003 /* Casmos */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Casmos; path = packages/Casmos; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -3386,6 +3390,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA50A0040000000000000001 /* Casmos in Frameworks */,
 				27B29E3F2CABEC4B007FDA6B /* TelegramSystem in Frameworks */,
 				27F3B75627391E9200B81F10 /* TelegramIconsTheme in Frameworks */,
 				270376232CA1FC8C003EC235 /* libswresample.a in Frameworks */,
@@ -5352,6 +5357,8 @@
 				CA50A0010000000000000001 /* CasmosSettingsController.swift */,
 				CA50A0020000000000000001 /* CasmosChatActions.swift */,
 				CA50A0030000000000000001 /* CasmosAccountPasscodeUI.swift */,
+				CA50A0060000000000000001 /* CasmosDockIcons.swift */,
+				CA50A0070000000000000001 /* CasmosClientExtras.swift */,
 				A767DD4023F2BB3200366F76 /* ShortcutListController.swift */,
 				27AAAD56299F5F9E00F70A9A /* LiteModeController.swift */,
 			);
@@ -6958,6 +6965,7 @@
 			);
 			name = TelegramShare;
 			packageProductDependencies = (
+				CA50A0040000000000000002 /* Casmos */,
 				27F3B75527391E9200B81F10 /* TelegramIconsTheme */,
 				27F3B75B2739320000B81F10 /* SwiftSignalKit */,
 				27F3B75D2739320F00B81F10 /* TGUIKit */,
@@ -8257,6 +8265,8 @@
 				CA50A0010000000000000002 /* CasmosSettingsController.swift in Sources */,
 				CA50A0020000000000000002 /* CasmosChatActions.swift in Sources */,
 				CA50A0030000000000000002 /* CasmosAccountPasscodeUI.swift in Sources */,
+				CA50A0060000000000000002 /* CasmosDockIcons.swift in Sources */,
+				CA50A0070000000000000002 /* CasmosClientExtras.swift in Sources */,
 				27F4F1782844D91E00A3B4D4 /* EmojiesController.swift in Sources */,
 				C2271D9C1DACC027001792B6 /* SearchController.swift in Sources */,
 				27F2BBCF27BEA4A400A37463 /* Auth_AwaitingReset.swift in Sources */,
@@ -9028,12 +9038,12 @@
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"-Wl,-ld_classic",
-					"$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/macosx/libswiftAppKit.dylib",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = app.casmos.macos;
 				PRODUCT_MODULE_NAME = CasmosApp;
 				PRODUCT_NAME = Casmos;
+				VALIDATE_PRODUCT = NO;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = PRODUCTION;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -9084,7 +9094,7 @@
 				MARKETING_VERSION = 11.14.1;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CODE_SIGN_FLAGS = "";
-				OTHER_LDFLAGS = "$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/macosx/libswiftAppKit.dylib";
+				OTHER_LDFLAGS = "";
 				OTHER_SWIFT_FLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = app.casmos.macos.Share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -9136,7 +9146,7 @@
 				MARKETING_VERSION = 11.14.1;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CODE_SIGN_FLAGS = "";
-				OTHER_LDFLAGS = "$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/macosx/libswiftAppKit.dylib";
+				OTHER_LDFLAGS = "";
 				OTHER_SWIFT_FLAGS = "$(inherited)";
 				"OTHER_SWIFT_FLAGS[arch=*]" = "";
 				PRODUCT_BUNDLE_IDENTIFIER = app.casmos.macos.Share;
@@ -9262,12 +9272,12 @@
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"-Wl,-ld_classic",
-					"$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/macosx/libswiftAppKit.dylib",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = app.casmos.macos;
 				PRODUCT_MODULE_NAME = CasmosApp;
 				PRODUCT_NAME = Casmos;
+				VALIDATE_PRODUCT = NO;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_COMPILATION_MODE = singlefile;

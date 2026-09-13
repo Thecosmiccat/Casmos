@@ -1119,6 +1119,7 @@ open class TableView: ScrollView, NSTableViewDelegate,NSTableViewDataSource,Sele
         liveScrollStartPosition = documentOffset
         _scrollWillStartLiveScrolling?()
         liveScrolling = true
+        revealOverlayScroller()
     }
     private var liveScrollStack:[CGFloat] = []
     open func scrollDidLiveScrolling() {
@@ -1135,6 +1136,7 @@ open class TableView: ScrollView, NSTableViewDelegate,NSTableViewDataSource,Sele
             }
         }
         _scrollDidLiveScrolling?()
+        revealOverlayScroller()
     }
     
     

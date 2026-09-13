@@ -176,6 +176,12 @@ open class BackgroundView: View {
         self.addSubview(container)
     }
     
+    open override func updateLocalizationAndTheme(theme: PresentationTheme) {
+        super.updateLocalizationAndTheme(theme: theme)
+        let current = backgroundMode
+        backgroundMode = current
+    }
+    
 
     var contentViews: [NSView] {
         return self.subviews
@@ -217,12 +223,9 @@ open class BackgroundView: View {
     
     open var backgroundMode:TableBackgroundMode = .plain {
         didSet {
-            if oldValue != backgroundMode {
-//                CATransaction.begin()
-//                CATransaction.setDisableActions(true)
-                tileControl.validLayout = nil
-                var backgroundView: NSView? = nil
-                switch backgroundMode {
+            tileControl.validLayout = nil
+            var backgroundView: NSView? = nil
+            switch backgroundMode {
                 case let .background(image, intensity, colors, rotation):
                     imageView.backgroundColor = .clear
                     imageView.contents = image
@@ -322,8 +325,6 @@ open class BackgroundView: View {
                     self.backgroundView?.removeFromSuperview()
                     self.backgroundView = nil
                 }
-            }
-//            CATransaction.commit()
         }
     }
     

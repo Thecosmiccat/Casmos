@@ -249,38 +249,50 @@ public var languageSignal:Signal<TelegramLocalization, NoError> {
     return languagePromise.get() |> distinctUntilChanged |> deliverOnMainQueue
 }
 
-public func _NSLocalizedString(_ key: String) -> String {
-    
+private func _NSLocalizedLookup(_ key: String) -> String {
     let primary = appCurrentLanguage.primaryLanguage
     let secondary = appCurrentLanguage.secondaryLanguage
 
     if let value = (primary.strings[key] ?? secondary?.strings[key]), !value.isEmpty {
         return value
-    } else {
-        let path = Bundle.main.path(forResource: "en", ofType: "lproj")
-        if let path = path, let bundle = Bundle(path: path) {
-            return NSLocalizedString(key, bundle: bundle, comment: "")
-        }
-        return NSLocalizedString(key, comment: "")
-        
     }
+    let path = Bundle.main.path(forResource: "en", ofType: "lproj")
+    if let path = path, let bundle = Bundle(path: path) {
+        return NSLocalizedString(key, bundle: bundle, comment: "")
+    }
+    return NSLocalizedString(key, comment: "")
+}
+
+private func _NSLocalizedAliasKey(_ key: String) -> String? {
+    let prefix = "CasmosApp."
+    guard key.hasPrefix(prefix) else {
+        return nil
+    }
+    return "Telegram." + String(key.dropFirst(prefix.count))
+}
+
+public func _NSLocalizedString(_ key: String) -> String {
+    let value = _NSLocalizedLookup(key)
+    if value != key {
+        return value
+    }
+    if let aliased = _NSLocalizedAliasKey(key) {
+        let mapped = _NSLocalizedLookup(aliased)
+        if mapped != aliased {
+            return mapped
+        }
+    }
+    return value
 }
 
 public func _NSLocalizedKeyExist(_ key: String) -> Bool {
-    
-    let primary = appCurrentLanguage.primaryLanguage
-    let secondary = appCurrentLanguage.secondaryLanguage
-
-    if let value = (primary.strings[key] ?? secondary?.strings[key]), !value.isEmpty {
+    if _NSLocalizedLookup(key) != key {
         return true
-    } else {
-        let path = Bundle.main.path(forResource: "en", ofType: "lproj")
-        if let path = path, let bundle = Bundle(path: path) {
-            return NSLocalizedString(key, bundle: bundle, comment: "") != key
-        }
-        return NSLocalizedString(key, comment: "") != key
-        
     }
+    if let aliased = _NSLocalizedAliasKey(key), _NSLocalizedLookup(aliased) != aliased {
+        return true
+    }
+    return false
 }
 
 public func NativeLocalization(_ key: String) -> String {

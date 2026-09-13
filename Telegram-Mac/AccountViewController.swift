@@ -14,7 +14,7 @@ import Postbox
 import SwiftSignalKit
 import Casmos
 
-let normalAccountsLimit: Int = 3
+let normalAccountsLimit: Int = 6
 
 
 
@@ -413,7 +413,17 @@ private enum AccountInfoEntry : TableItemListNodeEntry {
                 arguments.presentController(DataAndStorageViewController(arguments.context), true)
             }, border:[BorderType.Right], inset:NSEdgeInsets(left: 12, right: 12))
         case let .casmos(_, viewType):
-            return GeneralInteractedRowItem(initialSize, stableId: stableId, name: "Casmos Settings", icon: theme.icons.settingsGeneral, activeIcon: theme.icons.settingsGeneralActive, type: .next, viewType: viewType, action: {
+            let casmosIcon = generateImage(NSMakeSize(24, 24), contextGenerator: { size, ctx in
+                ctx.clear(size.bounds)
+                ctx.round(size, 5)
+                if let image = NSImage(named: "CasmosQRChip") {
+                    ctx.draw(image.precomposed(flipVertical: true, scale: System.backingScale), in: size.bounds)
+                } else {
+                    ctx.setFillColor(NSColor(0x8B9DC3).cgColor)
+                    ctx.fill(size.bounds)
+                }
+            }, scale: System.backingScale)!
+            return GeneralInteractedRowItem(initialSize, stableId: stableId, name: "Casmos Settings", icon: casmosIcon, activeIcon: casmosIcon, type: .next, viewType: viewType, action: {
                 arguments.presentController(CasmosSettingsController(context: arguments.context), true)
             }, border:[BorderType.Right], inset:NSEdgeInsets(left: 12, right: 12))
         case let .activeSessions(_, viewType, count):
@@ -561,12 +571,7 @@ private func accountInfoEntries(peerView:PeerView, context: AccountContext, acco
     }
     
     let accountsLimit: Int = normalAccountsLimit
-    let effectiveLimit: Int
-    if context.premiumIsBlocked {
-        effectiveLimit = accountsLimit
-    } else {
-        effectiveLimit = accountsLimit + 1
-    }
+    let effectiveLimit = accountsLimit
 //    let hasPremium = accounts.filter({ $0.peer.isPremium })
 //    let normalCount = accounts.filter({ !$0.peer.isPremium }).count
 
@@ -989,13 +994,8 @@ class AccountViewController : TelegramGenericViewController<AccountControllerVie
             multigift(context: context)
         }, addAccount: { accounts in
             let testingEnvironment = NSApp.currentEvent?.modifierFlags.contains(.command) == true
-            let hasPremium = accounts.contains(where: { $0.peer.isPremium })
-            if accounts.count == normalAccountsLimit {
-                if hasPremium {
-                    context.sharedContext.beginNewAuth(testingEnvironment: testingEnvironment)
-                } else {
-                    showPremiumLimit(context: context, type: .accounts(accounts.count))
-                }
+            if accounts.count >= normalAccountsLimit {
+                showModalText(for: context.window, text: "Account limit reached (\(normalAccountsLimit)).")
             } else {
                 context.sharedContext.beginNewAuth(testingEnvironment: testingEnvironment)
             }
@@ -1188,6 +1188,10 @@ class AccountViewController : TelegramGenericViewController<AccountControllerVie
                     }
                 case controller.identifier == "app_appearance":
                     if let item = tableView.item(stableId: AnyHashable(AccountInfoEntryId.index(16))) {
+                        _ = tableView.select(item: item)
+                    }
+                case controller.identifier == "casmos":
+                    if let item = tableView.item(stableId: AnyHashable(AccountInfoEntryId.index(50))) {
                         _ = tableView.select(item: item)
                     }
                 case controller.identifier.hasPrefix("business"):

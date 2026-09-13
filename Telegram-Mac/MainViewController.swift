@@ -549,11 +549,10 @@ class MainViewController: TelegramViewController {
         super.updateLocalizationAndTheme(theme: theme)
         tabController.updateLocalizationAndTheme(theme: theme)
         
+        let theme = (theme as! TelegramPresentationTheme)
+        backgroundColor = theme.colors.background
         navigation.hasBarRightBorder = true
         navigation.hasBarLeftBorder = true
-
-        
-        let theme = (theme as! TelegramPresentationTheme)
         //#if !APP_STORE
         updateController.updateLocalizationAndTheme(theme: theme)
         //#endif
@@ -581,6 +580,7 @@ class MainViewController: TelegramViewController {
     }
     
     private var previousIndex: Int? = nil
+    private var lastSettingsDetail: ViewController?
     
     func checkSettings(_ index:Int) {
         let isSettings = tabController.tab(at: index).controller is AccountViewController
@@ -593,8 +593,14 @@ class MainViewController: TelegramViewController {
         } else {
             if previousIndex == tabController.count - 1 || isSettings {
                 if isSettings && context.layout != .single {
-                    navigation.push(GeneralSettingsViewController(context), false)
+                    navigation.push(lastSettingsDetail ?? GeneralSettingsViewController(context), false)
                 } else {
+                    if previousIndex == tabController.count - 1 {
+                        let current = navigation.controller
+                        if !(current is ChatController) && !(current is EmptyChatViewController) && !(current is PeerInfoController) {
+                            lastSettingsDetail = current
+                        }
+                    }
                     navigation.enumerateControllers( { controller, index in
                         if (controller is ChatController) || (controller is PeerInfoController) || (controller is ChannelAdminsViewController) || (controller is ChannelAdminsViewController) || (controller is EmptyChatViewController) {
                             self.backFromSettings(index)

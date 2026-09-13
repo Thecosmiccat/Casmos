@@ -567,9 +567,19 @@ private func resetUpdater() {
     
     #if !GITHUB
         func skipSparkle(_ reason: String) {
-            NSLog("[Casmos] SUFeedURL is %@; skipping Sparkle", reason)
-            updateState {
-                $0.withUpdatedLoadingState(.uptodate)
+            NSLog("[Casmos] SUFeedURL is %@; checking GitHub releases", reason)
+            updateState { $0.withUpdatedLoadingState(.initializing) }
+            casmosCheckGitHubReleases { result in
+                switch result {
+                case .unavailable:
+                    let error = NSError(domain: "Casmos", code: 404, userInfo: [NSLocalizedDescriptionKey: "No Casmos release on GitHub yet."])
+                    updateState { $0.withUpdatedLoadingState(.failed(error)) }
+                case .current:
+                    updateState { $0.withUpdatedLoadingState(.uptodate) }
+                case let .newer(tag, _):
+                    let error = NSError(domain: "Casmos", code: 1, userInfo: [NSLocalizedDescriptionKey: "GitHub has \(tag). Check for Updates opens the release page."])
+                    updateState { $0.withUpdatedLoadingState(.failed(error)) }
+                }
             }
             disposable.set(nil)
         }

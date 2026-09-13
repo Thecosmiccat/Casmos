@@ -136,7 +136,7 @@ class ShortPeerRowView: TableRowView, Notifable, ViewDisplayDelegate {
     private var isRowSelected: Bool {
         if let item = item as? ShortPeerRowItem {
             if item.highlightOnHover {
-                return self.mouseInside() || item.isSelected
+                return item.isSelected
             } else if item.alwaysHighlight {
                 return false
             }
@@ -151,12 +151,17 @@ class ShortPeerRowView: TableRowView, Notifable, ViewDisplayDelegate {
                 return theme.grayForeground
             } else if item.isSelected {
                 return theme.accentColor
+            } else if item.highlightOnHover, mouseInside() {
+                return theme.grayForeground
             } else {
                 return theme.backgroundColor
             }
         }
         if let item = item as? ShortPeerRowItem, item.alwaysHighlight {
             return item.isSelected ? theme.colors.grayForeground : theme.colors.background
+        }
+        if let item = item as? ShortPeerRowItem, item.highlightOnHover, mouseInside(), !item.isSelected {
+            return tguiThemeIsFrosted() ? NSColor.white.withAlphaComponent(0.08) : theme.colors.grayForeground
         }
         return isRowSelected ? theme.colors.accentSelect : item?.isHighlighted ?? false ? theme.colors.grayForeground : theme.colors.background
     }

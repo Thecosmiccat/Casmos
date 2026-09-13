@@ -34,7 +34,12 @@ struct LaunchSettings: Codable, Equatable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: StringCodingKey.self)
 
-        self.navigation = nil
+        if let peerId = try container.decodeIfPresent(PeerId.self, forKey: "np") {
+            let necessary = try container.decodeIfPresent(Bool.self, forKey: "nn") ?? true
+            self.navigation = .chat(peerId, necessary: necessary)
+        } else {
+            self.navigation = nil
+        }
         self.applyText = try container.decodeIfPresent(String.self, forKey: "at")
         self.previousText = try container.decodeIfPresent(String.self, forKey: "pt")
     }
@@ -44,6 +49,10 @@ struct LaunchSettings: Codable, Equatable {
 
         try container.encodeIfPresent(applyText, forKey: "at")
         try container.encodeIfPresent(previousText, forKey: "pt")
+        if case let .chat(peerId, necessary) = navigation {
+            try container.encode(peerId, forKey: "np")
+            try container.encode(necessary, forKey: "nn")
+        }
     }
     
     

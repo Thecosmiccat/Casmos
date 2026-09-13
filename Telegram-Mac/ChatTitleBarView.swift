@@ -13,6 +13,7 @@ import TelegramCore
 import TelegramMedia
 import SwiftSignalKit
 import AVFoundation
+import Casmos
 
 
 private final class SelectMessagesPlaceholderView: View {
@@ -873,6 +874,13 @@ class ChatTitleBarView: TitledBarView, InteractionContentViewProtocol {
                     result = result.withUpdatedTitle(strings().chatTitleReminder).withUpdatedStatus("")
                 } else {
                     result = result.withUpdatedTitle(strings().peerSavedMessages).withUpdatedStatus("")
+                }
+            }
+            
+            if CasmosHooks.translateUsernamesEnabled, result.title.string == peer.displayTitle {
+                let shown = casmosTranslatedDisplayName(peer.displayTitle, peerId: peer.id)
+                if shown != peer.displayTitle {
+                    result = result.withUpdatedTitle(shown)
                 }
             }
             

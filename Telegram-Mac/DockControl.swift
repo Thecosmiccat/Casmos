@@ -68,9 +68,6 @@ final class DockControl {
     }
     
     private func loadResources() {
-        disposable.set((engine.resources.applicationIcons() |> deliverOnMainQueue).start(next: { [weak self] icons in
-            self?.update(icons)
-        }))
     }
     
     private func update(_ icons: TelegramApplicationIcons) {
@@ -82,17 +79,7 @@ final class DockControl {
     }
     
     private func silence() {
-        let signal = combineLatest(engine.resources.applicationIcons(), dockSettings(accountManager: accountManager)) |> deliverOnMainQueue
-        update.set(signal.start(next: { [weak self] icons, settings in
-            if let self, let selected = settings.iconSelected, selected != TelegramApplicationIcons.Icon.defaultIconName {
-                if let icon = icons.icons.first(where: { $0.file.fileName == selected }) {
-                    let resource = self.engine.account.postbox.mediaBox.resourceData(icon.file.resource) |> filter { $0.complete } |> take(1) |> deliverOnMainQueue
-                    self.applyResource.set(resource.start(next: { resource in
-                        Dock.setCustomAppIcon(path: resource.path, silence: true)
-                    }))
-                }
-            } 
-        }))
+        CasmosDockIcons.restoreFromPrefs()
     }
     
     func clear() {

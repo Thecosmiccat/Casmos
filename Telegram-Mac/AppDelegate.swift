@@ -464,9 +464,13 @@ class AppDelegate: NSResponder, NSApplicationDelegate, NSUserNotificationCenterD
         
         
         #if BETA || DEBUG
-        FirebaseApp.configure()
-        Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(true)
-        Crashlytics.crashlytics().sendUnsentReports()
+        if let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
+           let appId = NSDictionary(contentsOfFile: path)?["GOOGLE_APP_ID"] as? String,
+           appId.contains(":"), !appId.contains("PLACEHOLDER") {
+            FirebaseApp.configure()
+            Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(true)
+            Crashlytics.crashlytics().sendUnsentReports()
+        }
         #endif
         
         
@@ -502,6 +506,7 @@ class AppDelegate: NSResponder, NSApplicationDelegate, NSUserNotificationCenterD
         if let bundleId = bundleId {
             LSSetDefaultHandlerForURLScheme("tg" as CFString, bundleId as CFString)
         }
+        
         
         
         launchInterface()

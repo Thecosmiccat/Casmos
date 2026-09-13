@@ -884,9 +884,11 @@ class ChatListRowItem: TableRowItem {
                 text = strings().peerSavedMessages
             } else {
                 if let peer = peer, peer.isMonoForum {
-                    text = renderedPeer.chatOrMonoforumMainPeer?._asPeer().displayTitle
+                    text = casmosTranslatedDisplayName(renderedPeer.chatOrMonoforumMainPeer?._asPeer().displayTitle ?? "", peerId: renderedPeer.chatOrMonoforumMainPeer?.id ?? peer.id)
+                } else if let peer = peer {
+                    text = casmosTranslatedDisplayName(peer.displayTitle, peerId: peer.id)
                 } else {
-                    text = peer?.displayTitle
+                    text = nil
                 }
             }
             let _ = titleText.append(string: text, color: renderedPeer.peers[renderedPeer.peerId]?._asPeer() is TelegramSecretChat ? theme.chatList.secretChatTextColor : theme.chatList.textColor, font: .medium(.title))

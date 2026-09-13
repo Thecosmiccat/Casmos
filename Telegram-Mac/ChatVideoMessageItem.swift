@@ -51,26 +51,23 @@ class ChatVideoMessageItem: ChatMediaItem {
         parameters.transcribe = { [weak self] in
             self?.chatInteraction.transcribeAudio(message)
         }
-        if context.isPremium {
-            
-            var pending: Bool
-            if let transcribe = message.audioTranscription {
-                pending = transcribe.isPending
-            } else {
-                pending = false
-            }
-            let bgColor: NSColor
-            let fgColor: NSColor
-            if renderType == .list {
-                bgColor = theme.colors.accent.withAlphaComponent(0.1)
-                fgColor = parameters.presentation.activityBackground
-            } else {
-                bgColor = theme.chatServiceItemColor
-                fgColor = theme.chatServiceItemTextColor
-            }
-            
-            parameters.transcribeData = .init(state: .possible, text: nil, isPending: pending, fontColor: fgColor, backgroundColor: bgColor)
+        var pending: Bool
+        if let transcribe = message.audioTranscription {
+            pending = transcribe.isPending
+        } else {
+            pending = false
         }
+        let bgColor: NSColor
+        let fgColor: NSColor
+        if renderType == .list {
+            bgColor = theme.colors.accent.withAlphaComponent(0.1)
+            fgColor = parameters.presentation.activityBackground
+        } else {
+            bgColor = theme.chatServiceItemColor
+            fgColor = theme.chatServiceItemTextColor
+        }
+            
+        parameters.transcribeData = .init(state: .possible, text: nil, isPending: pending, fontColor: fgColor, backgroundColor: bgColor)
         self.parameters = parameters
     }
     

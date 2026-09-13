@@ -931,6 +931,7 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
     private let containerView: ChatListDraggingContainerView = ChatListDraggingContainerView(frame: NSZeroRect)
     private let contentView: View = View()
     private var leftHolder: View?
+    private var hoverTracking: NSTrackingArea?
 
     private var expandView: ChatListExpandView?
     
@@ -1105,6 +1106,9 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
             if item.isHighlighted && !item.isSelected {
                 return theme.chatList.activeDraggingBackgroundColor
             }
+            if mouseInside() && !item.isSelected {
+                return tguiThemeIsFrosted() ? NSColor.white.withAlphaComponent(0.08) : theme.chatList.activeDraggingBackgroundColor
+            }
             if item.context.layout == .single, item.isSelected {
                 return theme.chatList.singleLayoutSelectedBackgroundColor
             }
@@ -1268,6 +1272,7 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
         }, for: .Click)
         
         contentView.displayDelegate = self
+        updateTrackingAreas()
         
     }
     
@@ -1312,6 +1317,24 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
         self.containerView.background = backdorColor
         self.expandView?.backgroundColor = theme.colors.grayBackground
         self.contentView.backgroundColor = backdorColor
+    }
+    
+    override func updateMouse(animated: Bool) {
+        super.updateMouse(animated: animated)
+        updateColors()
+    }
+    
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let trackingArea = hoverTracking {
+            removeTrackingArea(trackingArea)
+        }
+        hoverTracking = nil
+        if window != nil, visibleRect != .zero {
+            let area = NSTrackingArea(rect: bounds, options: [.mouseEnteredAndExited, .mouseMoved, .activeInKeyWindow, .inVisibleRect], owner: self, userInfo: nil)
+            hoverTracking = area
+            addTrackingArea(area)
+        }
     }
     
     

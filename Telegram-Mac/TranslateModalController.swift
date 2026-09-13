@@ -177,6 +177,43 @@ func casmosLocalTranslate(text: String, from: String?, to: String, html: Bool = 
     }
 }
 
+private var casmosDisplayNameInflight = Set<String>()
+
+func casmosTranslatedDisplayName(_ original: String, peerId: PeerId) -> String {
+    guard CasmosHooks.translateUsernamesEnabled, !original.isEmpty else {
+        return original
+    }
+    let toLang = appAppearance.languageCode
+    let key = "name.\(peerId.toInt64())"
+    if let cached = CasmosLocalTranslations.text(for: key, toLang: toLang), !cached.isEmpty {
+        return cached
+    }
+    let inflightKey = "\(key)|\(toLang)|\(original)"
+    let kick: () -> Void = {
+        guard !casmosDisplayNameInflight.contains(inflightKey) else {
+            return
+        }
+        casmosDisplayNameInflight.insert(inflightKey)
+        _ = (casmosLocalTranslate(text: original, from: nil, to: toLang) |> deliverOnMainQueue).start(next: { value in
+            casmosDisplayNameInflight.remove(inflightKey)
+            let text = value.result.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else {
+                return
+            }
+            CasmosLocalTranslations.set(key: key, toLang: toLang, text: text)
+            NotificationCenter.default.post(name: CasmosPreferences.didChangeNotification, object: nil)
+        }, error: { _ in
+            casmosDisplayNameInflight.remove(inflightKey)
+        })
+    }
+    if Thread.isMainThread {
+        kick()
+    } else {
+        Queue.mainQueue().async(kick)
+    }
+    return original
+}
+
 func casmosTranslateFormatted(text: String, entities: [MessageTextEntity], from: String?, to: String) -> Signal<(detect: String?, result: String, entities: [MessageTextEntity]), Translate.Error> {
     let keep = CasmosHooks.keepTranslateFormatting && !entities.isEmpty
     if !keep {

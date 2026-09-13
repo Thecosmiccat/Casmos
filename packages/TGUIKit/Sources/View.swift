@@ -283,6 +283,7 @@ open class View : NSView, CALayerDelegate, AppearanceViewProtocol {
         didSet {
             if oldValue != self.backgroundColor {
                 layer?.backgroundColor = self.backgroundColor.cgColor
+                layer?.isOpaque = self.backgroundColor.alphaComponent >= 1
                 setNeedsDisplay()
             }
         }
@@ -386,7 +387,7 @@ open class View : NSView, CALayerDelegate, AppearanceViewProtocol {
         self.layer?.disableActions()
         
         self.layer?.backgroundColor = backgroundColor.cgColor
-        self.layer?.isOpaque = true
+        self.layer?.isOpaque = backgroundColor.alphaComponent >= 1
         self.layerContentsRedrawPolicy = .onSetNeedsDisplay
         if #available(macOS 10.15, *) {
             self.layer?.cornerCurve = .continuous

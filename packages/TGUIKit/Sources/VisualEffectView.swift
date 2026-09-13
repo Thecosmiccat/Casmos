@@ -129,3 +129,51 @@ open class VisualEffect: NSVisualEffectView {
         fatalError("init(coder:) has not been implemented")
     }
 }
+
+public let tguiFrostChromeIdentifier = NSUserInterfaceItemIdentifier("tgui.frost.chrome")
+
+public func tguiThemeIsFrosted(_ theme: PresentationTheme = presentation) -> Bool {
+    theme.colors.name == "frosted" || theme.colors.name == "glacer"
+}
+
+public func tguiApplyFrostedChrome(_ view: NSView, enabled: Bool, cornerRadius: CGFloat = 0) {
+    view.wantsLayer = true
+    view.layer?.isOpaque = !enabled
+    let existing = view.subviews.first(where: { $0.identifier == tguiFrostChromeIdentifier }) as? VisualEffect
+    if enabled {
+        view.layer?.cornerRadius = cornerRadius
+        view.layer?.masksToBounds = cornerRadius > 0
+        if let existing {
+            existing.frame = view.bounds
+            existing.blendingMode = .behindWindow
+            if #available(macOS 10.14, *) {
+                existing.material = .underWindowBackground
+            }
+            existing.wantsLayer = true
+            existing.layer?.cornerRadius = cornerRadius
+            return
+        }
+        let frost = VisualEffect(frame: view.bounds)
+        frost.identifier = tguiFrostChromeIdentifier
+        frost.blendingMode = .behindWindow
+        if #available(macOS 10.14, *) {
+            frost.material = .underWindowBackground
+        } else {
+            frost.material = .dark
+        }
+        frost.state = .active
+        frost.autoresizingMask = [.width, .height]
+        frost.bgColor = NSColor.black.withAlphaComponent(0.18)
+        frost.wantsLayer = true
+        frost.layer?.cornerRadius = cornerRadius
+        if let first = view.subviews.first {
+            view.addSubview(frost, positioned: .below, relativeTo: first)
+        } else {
+            view.addSubview(frost)
+        }
+    } else if let existing {
+        existing.removeFromSuperview()
+        view.layer?.cornerRadius = 0
+        view.layer?.masksToBounds = false
+    }
+}

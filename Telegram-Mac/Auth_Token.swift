@@ -68,7 +68,6 @@ private final class ExportTokenOptionView : View {
 }
 
 final class Auth_TokenView : View {
-    private var progressView: InfiniteProgressView?
     fileprivate let imageView: ImageView = ImageView(frame: Auth_Insets.qrSize.bounds)
     private let animation: LottiePlayerView = LottiePlayerView(frame: Auth_Insets.qrAnimSize.bounds)
     fileprivate let logoView: ImageView = ImageView(frame: NSMakeRect(0, 0, 40, 40))
@@ -92,8 +91,7 @@ final class Auth_TokenView : View {
         thridHelp = ExportTokenOptionView(frame: NSMakeRect(0, 0, frameRect.width, 0))
         super.init(frame: frameRect)
         
-        self.imageView.layer?.opacity = 0
-        self.imageView.isHidden = true
+        self.animationContainer.isHidden = true
         
         containerView.addSubview(self.imageView)
         animationContainer.addSubview(self.animation)
@@ -141,14 +139,7 @@ final class Auth_TokenView : View {
         animationContainer.background = dayClassicPalette.background
         animationContainer.layer?.cornerRadius = 10
         
-        
-        self.progressView?.color = .black
         measure()
-        
-        if let data = LocalAnimatedSticker.qrcode_matrix.data, imageView.isHidden {
-            let colors:[LottieColor] = [.init(keyPath: "", color: dayClassicPalette.text)]
-            self.animation.set(LottieAnimation(compressed: data, key: .init(key: .bundle("qrcode_matrix"), size: Auth_Insets.qrAnimSize, backingScale: Int(System.backingScale), fitzModifier: nil), playPolicy: .loop, colors: colors))
-        }
         
         updateLottie()
         
@@ -173,48 +164,13 @@ final class Auth_TokenView : View {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private var first: Bool = true
-    private var startTime: TimeInterval = 0
-    func update(state: QRTokenState, isLoading: Bool) {
+    func update(state: QRTokenState, isLoading _: Bool) {
         switch state {
         case let .qr(image):
             self.imageView.animates = true
             self.imageView.image = image
             imageView.sizeToFit()
         }
-        
-        if !isLoading {
-            
-            if let view = self.progressView {
-                performSubviewRemoval(view, animated: true)
-                self.progressView = nil
-            }
-            
-            let timeout = max(1, 3 - (Date().timeIntervalSince1970 - startTime))
-            
-            delay(timeout, closure: { [weak self] in
-                self?.imageView.isHidden = false
-                self?.imageView.change(opacity: 1, animated: true, duration: 1.2, timingFunction: .spring)
-                self?.animationContainer.change(opacity: 0, animated: true, duration: 1.2, timingFunction: .spring, completion: { [weak self] _ in
-                    self?.animation.set(nil)
-                })
-            })
-        } else {
-            startTime = Date().timeIntervalSince1970
-            
-            let current: InfiniteProgressView
-            if let view = self.progressView {
-                current = view
-            } else {
-                current = InfiniteProgressView(color: .black, lineWidth: 1.5)
-                current.setFrameSize(NSMakeSize(40, 40))
-                self.progressView = current
-                animationContainer.addSubview(current)
-                current.progress = nil
-                current.color = .black
-            }
-        }
-        first = false
         needsLayout = true
     }
     
@@ -236,7 +192,6 @@ final class Auth_TokenView : View {
         imageView.centerX(y: 0)
         animation.center()
         
-        progressView?.center()
         logoView.centerX(y: floor((imageView.frame.height - logoView.frame.height) / 2))
         titleView.updateWithNewWidth(containerView.frame.width)
         titleView.centerX(y: imageView.frame.maxY + Auth_Insets.betweenHeader)
