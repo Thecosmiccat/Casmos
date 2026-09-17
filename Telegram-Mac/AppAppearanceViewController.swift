@@ -14,7 +14,6 @@ import SwiftSignalKit
 import Postbox
 import TGUIKit
 import InAppSettings
-import Dock
 
 func generateSingleColorImage(size: CGSize, color: NSColor) -> CGImage? {
     return generateImage(size, contextGenerator: { size, context in
@@ -562,9 +561,9 @@ private func appAppearanceEntries(appearance: Appearance, state: State, settings
     
     entries.append(.desc(sectionId: sectionId, index: index, text: .plain(strings().appearanceSettingsDockIcon), data: .init(viewType: .textTopItem)))
     index += 1
-    entries.append(InputDataEntry.custom(sectionId: sectionId, index: index, value: .none, identifier: _id_dock_icon, equatable: InputDataEquatable(CasmosDockIcons.current.rawValue), comparable: nil, item: { initialSize, stableId in
-        return CasmosDockIconRowItem(initialSize, stableId: stableId, viewType: .singleItem)
-    }))
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_dock_icon, data: .init(name: "App Icon", color: appearance.presentation.colors.text, type: .nextContext("Coming Soon"), viewType: .singleItem, enabled: false)))
+    index += 1
+    entries.append(.desc(sectionId: sectionId, index: index, text: .plain("Casmos uses the bundled Dock icon. Extra icons are not available yet."), data: .init(color: appearance.presentation.colors.listGrayText, viewType: .textBottomItem)))
     index += 1
     
     entries.append(.sectionId(sectionId, type: .normal))
@@ -753,19 +752,8 @@ func AppAppearanceViewController(context: AccountContext, focusOnItemTag: ThemeS
         }
     }, userNameColor: {
         context.bindings.rootNavigation().push(SelectColorController(context: context, peer: context.myPeer!))
-    }, selectAppIcon: { icon in
-        
-        if icon.isPremium, !context.isPremium {
-            prem(with: PremiumBoardingController(context: context, source: .settings), for: context.window)
-            return
-        }
-        
-        let resourcePath = icon.resourcePath(context)
-        Dock.setCustomAppIcon(path: resourcePath)
-
-        _ = updateDockSettings(accountManager: context.sharedContext.accountManager, { settings in
-            return settings.withUpdatedIcon(icon.file.fileName)
-        }).startStandalone()
+    }, selectAppIcon: { _ in
+        CasmosDockIcons.restoreFromPrefs()
     })
     
     

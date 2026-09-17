@@ -11,16 +11,22 @@ import TGUIKit
 import TelegramCore
 
 final class WidgetAppIconContainer : View {
-    private let strip = CasmosDockIconStrip(frame: .zero)
+    private let imageView = ImageView(frame: .zero)
 
     required init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
-        addSubview(strip)
+        imageView.nsImage = NSImage(named: NSImage.applicationIconName)
+        imageView.contentGravity = .resizeAspect
+        imageView.setAccessibilityElement(true)
+        imageView.setAccessibilityRole(.image)
+        imageView.setAccessibilityLabel("App Icon")
+        addSubview(imageView)
     }
 
     override func layout() {
         super.layout()
-        strip.frame = bounds
+        let size: CGFloat = 96
+        imageView.frame = NSMakeRect(floor((frame.width - size) / 2), floor((frame.height - size) / 2), size, size)
     }
 
     required init?(coder: NSCoder) {
@@ -41,7 +47,7 @@ final class WidgetAppIconController : TelegramGenericViewController<WidgetView<W
         self.genericView.dataView = WidgetAppIconContainer(frame: .zero)
 
         let context = self.context
-        self.genericView.update(.init(title: { strings().emptyChatAppIcon }, desc: { strings().emptyChatAppIconDesc }, descClick: {
+        self.genericView.update(.init(title: { "App Icon" }, desc: { "Coming soon. The default icon is in Settings ⟶ [Appearance](appearance)." }, descClick: {
             context.bindings.rootNavigation().push(AppAppearanceViewController(context: context))
         }, buttons: []))
         self.readyOnce()

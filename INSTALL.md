@@ -78,18 +78,15 @@ Xcode 26: install the Metal Toolchain from Xcode → Settings → Components if 
 
 When it finishes, set `scripts/rebuild` back to `no`.
 
-## 4. API credentials — placeholders until Jeffrey provides them
+## 4. API credentials — placeholders in git
 
-Leave these values as-is for a compile and first launch. Login and network will not work until real credentials are pasted. **Do not commit real secrets.**
+Tracked `packages/ApiCredentials/Sources/ApiCredentials/Config.swift` stays placeholders (`apiId` `0`, `CASMOS_PLACEHOLDER_API_HASH`). Do not commit live keys.
 
-When Jeffrey sends `api_id` / `api_hash`, paste them only in:
+Login needs a JSON file the app already reads:
 
-`packages/ApiCredentials/Sources/ApiCredentials/Config.swift`
+`~/Library/Application Support/Casmos/api-credentials.json`
 
-- `apiId` — replace `0` (marker `CASMOS_PLACEHOLDER_API_ID`) with the integer api_id.
-- `apiHash` — replace `"CASMOS_PLACEHOLDER_API_HASH"` with the api_hash string.
-
-Do not put keys anywhere else. Do not replace the placeholders in git.
+(`chmod 600`. Not in git.) Put integer `api_id` and string `api_hash` there. Get your own at https://my.telegram.org. DeepL is **not** required for a basic run.
 
 ### Team ID (local signing)
 
@@ -101,7 +98,7 @@ Xcode → target **Telegram** (product name Casmos) → Signing & Capabilities �
 
 A free Apple ID Personal Team ID is fine for a local run. Unsigned Casmos does not declare application-groups (main, Share, FocusIntents). Data lives under Application Support/Casmos. Share-into-Casmos and Focus filter persistence are **NOT WIRED** without groups (sandboxed extensions cannot read the unsandboxed app’s App Support). `Telegram-Sandbox.entitlements` still lists groups for a future signed App Store path — do not half-wire that here.
 
-Get your own keys later at https://core.telegram.org/api/obtaining_api_id only if you are not waiting on Jeffrey. Never commit them.
+Never commit `api_id` / `api_hash`.
 
 ## 5. Open in Xcode and sign
 
