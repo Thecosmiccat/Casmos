@@ -758,6 +758,30 @@ open class TableView: ScrollView, NSTableViewDelegate,NSTableViewDataSource,Sele
     
     public var supplyment: InteractionContentViewProtocol? = nil
 
+    private weak var hoverHighlightedView: TableRowView?
+
+    func noteRowHover(_ view: TableRowView) {
+        guard hoverHighlightedView !== view else {
+            return
+        }
+        let previous = hoverHighlightedView
+        hoverHighlightedView = view
+        previous?.updateColors()
+        view.updateColors()
+    }
+
+    func clearRowHover(if view: TableRowView) {
+        guard hoverHighlightedView === view else {
+            return
+        }
+        hoverHighlightedView = nil
+        view.updateColors()
+    }
+
+    func isRowHoverHighlighted(_ view: TableRowView) -> Bool {
+        return hoverHighlightedView === view
+    }
+
     var list:[TableRowItem] = [TableRowItem]();
     var tableView:TGFlipableTableView
     

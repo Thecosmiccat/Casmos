@@ -3949,11 +3949,7 @@ class ChatController: EditableViewController<ChatControllerView>, Notifable, Tab
                                 _ = (invokeSignal |> deliverOnMainQueue).start(completed: scrollAfterSend)
                                 
                                 if setNextToTransaction {
-                                    if atDate != nil {
-                                        afterSentTransition()
-                                    } else {
-                                        controller.nextTransaction.set(handler: afterSentTransition)
-                                    }
+                                    afterSentTransition()
                                 }
                             }
                             
@@ -9224,9 +9220,9 @@ class ChatController: EditableViewController<ChatControllerView>, Notifable, Tab
                     self?.dismiss()
                 })
             } else if chatInteraction.presentation.isNotAccessible {
-                alert(for: context.window, info: peer.isChannel ? strings().chatChannelUnaccessible : strings().chatGroupUnaccessible, completion: { [weak self] in
-                    self?.dismiss()
-                })
+                // iOS refetches here; Mac used to alert+dismiss on a stale
+                // CachedChannelData flag (any getFullChannel failure poisons it).
+                context.account.viewTracker.forceUpdateCachedPeerData(peerId: peer.id)
             }
         }
         

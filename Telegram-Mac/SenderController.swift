@@ -18,6 +18,14 @@ import libwebp
 import TGGifConverter
 import InAppSettings
 import TelegramMedia
+import Casmos
+
+private func casmosNoteStreakSent(context: AccountContext, peerId: PeerId, scheduled: Bool = false) {
+    guard !scheduled, peerId.namespace == Namespaces.Peer.CloudUser, peerId != context.peerId else {
+        return
+    }
+    CasmosStreaks.note(peerId: peerId.toInt64(), incoming: false, timestamp: Int32(Date().timeIntervalSince1970))
+}
 
 class MediaSenderContainer : Equatable {
     let path:String
@@ -250,6 +258,7 @@ class Sender: NSObject {
         } else {
             
             if !mapped.isEmpty {
+                casmosNoteStreakSent(context: context, peerId: peerId, scheduled: atDate != nil)
                 let inlineMedia = input.inlineMedia.map { $0.key }
                 return enqueueMessages(account: context.account, peerId: peerId, messages: mapped) |> mapToSignal { value in
                     if !emojis.isEmpty {
@@ -272,6 +281,7 @@ class Sender: NSObject {
     }
     
     public static func enqueue(message:EnqueueMessage, context: AccountContext, peerId:PeerId) ->Signal<[MessageId?],NoError> {
+        casmosNoteStreakSent(context: context, peerId: peerId)
         return  enqueueMessages(account: context.account, peerId: peerId, messages: [message])
             |> deliverOnMainQueue
     }
@@ -519,6 +529,7 @@ class Sender: NSObject {
         for msgId in sorted {
             fwdMessages.append(EnqueueMessage.forward(source: msgId, threadId: threadId, grouping: messageIds.count > 1 ? .auto : .none, attributes: attributes, correlationId: nil))
         }
+        casmosNoteStreakSent(context: context, peerId: peerId, scheduled: atDate != nil)
         return enqueueMessages(account: context.account, peerId: peerId, messages: fwdMessages.reversed())
     }
     
@@ -532,6 +543,7 @@ class Sender: NSObject {
             attributes.append(SendAsMessageAttribute(peerId: sendAsPeerId))
         }
         
+        casmosNoteStreakSent(context: context, peerId: peerId)
         return enqueueMessages(account: context.account, peerId: peerId, messages: [EnqueueMessage.message(text: "", attributes: attributes, inlineStickers: [:], mediaReference: AnyMediaReference.standalone(media: media), threadId: threadId, replyToMessageId: nil, replyToStoryId: nil, localGroupingKey: nil, correlationId: nil, bubbleUpEmojiOrStickersets: [])])
     }
     
@@ -583,6 +595,7 @@ class Sender: NSObject {
                 if let customChatContents  {
                     return customChatContents.enqueueMessages(messages: [message])
                 } else {
+                    casmosNoteStreakSent(context: context, peerId: peerId, scheduled: atDate != nil)
                     return enqueueMessages(account: context.account, peerId: peerId, messages: [message])
                 }
             })
@@ -699,6 +712,7 @@ class Sender: NSObject {
         if let customChatContents {
             return customChatContents.enqueueMessages(messages: messages) |> deliverOnMainQueue |> take(1)
         } else {
+            casmosNoteStreakSent(context: context, peerId: peerId, scheduled: atDate != nil)
             return enqueueMessages(account: context.account, peerId: peerId, messages: messages) |> deliverOnMainQueue |> take(1)
         }
     }

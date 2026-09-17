@@ -222,7 +222,7 @@ private enum RecentCallEntry : TableItemListNodeEntry {
                 return .single([ContextMenuItem(strings().recentCallsDelete, handler: {
                     arguments.removeCalls(messages.map{ $0.id }, peer)
                 }, itemMode: .destruct, itemImage: MenuAnimation.menu_delete.value)])
-            }, highlightVerified: true, statusImage: theme.icons.callOutgoing)
+            }, highlightOnHover: true, highlightVerified: true, statusImage: theme.icons.callOutgoing)
         case .empty(let loading):
             return SearchEmptyRowItem(initialSize, stableId: stableId, isLoading: loading, text: strings().recentCallsEmpty, border: [.Right], action: .init(click: arguments.newCallLink, title: strings().recentCallsNewCall))
         }

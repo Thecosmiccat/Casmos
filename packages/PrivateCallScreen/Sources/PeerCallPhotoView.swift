@@ -60,7 +60,10 @@ final class PeerCallPhotoView : Control, CallViewUpdater {
             self.addSubview(photoView)
             self.photoView = photoView
         }
-        blobView_fallback?.setColor(colorSets_fallback[state.stateIndex][0], animated: transition.isAnimated)
+        let effect = casmosCallEffectColors()
+        let blobColor = effect[state.stateIndex % effect.count][0]
+        blobView_fallback?.setColor(blobColor, animated: transition.isAnimated)
+        blobView?.setColor(blobColor, animated: transition.isAnimated)
         
 
     }

@@ -1148,8 +1148,46 @@ public class ColorPalette : Equatable {
             return systemPalette
         case discordPalette.name:
             return discordPalette
-        case frostedPalette.name:
+        case frostedPalette.name, "glacer", "Glacer":
             return frostedPalette
+        case pinkPalette.name:
+            return pinkPalette
+        case nordPalette.name:
+            return nordPalette
+        case draculaPalette.name:
+            return draculaPalette
+        case mochaPalette.name:
+            return mochaPalette
+        case tokyoNightPalette.name:
+            return tokyoNightPalette
+        case gruvboxPalette.name:
+            return gruvboxPalette
+        case rosePinePalette.name:
+            return rosePinePalette
+        case pinkLightPalette.name:
+            return pinkLightPalette
+        case rosePineDawnPalette.name:
+            return rosePineDawnPalette
+        case everforestPalette.name:
+            return everforestPalette
+        case oneDarkPalette.name:
+            return oneDarkPalette
+        case solarizedLightPalette.name:
+            return solarizedLightPalette
+        case kanagawaPalette.name:
+            return kanagawaPalette
+        case blushPalette.name:
+            return blushPalette
+        case coastalPalette.name:
+            return coastalPalette
+        case winePalette.name:
+            return winePalette
+        case harborPalette.name:
+            return harborPalette
+        case royalPalette.name:
+            return royalPalette
+        case sagePalette.name:
+            return sagePalette
         case "Mojave":
             return darkPalette
         default:
@@ -1157,7 +1195,7 @@ public class ColorPalette : Equatable {
         }
     }
     
-    public func withUpdatedName(_ name: String, parent: TelegramBuiltinTheme? = nil, copyright: String? = nil) -> ColorPalette {
+    public func withUpdatedName(_ name: String, parent: TelegramBuiltinTheme? = nil, copyright: String? = nil, accent accentColor: NSColor? = nil, text textColor: NSColor? = nil, background backgroundColor: NSColor? = nil, bubbleIncoming: NSColor? = nil, bubbleOutgoing: [NSColor]? = nil, chatBackground chatBackgroundColor: NSColor? = nil, listBackground listBackgroundColor: NSColor? = nil) -> ColorPalette {
         return ColorPalette(isNative: self.isNative, isDark: isDark,
                             tinted: tinted,
                             name: name,
@@ -1166,26 +1204,26 @@ public class ColorPalette : Equatable {
                             copyright: copyright ?? self.copyright,
                             accentList: accentList,
                             basicAccent: basicAccent,
-                            background: background,
-                            text: text,
-                            grayText: grayText,
-                            link: link,
-                            accent: accent,
+                            background: backgroundColor ?? background,
+                            text: textColor ?? text,
+                            grayText: textColor.map { $0.withAlphaComponent(0.62) } ?? grayText,
+                            link: accentColor ?? link,
+                            accent: accentColor ?? accent,
                             redUI: redUI,
                             greenUI: greenUI,
                             blackTransparent: blackTransparent,
                             grayTransparent: grayTransparent,
                             grayUI: grayUI,
                             darkGrayText: darkGrayText,
-                            accentSelect: accentSelect,
+                            accentSelect: accentColor ?? accentSelect,
                             selectText: selectText,
                             border: border,
-                            grayBackground: grayBackground,
+                            grayBackground: backgroundColor ?? grayBackground,
                             grayForeground: grayForeground,
                             grayIcon: grayIcon,
-                            accentIcon: accentIcon,
+                            accentIcon: accentColor ?? accentIcon,
                             badgeMuted: badgeMuted,
-                            badge: badge,
+                            badge: accentColor ?? badge,
                             indicatorColor: indicatorColor,
                             selectMessage: selectMessage,
                             monospacedPre: monospacedPre,
@@ -1196,8 +1234,8 @@ public class ColorPalette : Equatable {
                             monospacedCodeBubble_outgoing: monospacedCodeBubble_outgoing,
                             selectTextBubble_incoming: selectTextBubble_incoming,
                             selectTextBubble_outgoing: selectTextBubble_outgoing,
-                            bubbleBackground_incoming: bubbleBackground_incoming,
-                            bubbleBackground_outgoing: bubbleBackground_outgoing,
+                            bubbleBackground_incoming: bubbleIncoming ?? bubbleBackground_incoming,
+                            bubbleBackground_outgoing: bubbleOutgoing ?? bubbleBackground_outgoing,
                             bubbleBorder_incoming: bubbleBorder_incoming,
                             bubbleBorder_outgoing: bubbleBorder_outgoing,
                             grayTextBubble_incoming: grayTextBubble_incoming,
@@ -1208,8 +1246,8 @@ public class ColorPalette : Equatable {
                             accentIconBubble_outgoing: accentIconBubble_outgoing,
                             linkBubble_incoming: linkBubble_incoming,
                             linkBubble_outgoing: linkBubble_outgoing,
-                            textBubble_incoming: textBubble_incoming,
-                            textBubble_outgoing: textBubble_outgoing,
+                            textBubble_incoming: textColor ?? textBubble_incoming,
+                            textBubble_outgoing: textColor ?? textBubble_outgoing,
                             selectMessageBubble: selectMessageBubble,
                             fileActivityBackground: fileActivityBackground,
                             fileActivityForeground: fileActivityForeground,
@@ -1260,8 +1298,8 @@ public class ColorPalette : Equatable {
                             peerAvatarBlueBottom: peerAvatarBlueBottom,
                             peerAvatarPinkTop: peerAvatarPinkTop,
                             peerAvatarPinkBottom: peerAvatarPinkBottom,
-                            bubbleBackgroundHighlight_incoming: bubbleBackgroundHighlight_incoming,
-                            bubbleBackgroundHighlight_outgoing: bubbleBackgroundHighlight_outgoing,
+                            bubbleBackgroundHighlight_incoming: bubbleIncoming?.darker(amount: 0.08) ?? bubbleBackgroundHighlight_incoming,
+                            bubbleBackgroundHighlight_outgoing: bubbleOutgoing?.first?.darker(amount: 0.08) ?? bubbleBackgroundHighlight_outgoing,
                             chatDateActive: chatDateActive,
                             chatDateText: chatDateText,
                             revealAction_neutral1_background: revealAction_neutral1_background,
@@ -1278,13 +1316,161 @@ public class ColorPalette : Equatable {
                             revealAction_warning_foreground: revealAction_warning_foreground,
                             revealAction_inactive_background: revealAction_inactive_background,
                             revealAction_inactive_foreground: revealAction_inactive_foreground,
-                            chatBackground: chatBackground,
-                            listBackground: listBackground,
-                            listGrayText: listGrayText,
+                            chatBackground: chatBackgroundColor ?? backgroundColor ?? chatBackground,
+                            listBackground: listBackgroundColor ?? backgroundColor ?? listBackground,
+                            listGrayText: textColor.map { $0.withAlphaComponent(0.62) } ?? listGrayText,
                             grayHighlight: grayHighlight,
                             focusAnimationColor: focusAnimationColor,
                             premium: premium,
                             vibrant: vibrant)
+    }
+    public func withCasmosColors(accent: NSColor, text: NSColor, background: NSColor, incoming: NSColor, outgoing: NSColor) -> ColorPalette {
+        return withAccentColor(PaletteAccentColor(accent, [outgoing]), disableTint: true)
+            .withUpdatedName(name, text: text, background: background, bubbleIncoming: incoming, chatBackground: background, listBackground: background)
+    }
+
+    public func casmosColor(_ key: String) -> NSColor {
+        if key == "bubbleBackground_outgoing" {
+            return blendedOutgoingColors
+        }
+        return colorFromStringVariable("_" + key) ?? colorFromStringVariable(key) ?? text
+    }
+
+    public func withCasmosOverlay(_ overlay: [String: NSColor]) -> ColorPalette {
+        if overlay.isEmpty {
+            return self
+        }
+        func c(_ key: String, _ fallback: NSColor) -> NSColor {
+            overlay[key] ?? fallback
+        }
+        let outgoing = overlay["bubbleBackground_outgoing"].map { [$0] } ?? bubbleBackground_outgoing
+        return ColorPalette(isNative: self.isNative, isDark: isDark,
+                            tinted: tinted,
+                            name: name,
+                            parent: parent,
+                            wallpaper: wallpaper,
+                            copyright: copyright,
+                            accentList: accentList,
+                            basicAccent: c("basicAccent", basicAccent),
+                            background: c("background", background),
+                            text: c("text", text),
+                            grayText: c("grayText", grayText),
+                            link: c("link", link),
+                            accent: c("accent", accent),
+                            redUI: c("redUI", redUI),
+                            greenUI: c("greenUI", greenUI),
+                            blackTransparent: c("blackTransparent", blackTransparent),
+                            grayTransparent: c("grayTransparent", grayTransparent),
+                            grayUI: c("grayUI", grayUI),
+                            darkGrayText: c("darkGrayText", darkGrayText),
+                            accentSelect: c("accentSelect", accentSelect),
+                            selectText: c("selectText", selectText),
+                            border: c("border", border),
+                            grayBackground: c("grayBackground", grayBackground),
+                            grayForeground: c("grayForeground", grayForeground),
+                            grayIcon: c("grayIcon", grayIcon),
+                            accentIcon: c("accentIcon", accentIcon),
+                            badgeMuted: c("badgeMuted", badgeMuted),
+                            badge: c("badge", badge),
+                            indicatorColor: c("indicatorColor", indicatorColor),
+                            selectMessage: c("selectMessage", selectMessage),
+                            monospacedPre: c("monospacedPre", monospacedPre),
+                            monospacedCode: c("monospacedCode", monospacedCode),
+                            monospacedPreBubble_incoming: c("monospacedPreBubble_incoming", monospacedPreBubble_incoming),
+                            monospacedPreBubble_outgoing: c("monospacedPreBubble_outgoing", monospacedPreBubble_outgoing),
+                            monospacedCodeBubble_incoming: c("monospacedCodeBubble_incoming", monospacedCodeBubble_incoming),
+                            monospacedCodeBubble_outgoing: c("monospacedCodeBubble_outgoing", monospacedCodeBubble_outgoing),
+                            selectTextBubble_incoming: c("selectTextBubble_incoming", selectTextBubble_incoming),
+                            selectTextBubble_outgoing: c("selectTextBubble_outgoing", selectTextBubble_outgoing),
+                            bubbleBackground_incoming: c("bubbleBackground_incoming", bubbleBackground_incoming),
+                            bubbleBackground_outgoing: outgoing,
+                            bubbleBorder_incoming: c("bubbleBorder_incoming", bubbleBorder_incoming),
+                            bubbleBorder_outgoing: c("bubbleBorder_outgoing", bubbleBorder_outgoing),
+                            grayTextBubble_incoming: c("grayTextBubble_incoming", grayTextBubble_incoming),
+                            grayTextBubble_outgoing: c("grayTextBubble_outgoing", grayTextBubble_outgoing),
+                            grayIconBubble_incoming: c("grayIconBubble_incoming", grayIconBubble_incoming),
+                            grayIconBubble_outgoing: c("grayIconBubble_outgoing", grayIconBubble_outgoing),
+                            accentIconBubble_incoming: c("accentIconBubble_incoming", accentIconBubble_incoming),
+                            accentIconBubble_outgoing: c("accentIconBubble_outgoing", accentIconBubble_outgoing),
+                            linkBubble_incoming: c("linkBubble_incoming", linkBubble_incoming),
+                            linkBubble_outgoing: c("linkBubble_outgoing", linkBubble_outgoing),
+                            textBubble_incoming: c("textBubble_incoming", textBubble_incoming),
+                            textBubble_outgoing: c("textBubble_outgoing", textBubble_outgoing),
+                            selectMessageBubble: c("selectMessageBubble", selectMessageBubble),
+                            fileActivityBackground: c("fileActivityBackground", fileActivityBackground),
+                            fileActivityForeground: c("fileActivityForeground", fileActivityForeground),
+                            fileActivityBackgroundBubble_incoming: c("fileActivityBackgroundBubble_incoming", fileActivityBackgroundBubble_incoming),
+                            fileActivityBackgroundBubble_outgoing: c("fileActivityBackgroundBubble_outgoing", fileActivityBackgroundBubble_outgoing),
+                            fileActivityForegroundBubble_incoming: c("fileActivityForegroundBubble_incoming", fileActivityForegroundBubble_incoming),
+                            fileActivityForegroundBubble_outgoing: c("fileActivityForegroundBubble_outgoing", fileActivityForegroundBubble_outgoing),
+                            waveformBackground: c("waveformBackground", waveformBackground),
+                            waveformForeground: c("waveformForeground", waveformForeground),
+                            waveformBackgroundBubble_incoming: c("waveformBackgroundBubble_incoming", waveformBackgroundBubble_incoming),
+                            waveformBackgroundBubble_outgoing: c("waveformBackgroundBubble_outgoing", waveformBackgroundBubble_outgoing),
+                            waveformForegroundBubble_incoming: c("waveformForegroundBubble_incoming", waveformForegroundBubble_incoming),
+                            waveformForegroundBubble_outgoing: c("waveformForegroundBubble_outgoing", waveformForegroundBubble_outgoing),
+                            webPreviewActivity: c("webPreviewActivity", webPreviewActivity),
+                            webPreviewActivityBubble_incoming: c("webPreviewActivityBubble_incoming", webPreviewActivityBubble_incoming),
+                            webPreviewActivityBubble_outgoing: c("webPreviewActivityBubble_outgoing", webPreviewActivityBubble_outgoing),
+                            redBubble_incoming: c("redBubble_incoming", redBubble_incoming),
+                            redBubble_outgoing: c("redBubble_outgoing", redBubble_outgoing),
+                            greenBubble_incoming: c("greenBubble_incoming", greenBubble_incoming),
+                            greenBubble_outgoing: c("greenBubble_outgoing", greenBubble_outgoing),
+                            chatReplyTitle: c("chatReplyTitle", chatReplyTitle),
+                            chatReplyTextEnabled: c("chatReplyTextEnabled", chatReplyTextEnabled),
+                            chatReplyTextDisabled: c("chatReplyTextDisabled", chatReplyTextDisabled),
+                            chatReplyTitleBubble_incoming: c("chatReplyTitleBubble_incoming", chatReplyTitleBubble_incoming),
+                            chatReplyTitleBubble_outgoing: c("chatReplyTitleBubble_outgoing", chatReplyTitleBubble_outgoing),
+                            chatReplyTextEnabledBubble_incoming: c("chatReplyTextEnabledBubble_incoming", chatReplyTextEnabledBubble_incoming),
+                            chatReplyTextEnabledBubble_outgoing: c("chatReplyTextEnabledBubble_outgoing", chatReplyTextEnabledBubble_outgoing),
+                            chatReplyTextDisabledBubble_incoming: c("chatReplyTextDisabledBubble_incoming", chatReplyTextDisabledBubble_incoming),
+                            chatReplyTextDisabledBubble_outgoing: c("chatReplyTextDisabledBubble_outgoing", chatReplyTextDisabledBubble_outgoing),
+                            groupPeerNameRed: c("groupPeerNameRed", groupPeerNameRed),
+                            groupPeerNameOrange: c("groupPeerNameOrange", groupPeerNameOrange),
+                            groupPeerNameViolet: c("groupPeerNameViolet", groupPeerNameViolet),
+                            groupPeerNameGreen: c("groupPeerNameGreen", groupPeerNameGreen),
+                            groupPeerNameCyan: c("groupPeerNameCyan", groupPeerNameCyan),
+                            groupPeerNameLightBlue: c("groupPeerNameLightBlue", groupPeerNameLightBlue),
+                            groupPeerNameBlue: c("groupPeerNameBlue", groupPeerNameBlue),
+                            peerAvatarRedTop: c("peerAvatarRedTop", peerAvatarRedTop),
+                            peerAvatarRedBottom: c("peerAvatarRedBottom", peerAvatarRedBottom),
+                            peerAvatarOrangeTop: c("peerAvatarOrangeTop", peerAvatarOrangeTop),
+                            peerAvatarOrangeBottom: c("peerAvatarOrangeBottom", peerAvatarOrangeBottom),
+                            peerAvatarVioletTop: c("peerAvatarVioletTop", peerAvatarVioletTop),
+                            peerAvatarVioletBottom: c("peerAvatarVioletBottom", peerAvatarVioletBottom),
+                            peerAvatarGreenTop: c("peerAvatarGreenTop", peerAvatarGreenTop),
+                            peerAvatarGreenBottom: c("peerAvatarGreenBottom", peerAvatarGreenBottom),
+                            peerAvatarCyanTop: c("peerAvatarCyanTop", peerAvatarCyanTop),
+                            peerAvatarCyanBottom: c("peerAvatarCyanBottom", peerAvatarCyanBottom),
+                            peerAvatarBlueTop: c("peerAvatarBlueTop", peerAvatarBlueTop),
+                            peerAvatarBlueBottom: c("peerAvatarBlueBottom", peerAvatarBlueBottom),
+                            peerAvatarPinkTop: c("peerAvatarPinkTop", peerAvatarPinkTop),
+                            peerAvatarPinkBottom: c("peerAvatarPinkBottom", peerAvatarPinkBottom),
+                            bubbleBackgroundHighlight_incoming: c("bubbleBackgroundHighlight_incoming", bubbleBackgroundHighlight_incoming),
+                            bubbleBackgroundHighlight_outgoing: c("bubbleBackgroundHighlight_outgoing", bubbleBackgroundHighlight_outgoing),
+                            chatDateActive: c("chatDateActive", chatDateActive),
+                            chatDateText: c("chatDateText", chatDateText),
+                            revealAction_neutral1_background: c("revealAction_neutral1_background", revealAction_neutral1_background),
+                            revealAction_neutral1_foreground: c("revealAction_neutral1_foreground", revealAction_neutral1_foreground),
+                            revealAction_neutral2_background: c("revealAction_neutral2_background", revealAction_neutral2_background),
+                            revealAction_neutral2_foreground: c("revealAction_neutral2_foreground", revealAction_neutral2_foreground),
+                            revealAction_destructive_background: c("revealAction_destructive_background", revealAction_destructive_background),
+                            revealAction_destructive_foreground: c("revealAction_destructive_foreground", revealAction_destructive_foreground),
+                            revealAction_constructive_background: c("revealAction_constructive_background", revealAction_constructive_background),
+                            revealAction_constructive_foreground: c("revealAction_constructive_foreground", revealAction_constructive_foreground),
+                            revealAction_accent_background: c("revealAction_accent_background", revealAction_accent_background),
+                            revealAction_accent_foreground: c("revealAction_accent_foreground", revealAction_accent_foreground),
+                            revealAction_warning_background: c("revealAction_warning_background", revealAction_warning_background),
+                            revealAction_warning_foreground: c("revealAction_warning_foreground", revealAction_warning_foreground),
+                            revealAction_inactive_background: c("revealAction_inactive_background", revealAction_inactive_background),
+                            revealAction_inactive_foreground: c("revealAction_inactive_foreground", revealAction_inactive_foreground),
+                            chatBackground: c("chatBackground", chatBackground),
+                            listBackground: c("listBackground", listBackground),
+                            listGrayText: c("listGrayText", listGrayText),
+                            grayHighlight: c("grayHighlight", grayHighlight),
+                            focusAnimationColor: c("focusAnimationColor", focusAnimationColor),
+                            premium: c("premium", premium),
+                            vibrant: c("vibrant", vibrant))
     }
     public func withUpdatedWallpaper(_ wallpaper: PaletteWallpaper) -> ColorPalette {
         return ColorPalette(isNative: self.isNative, isDark: isDark,
@@ -1706,6 +1892,25 @@ public enum TelegramBuiltinTheme : String {
     case system = "system"
     case discord = "discord"
     case frosted = "frosted"
+    case pink = "pink"
+    case nord = "nord"
+    case dracula = "dracula"
+    case mocha = "mocha"
+    case tokyoNight = "tokyoNight"
+    case gruvbox = "gruvbox"
+    case rosePine = "rosePine"
+    case pinkLight = "pinkLight"
+    case rosePineDawn = "rosePineDawn"
+    case everforest = "everforest"
+    case oneDark = "oneDark"
+    case solarizedLight = "solarizedLight"
+    case kanagawa = "kanagawa"
+    case blush = "blush"
+    case coastal = "coastal"
+    case wine = "wine"
+    case harbor = "harbor"
+    case royal = "royal"
+    case sage = "sage"
     
     public init?(rawValue: String) {
         switch rawValue {
@@ -1735,6 +1940,44 @@ public enum TelegramBuiltinTheme : String {
             self = .discord
         case "frosted", "Frosted", "glacer", "Glacer":
             self = .frosted
+        case "pink", "Pink":
+            self = .pink
+        case "nord", "Nord":
+            self = .nord
+        case "dracula", "Dracula":
+            self = .dracula
+        case "mocha", "Mocha", "catppuccin", "Catppuccin":
+            self = .mocha
+        case "tokyoNight", "tokyonight", "tokyo-night", "Tokyo Night":
+            self = .tokyoNight
+        case "gruvbox", "Gruvbox":
+            self = .gruvbox
+        case "rosePine", "rosepine", "rose-pine", "Rose Pine", "Rosé Pine":
+            self = .rosePine
+        case "pinkLight", "pink-light", "Pink Light":
+            self = .pinkLight
+        case "rosePineDawn", "rosepinedawn", "rose-pine-dawn", "Rose Pine Dawn", "Rosé Pine Dawn":
+            self = .rosePineDawn
+        case "everforest", "Everforest":
+            self = .everforest
+        case "oneDark", "onedark", "one-dark", "One Dark":
+            self = .oneDark
+        case "solarizedLight", "solarized-light", "Solarized Light":
+            self = .solarizedLight
+        case "kanagawa", "Kanagawa":
+            self = .kanagawa
+        case "blush", "Blush":
+            self = .blush
+        case "coastal", "Coastal":
+            self = .coastal
+        case "wine", "Wine":
+            self = .wine
+        case "harbor", "Harbor":
+            self = .harbor
+        case "royal", "Royal":
+            self = .royal
+        case "sage", "Sage":
+            self = .sage
         default:
             return nil
         }
@@ -1756,6 +1999,44 @@ public enum TelegramBuiltinTheme : String {
             return discordPalette
         case .frosted:
             return frostedPalette
+        case .pink:
+            return pinkPalette
+        case .nord:
+            return nordPalette
+        case .dracula:
+            return draculaPalette
+        case .mocha:
+            return mochaPalette
+        case .tokyoNight:
+            return tokyoNightPalette
+        case .gruvbox:
+            return gruvboxPalette
+        case .rosePine:
+            return rosePinePalette
+        case .pinkLight:
+            return pinkLightPalette
+        case .rosePineDawn:
+            return rosePineDawnPalette
+        case .everforest:
+            return everforestPalette
+        case .oneDark:
+            return oneDarkPalette
+        case .solarizedLight:
+            return solarizedLightPalette
+        case .kanagawa:
+            return kanagawaPalette
+        case .blush:
+            return blushPalette
+        case .coastal:
+            return coastalPalette
+        case .wine:
+            return winePalette
+        case .harbor:
+            return harborPalette
+        case .royal:
+            return royalPalette
+        case .sage:
+            return sagePalette
         }
     }
 }
@@ -2636,7 +2917,83 @@ public let discordPalette = darkPalette
 
 public let frostedPalette = nightAccentPalette
     .withAccentColor(PaletteAccentColor(NSColor(0x8B9DC3)))
-    .withUpdatedName("glacer", parent: .frosted, copyright: "Casmos")
+    .withUpdatedName("frosted", parent: .frosted, copyright: "Casmos")
+
+public let pinkPalette = nightAccentPalette
+    .withAccentColor(PaletteAccentColor(NSColor(0xFF4FA3), [NSColor(0xC2185B)]), disableTint: false)
+    .withUpdatedName("pink", parent: .pink, copyright: "Casmos", text: NSColor(0xFFE8F3))
+
+public let nordPalette = nightAccentPalette
+    .withAccentColor(PaletteAccentColor(NSColor(0x88C0D0), [NSColor(0x4C6A94)]), disableTint: true)
+    .withUpdatedName("nord", parent: .nord, copyright: "Casmos", accent: NSColor(0x88C0D0), text: NSColor(0xECEFF4), background: NSColor(0x3B4252), bubbleIncoming: NSColor(0x3B4252), bubbleOutgoing: [NSColor(0x4C6A94)], chatBackground: NSColor(0x2E3440), listBackground: NSColor(0x2E3440))
+
+public let draculaPalette = nightAccentPalette
+    .withAccentColor(PaletteAccentColor(NSColor(0xBD93F9), [NSColor(0x5E6EA0)]), disableTint: true)
+    .withUpdatedName("dracula", parent: .dracula, copyright: "Casmos", accent: NSColor(0xBD93F9), text: NSColor(0xF8F8F2), background: NSColor(0x44475A), bubbleIncoming: NSColor(0x44475A), bubbleOutgoing: [NSColor(0x5E6EA0)], chatBackground: NSColor(0x282A36), listBackground: NSColor(0x282A36))
+
+public let mochaPalette = nightAccentPalette
+    .withAccentColor(PaletteAccentColor(NSColor(0xCBA6F7), [NSColor(0x45475A)]), disableTint: true)
+    .withUpdatedName("mocha", parent: .mocha, copyright: "Casmos", accent: NSColor(0xCBA6F7), text: NSColor(0xCDD6F4), background: NSColor(0x313244), bubbleIncoming: NSColor(0x313244), bubbleOutgoing: [NSColor(0x45475A)], chatBackground: NSColor(0x1E1E2E), listBackground: NSColor(0x181825))
+
+public let tokyoNightPalette = nightAccentPalette
+    .withAccentColor(PaletteAccentColor(NSColor(0x7AA2F7), [NSColor(0x394B70)]), disableTint: true)
+    .withUpdatedName("tokyoNight", parent: .tokyoNight, copyright: "Casmos", accent: NSColor(0x7AA2F7), text: NSColor(0xC0CAF5), background: NSColor(0x24283B), bubbleIncoming: NSColor(0x24283B), bubbleOutgoing: [NSColor(0x394B70)], chatBackground: NSColor(0x1A1B26), listBackground: NSColor(0x16161E))
+
+public let gruvboxPalette = nightAccentPalette
+    .withAccentColor(PaletteAccentColor(NSColor(0xFE8019), [NSColor(0x504945)]), disableTint: true)
+    .withUpdatedName("gruvbox", parent: .gruvbox, copyright: "Casmos", accent: NSColor(0xFE8019), text: NSColor(0xEBDBB2), background: NSColor(0x3C3836), bubbleIncoming: NSColor(0x3C3836), bubbleOutgoing: [NSColor(0x504945)], chatBackground: NSColor(0x282828), listBackground: NSColor(0x1D2021))
+
+public let rosePinePalette = nightAccentPalette
+    .withAccentColor(PaletteAccentColor(NSColor(0xC4A7E7), [NSColor(0x403D52)]), disableTint: true)
+    .withUpdatedName("rosePine", parent: .rosePine, copyright: "Casmos", accent: NSColor(0xC4A7E7), text: NSColor(0xE0DEF4), background: NSColor(0x1F1D2E), bubbleIncoming: NSColor(0x26233A), bubbleOutgoing: [NSColor(0x403D52)], chatBackground: NSColor(0x191724), listBackground: NSColor(0x191724))
+
+public let pinkLightPalette = whitePalette
+    .withAccentColor(PaletteAccentColor(NSColor(0xA84878), [NSColor(0xF5B8D0)]), disableTint: true)
+    .withUpdatedName("pinkLight", parent: .pinkLight, copyright: "Casmos", accent: NSColor(0xA84878), text: NSColor(0x3D2A33), background: NSColor(0xFFF5F8), bubbleIncoming: NSColor(0xFFE4EE), bubbleOutgoing: [NSColor(0xF5B8D0)], chatBackground: NSColor(0xFFF8FA), listBackground: NSColor(0xFFE8F0))
+
+public let rosePineDawnPalette = whitePalette
+    .withAccentColor(PaletteAccentColor(NSColor(0x907AA9), [NSColor(0xDFDAD9)]), disableTint: true)
+    .withUpdatedName("rosePineDawn", parent: .rosePineDawn, copyright: "Casmos", accent: NSColor(0x907AA9), text: NSColor(0x575279), background: NSColor(0xFFFAF3), bubbleIncoming: NSColor(0xDFDAD9), bubbleOutgoing: [NSColor(0xF2E9E1)], chatBackground: NSColor(0xFAF4ED), listBackground: NSColor(0xFFFAF3))
+
+public let everforestPalette = nightAccentPalette
+    .withAccentColor(PaletteAccentColor(NSColor(0xA7C080), [NSColor(0x425047)]), disableTint: true)
+    .withUpdatedName("everforest", parent: .everforest, copyright: "Casmos", accent: NSColor(0xA7C080), text: NSColor(0xD3C6AA), background: NSColor(0x3D484D), bubbleIncoming: NSColor(0x3D484D), bubbleOutgoing: [NSColor(0x425047)], chatBackground: NSColor(0x2D353B), listBackground: NSColor(0x232A2E))
+
+public let oneDarkPalette = nightAccentPalette
+    .withAccentColor(PaletteAccentColor(NSColor(0x61AFEF), [NSColor(0x3E4451)]), disableTint: true)
+    .withUpdatedName("oneDark", parent: .oneDark, copyright: "Casmos", accent: NSColor(0x61AFEF), text: NSColor(0xABB2BF), background: NSColor(0x2C313C), bubbleIncoming: NSColor(0x2C313C), bubbleOutgoing: [NSColor(0x3E4451)], chatBackground: NSColor(0x282C34), listBackground: NSColor(0x21252B))
+
+public let solarizedLightPalette = whitePalette
+    .withAccentColor(PaletteAccentColor(NSColor(0x268BD2), [NSColor(0xEEE8D5)]), disableTint: true)
+    .withUpdatedName("solarizedLight", parent: .solarizedLight, copyright: "Casmos", accent: NSColor(0x268BD2), text: NSColor(0x073642), background: NSColor(0xFDF6E3), bubbleIncoming: NSColor(0xEEE8D5), bubbleOutgoing: [NSColor(0xE6D5A8)], chatBackground: NSColor(0xFDF6E3), listBackground: NSColor(0xEEE8D5))
+
+public let kanagawaPalette = nightAccentPalette
+    .withAccentColor(PaletteAccentColor(NSColor(0x7E9CD8), [NSColor(0x363646)]), disableTint: true)
+    .withUpdatedName("kanagawa", parent: .kanagawa, copyright: "Casmos", accent: NSColor(0x7E9CD8), text: NSColor(0xDCD7BA), background: NSColor(0x2A2A37), bubbleIncoming: NSColor(0x2A2A37), bubbleOutgoing: [NSColor(0x363646)], chatBackground: NSColor(0x1F1F28), listBackground: NSColor(0x16161D))
+
+public let blushPalette = whitePalette
+    .withAccentColor(PaletteAccentColor(NSColor(0x8B4D58), [NSColor(0xF7D6D0)]), disableTint: true)
+    .withUpdatedName("blush", parent: .blush, copyright: "Casmos", accent: NSColor(0x8B4D58), text: NSColor(0x4A4A4A), background: NSColor(0xFFF5F5), bubbleIncoming: NSColor(0xF7D6D0), bubbleOutgoing: [NSColor(0xE2B4BD)], chatBackground: NSColor(0xFFF5F5), listBackground: NSColor(0xF7D6D0))
+
+public let coastalPalette = whitePalette
+    .withAccentColor(PaletteAccentColor(NSColor(0x3368A0), [NSColor(0x66A3BF)]), disableTint: true)
+    .withUpdatedName("coastal", parent: .coastal, copyright: "Casmos", accent: NSColor(0x3368A0), text: NSColor(0x24486F), background: NSColor(0xF2EFE7), bubbleIncoming: NSColor(0xC8DFDB), bubbleOutgoing: [NSColor(0x66A3BF)], chatBackground: NSColor(0xF2EFE7), listBackground: NSColor(0xC8DFDB))
+
+public let winePalette = nightAccentPalette
+    .withAccentColor(PaletteAccentColor(NSColor(0xEA9D9D), [NSColor(0xBD5579)]), disableTint: true)
+    .withUpdatedName("wine", parent: .wine, copyright: "Casmos", accent: NSColor(0xEA9D9D), text: NSColor(0xFFEBB8), background: NSColor(0x601D49), bubbleIncoming: NSColor(0x601D49), bubbleOutgoing: [NSColor(0xBD5579)], chatBackground: NSColor(0x4A1638), listBackground: NSColor(0x3A102C))
+
+public let harborPalette = nightAccentPalette
+    .withAccentColor(PaletteAccentColor(NSColor(0x8BBB92), [NSColor(0x2A835F)]), disableTint: true)
+    .withUpdatedName("harbor", parent: .harbor, copyright: "Casmos", accent: NSColor(0x8BBB92), text: NSColor(0xC5E0C8), background: NSColor(0x12544F), bubbleIncoming: NSColor(0x12544F), bubbleOutgoing: [NSColor(0x2A835F)], chatBackground: NSColor(0x092328), listBackground: NSColor(0x071C20))
+
+public let royalPalette = nightAccentPalette
+    .withAccentColor(PaletteAccentColor(NSColor(0x7692FF), [NSColor(0x1B2CC1)]), disableTint: true)
+    .withUpdatedName("royal", parent: .royal, copyright: "Casmos", accent: NSColor(0x7692FF), text: NSColor(0xABD2FA), background: NSColor(0x1B2CC1), bubbleIncoming: NSColor(0x1B2CC1), bubbleOutgoing: [NSColor(0x7692FF)], chatBackground: NSColor(0x091540), listBackground: NSColor(0x070F2E))
+
+public let sagePalette = whitePalette
+    .withAccentColor(PaletteAccentColor(NSColor(0x8B9A6E), [NSColor(0xEAE2D6)]), disableTint: true)
+    .withUpdatedName("sage", parent: .sage, copyright: "Casmos", accent: NSColor(0x8B9A6E), text: NSColor(0x3D3A32), background: NSColor(0xF7F2EB), bubbleIncoming: NSColor(0xEAE2D6), bubbleOutgoing: [NSColor(0xC9D1B4)], chatBackground: NSColor(0xF7F2EB), listBackground: NSColor(0xEAE2D6))
 
 public extension ColorPalette {
     var appearance: NSAppearance {

@@ -289,13 +289,21 @@ class GeneralInteractedRowView: GeneralContainableRowView, ViewDisplayDelegate {
                 self.background = .clear
             }
             let highlighted = isSelect ? self.backdorColor : highlightColor
-            descriptionView?.backgroundColor = containerView.controlState == .Highlight && !isSelect ? .clear : self.backdorColor
-            textView?.backgroundColor = containerView.controlState == .Highlight && !isSelect ? .clear : self.backdorColor
+            let hoverPaint = isSelect ? self.backdorColor : (tguiThemeIsFrosted() ? NSColor.black.withAlphaComponent(0.32) : highlightColor)
+            let hovering = !isSelect && (isHoverHighlighted || containerView.controlState == .Highlight)
+            descriptionView?.backgroundColor = hovering ? .clear : self.backdorColor
+            textView?.backgroundColor = hovering ? .clear : self.backdorColor
             containerView.set(background: self.backdorColor, for: .Normal)
+            containerView.set(background: hovering ? hoverPaint : self.backdorColor, for: .Hover)
             containerView.set(background: highlighted, for: .Highlight)
             progressView?.progressColor = item.customTheme?.secondaryColor ?? theme.colors.grayIcon
         }
         containerView.needsDisplay = true
+    }
+    
+    override func updateMouse(animated: Bool) {
+        super.updateMouse(animated: animated)
+        updateColors()
     }
     
     override func shakeView() {
@@ -410,13 +418,13 @@ class GeneralInteractedRowView: GeneralContainableRowView, ViewDisplayDelegate {
         
         
         containerView.set(handler: { [weak self] _ in
-            self?.updateColors()
+            self?.updateMouse(animated: true)
         }, for: .Highlight)
         containerView.set(handler: { [weak self] _ in
-            self?.updateColors()
+            self?.updateMouse(animated: true)
         }, for: .Normal)
         containerView.set(handler: { [weak self] _ in
-            self?.updateColors()
+            self?.updateMouse(animated: true)
         }, for: .Hover)
         
         containerView.set(handler: { [weak self] _ in

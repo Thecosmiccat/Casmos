@@ -831,6 +831,13 @@ class PeerInfoHeadItem: GeneralRowItem {
             return false
         }
     }
+
+    var hasCasmosBanner: Bool {
+        guard !editing, threadId == nil, peer is TelegramUser else {
+            return false
+        }
+        return CasmosProfileBanners.exists(peerId: (peer?.id ?? arguments.peerId).toInt64())
+    }
    
     var isForum: Bool {
         return self.peer?.isForum == true
@@ -941,6 +948,34 @@ class PeerInfoHeadItem: GeneralRowItem {
     
 }
 
+
+private final class CasmosProfileBannerScrim: View {
+    private let dim = SimpleGradientLayer()
+
+    required init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        isEventLess = true
+        setAccessibilityElement(false)
+        layer?.addSublayer(dim)
+        dim.startPoint = CGPoint(x: 0.5, y: 1)
+        dim.endPoint = CGPoint(x: 0.5, y: 0)
+        dim.locations = [0, 0.4, 1]
+        dim.colors = [
+            NSColor.black.withAlphaComponent(0.18).cgColor,
+            NSColor.black.withAlphaComponent(0.06).cgColor,
+            NSColor.black.withAlphaComponent(0.32).cgColor
+        ]
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func layout() {
+        super.layout()
+        dim.frame = bounds
+    }
+}
 
 final class PeerInfoBackgroundView: View {
     private let backgroundGradientLayer: SimpleGradientLayer = SimpleGradientLayer()
@@ -1666,6 +1701,8 @@ private final class PeerInfoHeadView : GeneralRowView {
     
 
     private let backgroundView = PeerInfoBackgroundView(frame: .zero)
+    private let bannerView = ImageView()
+    private let bannerScrim = CasmosProfileBannerScrim(frame: .zero)
     
     private var emojiSpawn: PeerInfoSpawnEmojiView?
     private let bottomHolder = View()
@@ -1716,6 +1753,15 @@ private final class PeerInfoHeadView : GeneralRowView {
         
         
         addSubview(backgroundView)
+        bannerView.animates = false
+        bannerView.contentGravity = .resizeAspectFill
+        bannerView.layer?.masksToBounds = true
+        bannerView.isEventLess = true
+        bannerView.isHidden = true
+        bannerView.setAccessibilityElement(false)
+        bannerScrim.isHidden = true
+        addSubview(bannerView)
+        addSubview(bannerScrim)
         
         photoContainer.addSubview(photoView)
         
@@ -1899,11 +1945,39 @@ private final class PeerInfoHeadView : GeneralRowView {
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSView.boundsDidChangeNotification, object: item?.table?.clipView)
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSView.boundsDidChangeNotification, object: self)
             NotificationCenter.default.addObserver(self, selector: #selector(updatePlayerIfNeeded), name: NSView.frameDidChangeNotification, object: item?.table?.view)
+            NotificationCenter.default.addObserver(self, selector: #selector(reloadCasmosBanner), name: CasmosProfileBanners.didChangeNotification, object: nil)
         } else {
             removeNotificationListeners()
         }
     }
     
+    @objc private func reloadCasmosBanner(_ notification: Notification) {
+        guard let item = item as? PeerInfoHeadItem else {
+            return
+        }
+        if let peerId = notification.userInfo?[CasmosProfileBanners.peerIdKey] as? Int64 {
+            let current = (item.peer?.id ?? item.arguments.peerId).toInt64()
+            if peerId != current {
+                return
+            }
+        }
+        applyCasmosBanner(item)
+        needsLayout = true
+    }
+
+    private func applyCasmosBanner(_ item: PeerInfoHeadItem) {
+        let peerId = (item.peer?.id ?? item.arguments.peerId).toInt64()
+        if !item.editing, item.threadId == nil, item.peer is TelegramUser, let data = CasmosProfileBanners.data(peerId: peerId), let image = NSImage(data: data)?._cgImage {
+            bannerView.image = image
+            bannerView.isHidden = false
+            bannerScrim.isHidden = false
+        } else {
+            bannerView.image = nil
+            bannerView.isHidden = true
+            bannerScrim.isHidden = true
+        }
+    }
+
     func removeNotificationListeners() {
         NotificationCenter.default.removeObserver(self)
     }
@@ -1969,6 +2043,13 @@ private final class PeerInfoHeadView : GeneralRowView {
 
         let actionsY = size.height - actionsView.frame.height - (item.nameColor != nil ? 20 : 0)
         transition.updateFrame(view: actionsView, frame: actionsView.centerFrameX(y: actionsY))
+
+        let cap = max(0, actionsY - 8)
+        let contentBottom = statusContainer.frame.maxY + 8
+        let bannerHeight = min(cap, max(contentBottom, photoContainer.frame.maxY))
+        let bannerFrame = NSRect(x: 0, y: -110, width: size.width, height: bannerHeight + 110)
+        transition.updateFrame(view: bannerView, frame: bannerFrame)
+        transition.updateFrame(view: bannerScrim, frame: bannerFrame)
 
         if let photo = topicPhotoView {
             let photoX = floorToScreenPixels(backingScaleFactor, photoContainer.frame.width - item.photoDimension) / 2
@@ -2191,7 +2272,7 @@ private final class PeerInfoHeadView : GeneralRowView {
         nameView.change(opacity: item.editing ? 0 : 1, animated: animated)
         statusContainer.change(opacity: item.editing ? 0 : 1, animated: animated)
         
-        backgroundView.change(opacity: item.editing || !item.colorfulProfile ? 0 : 1, animated: animated)
+        backgroundView.change(opacity: item.editing || !item.colorfulProfile || item.hasCasmosBanner ? 0 : 1, animated: animated)
 
         statusView.update(item.statusLayout)
         statusView.isSelectable = item.threadId == nil
@@ -2211,6 +2292,8 @@ private final class PeerInfoHeadView : GeneralRowView {
         
         
         layoutActionItems(item.items, animated: animated)
+
+        applyCasmosBanner(item)
         
         
         photoContainer.userInteractionEnabled = !item.editing

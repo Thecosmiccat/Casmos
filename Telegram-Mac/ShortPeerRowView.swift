@@ -151,8 +151,8 @@ class ShortPeerRowView: TableRowView, Notifable, ViewDisplayDelegate {
                 return theme.grayForeground
             } else if item.isSelected {
                 return theme.accentColor
-            } else if item.highlightOnHover, mouseInside() {
-                return theme.grayForeground
+            } else if item.highlightOnHover, isHoverHighlighted {
+                return theme.backgroundColor.blended(withFraction: 0.42, of: NSColor.black) ?? theme.grayForeground
             } else {
                 return theme.backgroundColor
             }
@@ -160,8 +160,8 @@ class ShortPeerRowView: TableRowView, Notifable, ViewDisplayDelegate {
         if let item = item as? ShortPeerRowItem, item.alwaysHighlight {
             return item.isSelected ? theme.colors.grayForeground : theme.colors.background
         }
-        if let item = item as? ShortPeerRowItem, item.highlightOnHover, mouseInside(), !item.isSelected {
-            return tguiThemeIsFrosted() ? NSColor.white.withAlphaComponent(0.08) : theme.colors.grayForeground
+        if let item = item as? ShortPeerRowItem, item.highlightOnHover, isHoverHighlighted, !item.isSelected {
+            return tguiThemeIsFrosted() ? NSColor.black.withAlphaComponent(0.32) : theme.chatList.activeDraggingBackgroundColor
         }
         return isRowSelected ? theme.colors.accentSelect : item?.isHighlighted ?? false ? theme.colors.grayForeground : theme.colors.background
     }
@@ -257,6 +257,7 @@ class ShortPeerRowView: TableRowView, Notifable, ViewDisplayDelegate {
         self.separator.backgroundColor = isRowSelected ? .clear : (customTheme?.borderColor ?? theme.colors.border)
         self.contextLabel?.background = backdorColor
         self.containerView.set(background: backdorColor, for: .Normal)
+        self.containerView.set(background: highlighted, for: .Hover)
         self.containerView.set(background: highlighted, for: .Highlight)
 
         self.photoOuter?.layer?.borderColor = (isRowSelected ? .clear : (item.customTheme?.accentColor ?? theme.colors.accent)).cgColor

@@ -114,11 +114,8 @@ func updateChatTranslationStateInteractively(engine: TelegramEngine, peerId: Eng
         return entry?.get(ChatTranslationState.self)
     }
     |> mapToSignal { current -> Signal<Never, NoError> in
-        if let current = current {
-            return updateChatTranslationState(engine: engine, peerId: peerId, state: f(current))
-        } else {
-            return .never()
-        }
+        let existing = current ?? ChatTranslationState(baseLang: appAppearance.languageCode, fromLang: "", toLang: nil, isEnabled: nil, paywall: false)
+        return updateChatTranslationState(engine: engine, peerId: peerId, state: f(existing))
     }
 }
 
@@ -304,7 +301,7 @@ final class ChatLiveTranslateContext {
         
     private func activateTranslation(for msgIds: [MessageId], state: State) -> Void {
         let queued = state.queued.filter { msgIds.contains($0.id) }
-        if CasmosHooks.translatorEnabled {
+        if CasmosHooks.usesLocalTranslatorEngine {
             self.updateState { current in
                 var current = current
                 current.queued.removeAll()
@@ -313,11 +310,19 @@ final class ChatLiveTranslateContext {
                 }
                 return current
             }
-            let from = state.from.isEmpty ? nil : state.from
+            let from: String? = (state.from.isEmpty || state.from == state.to) ? nil : state.from
             for msg in queued {
                 let messageId = msg.id
                 let toLang = state.to
                 let key = CasmosLocalTranslations.key(peerId: messageId.peerId.toInt64(), namespace: messageId.namespace, id: messageId.id)
+                if CasmosLocalTranslations.contains(key: key, toLang: toLang) {
+                    self.updateState { current in
+                        var current = current
+                        current.result[.Key(id: messageId, toLang: toLang)] = .complete(toLang: toLang)
+                        return current
+                    }
+                    continue
+                }
                 if let poll = msg.media.first as? TelegramMediaPoll {
                     var parts: [String] = [poll.text]
                     parts.append(contentsOf: poll.options.map { $0.text })
@@ -479,15 +484,26 @@ final class ChatLiveTranslateContext {
     }
     
     func toggleTranslate() {
-        
-        let state = stateValue.with { $0 }
-        
+        let snapshot = stateValue.with { $0 }
+        let nextEnabled = !snapshot.translate
+        self.holder = []
+        updateState { current in
+            var current = current
+            current.translate = nextEnabled
+            if !nextEnabled {
+                current.result = [:]
+                current.queued = []
+            }
+            return current
+        }
         _ = updateChatTranslationStateInteractively(engine: context.engine, peerId: peerId, { current in
             var current = current
-            if let isEnabled = current.isEnabled {
-                current.isEnabled = !isEnabled
-            } else {
-                current.isEnabled = !state.autotranslate
+            current.isEnabled = nextEnabled
+            if current.fromLang.isEmpty, !snapshot.from.isEmpty {
+                current.fromLang = snapshot.from
+            }
+            if current.toLang == nil, !snapshot.to.isEmpty {
+                current.toLang = snapshot.to
             }
             return current
         }).start()
@@ -507,6 +523,7 @@ final class ChatLiveTranslateContext {
             let toLang = self.stateValue.with { $0.to }
             let isEnabled = self.stateValue.with { $0.canTranslate && $0.translate }
             if !isEnabled {
+                self.holder = []
                 return
             }
             let msgs = message.filter { !$0.hasDisplayedTranslation(toLang: toLang) }.map { $0 }
@@ -529,7 +546,13 @@ final class ChatLiveTranslateContext {
                 }
                 
             }
-            let ids = msgs.map ({ $0.id })
+            let missing = msgs.filter { msg in
+                self.stateValue.with { $0.result[.Key(id: msg.id, toLang: toLang)] == nil }
+            }
+            let ids = missing.map { $0.id }
+            if ids.isEmpty {
+                return
+            }
             if self.holder != ids {
                 self.holder = ids
                 let signal = Signal<Void, NoError>.complete() |> delay(0.01, queue: prepareQueue)
@@ -538,11 +561,10 @@ final class ChatLiveTranslateContext {
                     guard let `self` = self else {
                         return
                     }
-                //    self.holder.removeAll()
                     self.updateState { current in
                         var current = current
                         if current.translate {
-                            for msg in msgs {
+                            for msg in missing {
                                 if current.result[.Key(id: msg.id, toLang: current.to)] == nil {
                                     current.queued.append(msg)
                                 }
@@ -622,6 +644,9 @@ func chatTranslationState(context: AccountContext, peerId: EnginePeer.Id) -> Sig
         return cachedChatTranslationState(engine: context.engine, peerId: peerId)
         |> mapToSignal { cached in
             if let cached = cached, cached.baseLang == baseLang {
+                if cached.isEnabled != nil {
+                    return .single(cached)
+                }
                 if !dontTranslateLanguages.contains(cached.fromLang) {
                     return .single(cached)
                 } else {
@@ -684,9 +709,14 @@ func chatTranslationState(context: AccountContext, peerId: EnginePeer.Id) -> Sig
                             }
                         }
                         if let fromLang = mostFrequent?.0 {
-                            let state = ChatTranslationState(baseLang: baseLang, fromLang: fromLang, toLang: nil, isEnabled: nil, paywall: false)
-                            let _ = updateChatTranslationState(engine: context.engine, peerId: peerId, state: state).start()
-                            if !dontTranslateLanguages.contains(fromLang) {
+                            let _ = updateChatTranslationStateInteractively(engine: context.engine, peerId: peerId, { current in
+                                var current = current
+                                current.baseLang = baseLang
+                                current.fromLang = fromLang
+                                return current
+                            }).start()
+                            let state = ChatTranslationState(baseLang: baseLang, fromLang: fromLang, toLang: cached?.toLang, isEnabled: cached?.isEnabled, paywall: cached?.paywall ?? false)
+                            if cached?.isEnabled != nil || !dontTranslateLanguages.contains(fromLang) {
                                 return state
                             } else {
                                 return nil

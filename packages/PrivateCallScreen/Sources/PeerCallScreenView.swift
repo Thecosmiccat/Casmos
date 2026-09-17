@@ -15,34 +15,6 @@ import MetalEngine
 import AppKit
 
 
-let colorSets_fallback = [
-    [
-        NSColor(0x568FD6),
-        NSColor(0x626ED5),
-        NSColor(0xA667D5),
-        NSColor(0x7664DA)
-    ],
-    [
-        NSColor(0xACBD65),
-        NSColor(0x459F8D),
-        NSColor(0x53A4D1),
-        NSColor(0x3E917A)
-    ],
-    [
-        NSColor(0xC0508D),
-        NSColor(0xF09536),
-        NSColor(0xCE5081),
-        NSColor(0xFC7C4C)
-    ],
-    [
-        NSColor(0x18222C),
-        NSColor(0x1D2935),
-        NSColor(0x22303E),
-        NSColor(0x263646)
-    ]
-]
-
-
 private class ShadowView: View {
     
     
@@ -555,9 +527,10 @@ final class PeerCallScreenView : Control {
         self.statusView.updateState(state, arguments: arguments, transition: transition)
         
         
+        self.backgroundLayer?.applyPalette(presentation.colors)
         self.backgroundLayer?.update(stateIndex: state.stateIndex, isEnergySavingEnabled: false, transition: transition)
-        
-        self.backgroundLayer_fallback?.updateColors(colors: colorSets_fallback[state.stateIndex])
+        let effect = casmosCallEffectColors()
+        self.backgroundLayer_fallback?.updateColors(colors: effect[state.stateIndex % effect.count])
         
         var smallVideo: MetalCallVideoView?
         var largeVideo: MetalCallVideoView?

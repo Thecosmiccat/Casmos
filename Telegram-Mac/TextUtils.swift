@@ -15,6 +15,7 @@ import SwiftSignalKit
 import CurrencyFormat
 import ColorPalette
 import InputView
+import Casmos
 
 enum MessageTextMediaViewType {
     case emoji
@@ -270,6 +271,10 @@ func chatListText(account:Account, for message:Message?, messagesCount: Int = 1,
         mutableAttributedText.setSelected(color: theme.colors.underSelectedColor, range: mutableAttributedText.range)
         
         return mutableAttributedText
+    }
+
+    if let message, CasmosHooks.hidesIncomingText(message.text, incoming: message.flags.contains(.Incoming)) {
+        return NSAttributedString.initialize(string: "Hidden by filter", color: theme.chatList.grayTextColor, font: .italic(.text))
     }
         
     if let renderedPeer = renderedPeer {

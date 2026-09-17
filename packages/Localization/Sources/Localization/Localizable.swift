@@ -7793,6 +7793,8 @@ public final class L10n {
   public static var chatListMuteUntilTitle: String  { return L10n.tr("Localizable", "ChatList.Mute.Until.Title") }
   /// Are you sure you want to read all chats?
   public static var chatListPopoverConfirm: String  { return L10n.tr("Localizable", "ChatList.Popover.Confirm") }
+  /// Don't show again
+  public static var chatListPopoverDontShowAgain: String  { return L10n.tr("Localizable", "ChatList.Popover.DontShowAgain") }
   /// Read All
   public static var chatListPopoverReadAll: String  { return L10n.tr("Localizable", "ChatList.Popover.ReadAll") }
   /// Collapse
@@ -14397,6 +14399,13 @@ public final class L10n {
   public static var peerInfoDiscussionDesc: String  { return L10n.tr("Localizable", "PeerInfo.Discussion.Desc") }
   /// First Name
   public static var peerInfoFirstNamePlaceholder: String  { return L10n.tr("Localizable", "PeerInfo.FirstName.Placeholder") }
+  public static var peerInfoProfileBanner: String  { return L10n.tr("Localizable", "PeerInfo.ProfileBanner") }
+  public static var peerInfoProfileBannerSet: String  { return L10n.tr("Localizable", "PeerInfo.ProfileBanner.Set") }
+  public static var peerInfoProfileBannerChange: String  { return L10n.tr("Localizable", "PeerInfo.ProfileBanner.Change") }
+  public static var peerInfoProfileBannerRemove: String  { return L10n.tr("Localizable", "PeerInfo.ProfileBanner.Remove") }
+  public static var peerInfoProfileBannerInfo: String  { return L10n.tr("Localizable", "PeerInfo.ProfileBanner.Info") }
+  public static var peerInfoProfileBannerUse: String  { return L10n.tr("Localizable", "PeerInfo.ProfileBanner.Use") }
+  public static var peerInfoProfileBannerDrag: String  { return L10n.tr("Localizable", "PeerInfo.ProfileBanner.Drag") }
   /// The group chat will be devided into topics created by admins or users.
   public static var peerInfoForumInfo: String  { return L10n.tr("Localizable", "PeerInfo.Forum.Info") }
   /// Notify About New Gifts

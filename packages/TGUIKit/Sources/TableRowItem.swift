@@ -248,4 +248,8 @@ open class TableRowItem: NSObject, Comparable, Identifiable {
     open func inset(for text: String) -> CGFloat {
         return 0
     }
+
+    open var highlightsOnHover: Bool {
+        return false
+    }
 }

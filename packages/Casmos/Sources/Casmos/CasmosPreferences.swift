@@ -22,7 +22,7 @@ public enum CasmosPrefKey {
     public enum Privacy {
         /// Hide phone and @username on your own profile UI. Default on.
         public static let hideOwnPhoneAndUsername = "casmos.pref.privacy.hideOwnPhoneAndUsername"
-        /// Keep a local log of deleted messages before Postbox wipes them. Default off.
+        /// Unused leftover key. Keep Deleted is not a shipped feature.
         public static let keepDeletedMessages = "casmos.pref.privacy.keepDeletedMessages"
     }
 
@@ -34,6 +34,10 @@ public enum CasmosPrefKey {
         public static let doubleTapAction = "casmos.pref.chat.doubleTapAction"
         /// Hide Mute / Discuss / gift actions in the channel input bar. Header actions stay available.
         public static let hideChannelBottomButtons = "casmos.pref.chat.hideChannelBottomButtons"
+        /// Comma-separated keywords. Incoming chat text that contains any of them is hidden locally.
+        public static let messageFilter = "casmos.pref.chat.messageFilter"
+        /// Skip the Read All chats confirm. Set from the alert checkbox, not a Settings row.
+        public static let skipReadAllConfirm = "casmos.pref.chat.skipReadAllConfirm"
     }
 
     public enum Translator {
@@ -80,6 +84,8 @@ public enum CasmosPrefKey {
         Chat.stickerSize,
         Chat.doubleTapAction,
         Chat.hideChannelBottomButtons,
+        Chat.messageFilter,
+        Chat.skipReadAllConfirm,
         Translator.enabled,
         Translator.engine,
         Translator.auto,
@@ -99,6 +105,7 @@ public enum CasmosPrefKey {
     public static let stringKeys: Set<String> = [
         Chat.stickerSize,
         Chat.doubleTapAction,
+        Chat.messageFilter,
         Translator.engine,
         Translator.deeplKey,
         Translator.doNotTranslate,
@@ -298,6 +305,25 @@ public enum CasmosPreferences {
             let joined = newValue.map { $0.lowercased() }.filter { !$0.isEmpty }.sorted().joined(separator: ",")
             set(joined, forKey: CasmosPrefKey.Translator.doNotTranslate)
         }
+    }
+
+    /// Keywords that hide incoming chat text on this Mac. Empty means no filter.
+    public static var messageFilterKeywords: [String] {
+        get {
+            string(forKey: CasmosPrefKey.Chat.messageFilter, default: "")
+                .split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { $0.count >= 2 }
+        }
+        set {
+            let joined = newValue.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { $0.count >= 2 }.joined(separator: ", ")
+            set(joined, forKey: CasmosPrefKey.Chat.messageFilter)
+        }
+    }
+
+    public static var messageFilterRaw: String {
+        get { string(forKey: CasmosPrefKey.Chat.messageFilter, default: "") }
+        set { messageFilterKeywords = newValue.split(separator: ",").map(String.init) }
     }
 
     public static func toggleDoNotTranslate(_ code: String) {

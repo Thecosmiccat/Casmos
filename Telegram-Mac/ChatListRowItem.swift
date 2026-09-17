@@ -126,6 +126,10 @@ enum ChatListRowState : Equatable {
 
 class ChatListRowItem: TableRowItem {
 
+    override var highlightsOnHover: Bool {
+        return true
+    }
+
     struct Badge {
         let dynamicValue: DynamicCounterTextView.Value
         let backgroundColor: NSColor
@@ -235,6 +239,9 @@ class ChatListRowItem: TableRowItem {
     
     private var dateLayout:TextViewLayout?
     private var dateSelectedLayout:TextViewLayout?
+    private var streakCountLayout:TextViewLayout?
+    private var streakCountSelectedLayout:TextViewLayout?
+    private(set) var chatStreakCount: Int = 0
 
 
     private var messageLayout:TextViewLayout?
@@ -953,6 +960,26 @@ class ChatListRowItem: TableRowItem {
                 self.dateSelectedLayout = TextViewLayout(selectedDate, mayItems: false)
                 self.dateSelectedLayout?.measure(width: .greatestFiniteMagnitude)
             }
+            if !isTopic, appearMode != .short, let user = peer as? TelegramUser, user.botInfo == nil, user.id != context.peerId {
+                CasmosStreaks.note(peerId: user.id.toInt64(), incoming: message.flags.contains(.Incoming), timestamp: message.timestamp)
+                let streak = CasmosStreaks.displayCount(peerId: user.id.toInt64())
+                self.chatStreakCount = streak
+                if streak > 0 {
+                    let accent = NSColor(rgb: CasmosStreaks.flameColor(streak))
+                    let countFont: NSFont = streak >= 100 ? .bold(12) : .bold(15)
+                    let countAttr = NSMutableAttributedString()
+                    let countRange = countAttr.append(string: "\(streak)", color: accent, font: countFont)
+                    countAttr.setSelected(color: theme.colors.underSelectedColor, range: countRange)
+                    self.streakCountLayout = TextViewLayout(countAttr, mayItems: false)
+                    self.streakCountLayout?.measure(width: .greatestFiniteMagnitude)
+                    let selectedCount = countAttr.mutableCopy() as! NSMutableAttributedString
+                    if let color = selectedCount.attribute(.selectedColor, at: 0, effectiveRange: nil) {
+                        selectedCount.addAttribute(NSAttributedString.Key.foregroundColor, value: color, range: selectedCount.range)
+                    }
+                    self.streakCountSelectedLayout = TextViewLayout(selectedCount, mayItems: false)
+                    self.streakCountSelectedLayout?.measure(width: .greatestFiniteMagnitude)
+                }
+            }
                       
             if forumTopicItems.isEmpty || tags != nil {
                 var author: Peer?
@@ -1305,7 +1332,14 @@ class ChatListRowItem: TableRowItem {
             offset += 10
         }
         offset += 5
-        return max(200, size.width) - margin * 3 - dateSize - (isOutMessage ? isRead ? 20 : 12 : 0) - offset
+        var dateAndStreak = dateSize
+        if chatStreakCount > 0 {
+            dateAndStreak += CGFloat(CasmosStreaks.flamePointSize(chatStreakCount)) + 8
+            if let streakCountLayout {
+                dateAndStreak += streakCountLayout.layoutSize.width + 2
+            }
+        }
+        return max(200, size.width) - margin * 3 - dateAndStreak - (isOutMessage ? isRead ? 20 : 12 : 0) - offset
     }
     
     var chatNameWidth:CGFloat {
@@ -1363,6 +1397,13 @@ class ChatListRowItem: TableRowItem {
         if let _ = tags, !contentImageSpecs.isEmpty {
             w += CGFloat(contentImageSpecs.count) * 16
         }
+        if chatStreakCount > 0 {
+            w += CGFloat(CasmosStreaks.flamePointSize(chatStreakCount)) + 8
+            if let streakCountLayout {
+                w += streakCountLayout.layoutSize.width + 2
+            }
+            w += (dateLayout?.layoutSize.width ?? 0) + 8
+        }
         
         return (max(200, size.width) - margin * 3) - w - (chatNameLayout != nil ? textLeftCutout : 0)
     }
@@ -1382,6 +1423,13 @@ class ChatListRowItem: TableRowItem {
             w += 20
         }
         w += (leftInset - 20)
+        if chatStreakCount > 0 {
+            w += CGFloat(CasmosStreaks.flamePointSize(chatStreakCount)) + 8
+            if let streakCountLayout {
+                w += streakCountLayout.layoutSize.width + 2
+            }
+            w += (dateLayout?.layoutSize.width ?? 0) + 8
+        }
         
         return (max(200, size.width) - margin * 3) - w - (chatNameLayout != nil ? textLeftCutout : 0)
     }
@@ -2226,7 +2274,28 @@ class ChatListRowItem: TableRowItem {
         }
         return dateLayout
     }
-    
+
+    var ctxShowsStreakFire: Bool {
+        if appearMode == .short || shouldHideContent {
+            return false
+        }
+        return chatStreakCount > 0
+    }
+
+    var ctxStreakFireSize: CGFloat {
+        ctxShowsStreakFire ? CGFloat(CasmosStreaks.flamePointSize(chatStreakCount)) : 0
+    }
+
+    var ctxStreakCountLayout:TextViewLayout? {
+        if appearMode == .short || shouldHideContent {
+            return nil
+        }
+        if isActiveSelected {
+            return streakCountSelectedLayout
+        }
+        return streakCountLayout
+    }
+
     var ctxBadgeNode:BadgeNode? {
         if isActiveSelected {
             return badgeSelectedNode

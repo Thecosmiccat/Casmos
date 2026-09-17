@@ -220,6 +220,68 @@ private final class HorizontalThemeView : HorizontalRowView {
     }
 }
 
+private final class HorizontalThemePlusItem: GeneralRowItem {
+    fileprivate let theme: TelegramPresentationTheme
+    fileprivate let createAction: () -> Void
+    init(_ initialSize: NSSize, theme: TelegramPresentationTheme, action: @escaping () -> Void) {
+        self.theme = theme
+        self.createAction = action
+        super.init(initialSize, height: 90, stableId: "casmos.theme.plus")
+    }
+    override var width: CGFloat {
+        return 100
+    }
+    override func viewClass() -> AnyClass {
+        return HorizontalThemePlusView.self
+    }
+}
+
+private final class HorizontalThemePlusView: HorizontalRowView {
+    private let box = Control()
+    private let plus = TextView()
+    private let nameView = TextView()
+    required init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        plus.userInteractionEnabled = false
+        plus.isSelectable = false
+        nameView.userInteractionEnabled = false
+        nameView.isSelectable = false
+        box.layer?.cornerRadius = 10
+        addSubview(box)
+        box.addSubview(plus)
+        addSubview(nameView)
+    }
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    override func set(item: TableRowItem, animated: Bool) {
+        super.set(item: item, animated: animated)
+        guard let item = item as? HorizontalThemePlusItem else {
+            return
+        }
+        box.removeAllHandlers()
+        box.set(handler: { [weak item] _ in
+            item?.createAction()
+        }, for: .Click)
+        box.backgroundColor = item.theme.colors.grayBackground
+        box.layer?.borderWidth = 1
+        box.layer?.borderColor = item.theme.colors.border.cgColor
+        let plusLayout = TextViewLayout(.initialize(string: "+", color: item.theme.colors.accent, font: .medium(28)), maximumNumberOfLines: 1)
+        plusLayout.measure(width: 80)
+        plus.update(plusLayout)
+        let nameLayout = TextViewLayout(.initialize(string: "New", color: item.theme.colors.text, font: .normal(12)), maximumNumberOfLines: 1, alignment: .center)
+        nameLayout.measure(width: 80)
+        nameView.update(nameLayout)
+        needsLayout = true
+    }
+    override func layout() {
+        super.layout()
+        box.frame = NSMakeRect(10, 26, 80, 55)
+        plus.center()
+        nameView.centerX(y: frame.height - nameView.frame.height)
+    }
+}
+
 
 
 class ThemeListRowItem: GeneralRowItem {
@@ -230,7 +292,8 @@ class ThemeListRowItem: GeneralRowItem {
     fileprivate let togglePalette: (InstallThemeSource)->Void
     fileprivate let menuItems: (ThemeSource)->[ContextMenuItem]
     fileprivate let selected: ThemeSource
-    init(_ initialSize: NSSize, stableId: AnyHashable, context: AccountContext, theme: TelegramPresentationTheme, selected: ThemeSource, local:[LocalPaletteWithReference], cloudThemes:[TelegramTheme], viewType: GeneralViewType, togglePalette: @escaping(InstallThemeSource)->Void, menuItems: @escaping(ThemeSource)->[ContextMenuItem]) {
+    fileprivate let createTheme: (() -> Void)?
+    init(_ initialSize: NSSize, stableId: AnyHashable, context: AccountContext, theme: TelegramPresentationTheme, selected: ThemeSource, local:[LocalPaletteWithReference], cloudThemes:[TelegramTheme], viewType: GeneralViewType, togglePalette: @escaping(InstallThemeSource)->Void, menuItems: @escaping(ThemeSource)->[ContextMenuItem], createTheme: (() -> Void)? = nil) {
         self.context = context
         self.theme = theme
         self.local = local
@@ -238,6 +301,7 @@ class ThemeListRowItem: GeneralRowItem {
         self.cloudThemes = cloudThemes
         self.togglePalette = togglePalette
         self.menuItems = menuItems
+        self.createTheme = createTheme
         super.init(initialSize, height: 74 + viewType.innerInset.top + viewType.innerInset.bottom, stableId: stableId, viewType: viewType)
     }
     
@@ -333,6 +397,10 @@ private final class ThemeListRowView : GeneralContainableRowView {
             if item.selected && scrollItem == nil {
                 scrollItem = item
             }
+        }
+
+        if let createTheme = item.createTheme {
+            _ = tableView.addItem(item: HorizontalThemePlusItem(tableView.frame.size, theme: item.theme, action: createTheme), animation: reloadAnimated ? .effectFade : .none)
         }
         
         _ = tableView.addItem(item: HorizontalThemeFirstItem(tableView.frame.size), animation: reloadAnimated ? .effectFade : .none)

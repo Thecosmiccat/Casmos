@@ -2607,6 +2607,7 @@ extension ColorPalette {
 
 
 private func generateIcons(from palette: ColorPalette, bubbled: Bool) -> TelegramIconsTheme {
+    let tabUnselected = palette.accent.withMultiplied(hue: 1, saturation: 0.55, brightness: palette.isDark ? 0.82 : 0.58)
     return TelegramIconsTheme(dialogMuteImage: { #imageLiteral(resourceName: "Icon_DialogMute").precomposed(palette.grayIcon) },
                               dialogMuteImageSelected: { #imageLiteral(resourceName: "Icon_DialogMute").precomposed(palette.underSelectedColor) },
                               outgoingMessageImage: { #imageLiteral(resourceName: "Icon_MessageCheckMark1").precomposed(palette.accentIcon, flipVertical:true) },
@@ -3109,14 +3110,14 @@ private func generateIcons(from palette: ColorPalette, bubbled: Bool) -> Telegra
                                                chat_filter_new_chats: { NSImage(resource: .iconFilterNewChats).precomposed(.white) },
                                                chat_filter_existing_chats: { NSImage(resource: .iconFilterExistingChats).precomposed(.white) },
                                                group_invite_via_link: { NSImage(named: "Icon_InviteViaLink")!.precomposed(palette.accentIcon) },
-                                               tab_contacts: { NSImage(named: "Icon_TabContacts")!.precomposed(palette.grayIcon) },
+                                               tab_contacts: { NSImage(named: "Icon_TabContacts")!.precomposed(tabUnselected) },
                                                tab_contacts_active: { NSImage(named: "Icon_TabContacts")!.precomposed(palette.accentIcon) },
-                                               tab_calls: { NSImage(named: "Icon_TabRecentCalls")!.precomposed(palette.grayIcon) },
+                                               tab_calls: { NSImage(named: "Icon_TabRecentCalls")!.precomposed(tabUnselected) },
                                                tab_calls_active: { NSImage(named: "Icon_TabRecentCalls")!.precomposed(palette.accentIcon) },
-                                               tab_chats: { NSImage(named: "Icon_TabChatList")!.precomposed(palette.grayIcon) },
+                                               tab_chats: { NSImage(named: "Icon_TabChatList")!.precomposed(tabUnselected) },
                                                tab_chats_active: { NSImage(named: "Icon_TabChatList")!.precomposed(palette.accentIcon) },
                                                tab_chats_active_filters: { generateChatTabFiltersIcon(NSImage(named: "Icon_TabChatList")!.precomposed(palette.accentIcon)) },
-                                               tab_settings: { NSImage(named: "Icon_TabSettings")!.precomposed(palette.grayIcon) },
+                                               tab_settings: { NSImage(named: "Icon_TabSettings")!.precomposed(tabUnselected) },
                                                tab_settings_active: { NSImage(named: "Icon_TabSettings")!.precomposed(palette.accentIcon) },
                                                profile_add_member: { generateProfileIcon(NSImage(named: "Icon_Profile_AddMember")!.precomposed(palette.accentIcon), backgroundColor: palette.accent) },
                                                profile_call: { generateProfileIcon(NSImage(named: "Icon_Profile_Call")!.precomposed(palette.accentIcon), backgroundColor: palette.accent) },
@@ -3459,7 +3460,7 @@ func generateTheme(palette: ColorPalette, cloudTheme: TelegramTheme?, bubbled: B
     
     let chatList = TelegramChatListTheme(selectedBackgroundColor: palette.accentSelect,
                                          singleLayoutSelectedBackgroundColor: palette.grayBackground,
-                                         activeDraggingBackgroundColor: palette.border,
+                                         activeDraggingBackgroundColor: palette.background.blended(withFraction: palette.isDark ? 0.42 : 0.12, of: NSColor.black) ?? palette.background.darker(amount: palette.isDark ? 0.35 : 0.12),
                                          pinnedBackgroundColor: palette.background,
                                          contextMenuBackgroundColor: palette.background,
                                          textColor: palette.text,

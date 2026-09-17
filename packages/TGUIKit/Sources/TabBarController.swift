@@ -37,6 +37,9 @@ private class TabBarViewController : View {
             if let subview = subview as? TabBarView {
                 transition.updateFrame(view: subview, frame: NSMakeRect(0, frame.height - 50, frame.width, 50))
             } else {
+                if subview.layer?.animation(forKey: "position") != nil || subview.layer?.animation(forKey: "opacity") != nil {
+                    continue
+                }
                 if tabView.isHidden {
                     transition.updateFrame(view: subview, frame: bounds)
                 } else {
@@ -97,22 +100,59 @@ public class TabBarController: ViewController, TabViewDelegate {
         genericView.autoresizingMask = []
     }
     
+    private var tabContentRect: NSRect {
+        if genericView.tabView.isHidden {
+            return bounds
+        }
+        return NSMakeRect(0, 0, bounds.width, bounds.height - genericView.tabView.frame.height)
+    }
+    
     public func didChange(selected item: TabItem, index: Int) {
         
         if current != item.controller {
-            if let current = current {
-                _ = current.window?.makeFirstResponder(nil)
-                current.viewWillDisappear(false)
-                current.view.removeFromSuperview()
-                current.viewDidDisappear(false)
+            let rect = tabContentRect
+            if let outgoing = current {
+                _ = outgoing.window?.makeFirstResponder(nil)
+                let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+                outgoing.viewWillDisappear(!reduceMotion)
+                item.controller._frameRect = rect
+                item.controller.view.layer?.removeAllAnimations()
+                item.controller.view.frame = rect
+                if reduceMotion {
+                    outgoing.view.layer?.removeAllAnimations()
+                    outgoing.view.removeFromSuperview()
+                    outgoing.viewDidDisappear(false)
+                    outgoing.view.layer?.opacity = 1
+                    item.controller.view.layer?.opacity = 1
+                    item.controller.viewWillAppear(false)
+                    view.addSubview(item.controller.view, positioned: .below, relativeTo: genericView.tabView)
+                    item.controller.viewDidAppear(false)
+                } else {
+                    item.controller.view.layer?.opacity = 0
+                    item.controller.viewWillAppear(true)
+                    view.addSubview(item.controller.view, positioned: .below, relativeTo: genericView.tabView)
+                    outgoing.view._change(opacity: 0, animated: true, duration: 0.15, timingFunction: .easeOut)
+                    item.controller.view._change(opacity: 1, animated: true, duration: 0.15, timingFunction: .easeOut, completion: { [weak self, weak outgoing] _ in
+                        guard let outgoing, outgoing !== self?.current else {
+                            return
+                        }
+                        outgoing.view.removeFromSuperview()
+                        outgoing.viewDidDisappear(true)
+                        outgoing.view.layer?.opacity = 1
+                    })
+                    item.controller.viewDidAppear(true)
+                }
+                current = item.controller
+                didChangedIndex(index)
+            } else {
+                item.controller._frameRect = rect
+                item.controller.view.frame = item.controller._frameRect
+                item.controller.viewWillAppear(false)
+                view.addSubview(item.controller.view, positioned: .below, relativeTo: genericView.tabView)
+                item.controller.viewDidAppear(false)
+                current = item.controller
+                didChangedIndex(index)
             }
-            item.controller._frameRect = NSMakeRect(0, 0, bounds.width, bounds.height - genericView.tabView.frame.height)
-            item.controller.view.frame = item.controller._frameRect
-            item.controller.viewWillAppear(false)
-            view.addSubview(item.controller.view, positioned: .below, relativeTo: genericView.tabView)
-            item.controller.viewDidAppear(false)
-            current = item.controller
-            didChangedIndex(index)
         }
     }
     

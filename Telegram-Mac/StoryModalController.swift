@@ -98,14 +98,21 @@ struct StoryReactionAction {
 
 
 
-private let storedTheme = generateTheme(palette: nightAccentPalette, cloudTheme: nil, bubbled: false, fontSize: 13, wallpaper: .init())
+private var casmosDarkAppearanceCache: (UInt32, UInt32, TelegramPresentationTheme)?
 
 var darkAppearance: TelegramPresentationTheme {
     if theme.colors.isDark {
         return theme
-    } else {
-        return storedTheme
     }
+    let accent = theme.colors.accent.argb
+    let outgoing = theme.colors.blendedOutgoingColors.argb
+    if let cached = casmosDarkAppearanceCache, cached.0 == accent, cached.1 == outgoing {
+        return cached.2
+    }
+    let pal = nightAccentPalette.withAccentColor(PaletteAccentColor(theme.colors.accent, theme.colors.bubbleBackground_outgoing))
+    let generated = generateTheme(palette: pal, cloudTheme: nil, bubbled: false, fontSize: 13, wallpaper: .init())
+    casmosDarkAppearanceCache = (accent, outgoing, generated)
+    return generated
 }
 
 

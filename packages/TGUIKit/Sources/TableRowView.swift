@@ -57,6 +57,7 @@ open class TableRowView: NSTableRowView, CALayerDelegate {
     public var animates:Bool = true
     
     public private(set) var contextMenu:AppMenu?
+    private var hoverTracking: NSTrackingArea?
     
     
     required public override init(frame frameRect: NSRect) {
@@ -187,11 +188,31 @@ open class TableRowView: NSTableRowView, CALayerDelegate {
     }
     open override func mouseEntered(with event: NSEvent) {
         super.mouseEntered(with: event)
+        if item?.highlightsOnHover == true {
+            item?.table?.noteRowHover(self)
+        }
         updateMouse(animated: true)
     }
     open override func mouseExited(with event: NSEvent) {
-        super.mouseMoved(with: event)
+        super.mouseExited(with: event)
+        if item?.highlightsOnHover == true {
+            item?.table?.clearRowHover(if: self)
+        }
         updateMouse(animated: true)
+    }
+
+    open override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let trackingArea = hoverTracking {
+            removeTrackingArea(trackingArea)
+        }
+        hoverTracking = nil
+        guard item?.highlightsOnHover == true, window != nil, visibleRect != .zero else {
+            return
+        }
+        let area = NSTrackingArea(rect: bounds, options: [.mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect], owner: self, userInfo: nil)
+        hoverTracking = area
+        addTrackingArea(area)
     }
     
     open override func mouseDown(with event: NSEvent) {
@@ -323,7 +344,13 @@ open class TableRowView: NSTableRowView, CALayerDelegate {
     }
     
     open func updateMouse(animated: Bool) {
-        
+        if item?.highlightsOnHover == true, mouseInside() {
+            item?.table?.noteRowHover(self)
+        }
+    }
+
+    public var isHoverHighlighted: Bool {
+        return item?.table?.isRowHoverHighlighted(self) ?? false
     }
     
     public var isInsertionAnimated:Bool {
@@ -410,6 +437,11 @@ open class TableRowView: NSTableRowView, CALayerDelegate {
     
     open func set(item:TableRowItem, animated:Bool = false) -> Void {
         self.item = item;
+        if item.highlightsOnHover, mouseInside() {
+            updateMouse(animated: false)
+        } else {
+            item.table?.clearRowHover(if: self)
+        }
         updateColors()
         self._updateAnimatableContent()
     }
@@ -487,6 +519,9 @@ open class TableRowView: NSTableRowView, CALayerDelegate {
     
     open override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
+        if window == nil {
+            item?.table?.clearRowHover(if: self)
+        }
         _updateListeners()
         _updateAnimatableContent()
     }

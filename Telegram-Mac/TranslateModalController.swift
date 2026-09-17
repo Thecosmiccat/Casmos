@@ -201,7 +201,6 @@ func casmosTranslatedDisplayName(_ original: String, peerId: PeerId) -> String {
                 return
             }
             CasmosLocalTranslations.set(key: key, toLang: toLang, text: text)
-            NotificationCenter.default.post(name: CasmosPreferences.didChangeNotification, object: nil)
         }, error: { _ in
             casmosDisplayNameInflight.remove(inflightKey)
         })
@@ -294,10 +293,18 @@ func translateBlocks(context: AccountContext, from: String?, to: String, blocks:
         
     }
     var signal: Signal<(detect: String?, result: String, entities: [MessageTextEntity]), Translate.Error> = .single((detect: nil, result: "", entities: []))
-    let blockDelay: Double = (translatorOn && (engine == .yandex || engine == .deepl)) ? 0.15 : 2.0
+    let blockDelay: Double
+    if translatorOn && (engine == .yandex || engine == .deepl) {
+        blockDelay = 0.05
+    } else if routedState == .alternative {
+        blockDelay = 0.15
+    } else {
+        blockDelay = 0
+    }
     for current in signals {
         signal = signal |> mapToSignal { result in
-            return current |> delay(blockDelay, queue: .mainQueue()) |> map { value in
+            let next = blockDelay > 0 ? (current |> delay(blockDelay, queue: prepareQueue)) : current
+            return next |> map { value in
                 var entities: [MessageTextEntity] = []
                 for entity in value.entities {
                     var current = entity

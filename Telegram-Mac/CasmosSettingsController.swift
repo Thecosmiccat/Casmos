@@ -6,7 +6,7 @@
 //  Preference keys live in the Casmos package (`casmos.pref.*`).
 //  P1 sticker size, pause-video,
 //  leftover Settings toggles (file names, compact list, monochrome folders, verbose logging),
-//  double-click action, hide channel bottom buttons, preference JSON export/import,
+//  double-click action, hide channel bottom buttons, message filter, preference JSON export/import,
 //  hide stories (default on), hide own phone and @username (default on),
 //  per-account passcode / hide account / panic (Touch ID session reveal).
 //  Translator lives in Language (Translate Messages).
@@ -18,6 +18,8 @@ import SwiftSignalKit
 import TelegramCore
 import Casmos
 import MtProtoKit
+import ThemeSettings
+import ColorPalette
 
 func applyCasmosVerboseLogging() {
     let on = CasmosHooks.verboseLogging
@@ -48,20 +50,18 @@ private final class CasmosSettingsArguments {
     let cycleDoubleTap: () -> Void
     let exportPrefs: () -> Void
     let importPrefs: () -> Void
-    let openDeletedLog: () -> Void
     let setAccountPasscode: () -> Void
     let removeAccountPasscode: () -> Void
     let setPanicPasscode: () -> Void
     let removePanicPasscode: () -> Void
     let unlockHidden: () -> Void
-    init(context: AccountContext, toggle: @escaping (String) -> Void, cycleStickerSize: @escaping () -> Void, cycleDoubleTap: @escaping () -> Void, exportPrefs: @escaping () -> Void, importPrefs: @escaping () -> Void, openDeletedLog: @escaping () -> Void, setAccountPasscode: @escaping () -> Void, removeAccountPasscode: @escaping () -> Void, setPanicPasscode: @escaping () -> Void, removePanicPasscode: @escaping () -> Void, unlockHidden: @escaping () -> Void) {
+    init(context: AccountContext, toggle: @escaping (String) -> Void, cycleStickerSize: @escaping () -> Void, cycleDoubleTap: @escaping () -> Void, exportPrefs: @escaping () -> Void, importPrefs: @escaping () -> Void, setAccountPasscode: @escaping () -> Void, removeAccountPasscode: @escaping () -> Void, setPanicPasscode: @escaping () -> Void, removePanicPasscode: @escaping () -> Void, unlockHidden: @escaping () -> Void) {
         self.context = context
         self.toggle = toggle
         self.cycleStickerSize = cycleStickerSize
         self.cycleDoubleTap = cycleDoubleTap
         self.exportPrefs = exportPrefs
         self.importPrefs = importPrefs
-        self.openDeletedLog = openDeletedLog
         self.setAccountPasscode = setAccountPasscode
         self.removeAccountPasscode = removeAccountPasscode
         self.setPanicPasscode = setPanicPasscode
@@ -77,11 +77,11 @@ private struct CasmosSettingsState: Equatable {
     var monochromeFolders: Bool
     var hideStories: Bool
     var hideOwnPhoneAndUsername: Bool
-    var keepDeletedMessages: Bool
     var sendWithCommandEnter: Bool
     var stickerSize: String
     var doubleTapAction: String
     var hideChannelBottomButtons: Bool
+    var messageFilter: String
     var autoLockOnSleep: Bool
     var hideContentInAppSwitcher: Bool
     var hasAccountPasscode: Bool
@@ -102,11 +102,11 @@ private struct CasmosSettingsState: Equatable {
             monochromeFolders: CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.monochromeFolders),
             hideStories: CasmosPreferences.bool(forKey: CasmosPrefKey.Appearance.hideStories),
             hideOwnPhoneAndUsername: CasmosPreferences.bool(forKey: CasmosPrefKey.Privacy.hideOwnPhoneAndUsername),
-            keepDeletedMessages: CasmosPreferences.bool(forKey: CasmosPrefKey.Privacy.keepDeletedMessages),
             sendWithCommandEnter: CasmosPreferences.bool(forKey: CasmosPrefKey.Chat.sendWithCommandEnter),
             stickerSize: CasmosPreferences.stickerSize.rawValue,
             doubleTapAction: CasmosPreferences.doubleTapAction.displayName,
             hideChannelBottomButtons: CasmosPreferences.bool(forKey: CasmosPrefKey.Chat.hideChannelBottomButtons),
+            messageFilter: CasmosPreferences.messageFilterRaw,
             autoLockOnSleep: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.autoLockOnSleep, default: true),
             hideContentInAppSwitcher: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.hideContentInAppSwitcher, default: true),
             hasAccountPasscode: accountId.map { CasmosAccountPasscode.hasPasscode(accountId: $0) } ?? false,
@@ -127,13 +127,13 @@ private let _id_confirm_links = InputDataIdentifier("casmos.pref.general.confirm
 private let _id_compact_list = InputDataIdentifier("casmos.pref.appearance.compactChatList")
 private let _id_mono_folders = InputDataIdentifier("casmos.pref.appearance.monochromeFolders")
 private let _id_hide_stories = InputDataIdentifier("casmos.pref.appearance.hideStories")
+private let _id_custom_theme = InputDataIdentifier("casmos.pref.appearance.customTheme")
 private let _id_hide_own_ids = InputDataIdentifier("casmos.pref.privacy.hideOwnPhoneAndUsername")
-private let _id_keep_deleted = InputDataIdentifier("casmos.pref.privacy.keepDeletedMessages")
-private let _id_open_deleted = InputDataIdentifier("casmos.pref.privacy.openDeletedLog")
 private let _id_cmd_enter = InputDataIdentifier("casmos.pref.chat.sendWithCommandEnter")
 private let _id_sticker_size = InputDataIdentifier("casmos.pref.chat.stickerSize")
 private let _id_double_tap = InputDataIdentifier("casmos.pref.chat.doubleTapAction")
 private let _id_hide_channel_buttons = InputDataIdentifier("casmos.pref.chat.hideChannelBottomButtons")
+private let _id_message_filter = InputDataIdentifier("casmos.pref.chat.messageFilter")
 private let _id_export = InputDataIdentifier("casmos.pref.config.export")
 private let _id_import = InputDataIdentifier("casmos.pref.config.import")
 private let _id_autolock = InputDataIdentifier("casmos.pref.passcode.autoLockOnSleep")
@@ -182,20 +182,15 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
 
-    header("DELETED MESSAGES")
-    toggleRow(id: _id_keep_deleted, name: "Keep Deleted Messages", value: state.keepDeletedMessages, key: CasmosPrefKey.Privacy.keepDeletedMessages, viewType: .firstItem)
-    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_open_deleted, data: .init(name: "Open Deleted Log", color: theme.colors.text, type: .next, viewType: .lastItem, action: arguments.openDeletedLog)))
-    index += 1
-    footer("Off by default. When on, Casmos writes text of wiped messages to a local file before they leave the database. Chat rows still vanish. Secret chats and never-downloaded messages are not stored.")
-
-    entries.append(.sectionId(sectionId, type: .normal))
-    sectionId += 1
-
     header("APPEARANCE")
-    toggleRow(id: _id_compact_list, name: "Compact Chat List", value: state.compactChatList, key: CasmosPrefKey.Appearance.compactChatList, viewType: .firstItem)
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_custom_theme, data: .init(name: "Custom Theme", color: theme.colors.text, type: .next, viewType: .firstItem, action: {
+        arguments.context.bindings.rootNavigation().push(CasmosCustomThemeController(context: arguments.context))
+    })))
+    index += 1
+    toggleRow(id: _id_compact_list, name: "Compact Chat List", value: state.compactChatList, key: CasmosPrefKey.Appearance.compactChatList, viewType: .innerItem)
     toggleRow(id: _id_mono_folders, name: "Monochrome Folders", value: state.monochromeFolders, key: CasmosPrefKey.Appearance.monochromeFolders, viewType: .innerItem)
     toggleRow(id: _id_hide_stories, name: "Hide Stories", value: state.hideStories, key: CasmosPrefKey.Appearance.hideStories, viewType: .lastItem)
-    footer("Compact Chat List uses 56pt rows. Monochrome Folders draws folder tags and folder tab titles in gray. Hide Stories removes the chat-list Stories strip and avatar story rings and is on by default.")
+    footer("Custom Theme opens a full-page studio: tap a screen, then tap a color or a swatch. Compact Chat List uses 56pt rows. Monochrome Folders draws folder tags and folder tab titles in gray. Hide Stories removes the chat-list Stories strip and avatar story rings and is on by default.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -206,8 +201,10 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     index += 1
     entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_double_tap, data: .init(name: "Double-Click Action", color: theme.colors.text, type: .nextContext(state.doubleTapAction), viewType: .innerItem, action: arguments.cycleDoubleTap)))
     index += 1
-    toggleRow(id: _id_hide_channel_buttons, name: "Hide Channel Bottom Buttons", value: state.hideChannelBottomButtons, key: CasmosPrefKey.Chat.hideChannelBottomButtons, viewType: .lastItem)
-    footer("Command-Return sends when enabled. Sticker size scales the 208pt chat sticker box. Double-Click Action runs on a bubble (default Reply). Hide Channel Bottom Buttons collapses the Mute / Discuss bar; mute and discussion stay in the chat header.")
+    toggleRow(id: _id_hide_channel_buttons, name: "Hide Channel Bottom Buttons", value: state.hideChannelBottomButtons, key: CasmosPrefKey.Chat.hideChannelBottomButtons, viewType: .innerItem)
+    entries.append(.input(sectionId: sectionId, index: index, value: .string(state.messageFilter), error: nil, identifier: _id_message_filter, mode: .plain, data: .init(viewType: .lastItem), placeholder: nil, inputPlaceholder: "spam, promo, keyword", filter: { $0 }, limit: 500))
+    index += 1
+    footer("Command-Return sends when enabled. Sticker size scales the 208pt chat sticker box. Double-Click Action runs on a bubble (default Reply). Hide Channel Bottom Buttons collapses the Mute / Discuss bar; mute and discussion stay in the chat header. Message Filter hides incoming text that contains a comma-separated keyword on this Mac only. It does not delete messages.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
@@ -335,8 +332,6 @@ func CasmosSettingsController(context: AccountContext) -> InputDataController {
                 updateState { _ in reload() }
             }
         }
-    }, openDeletedLog: {
-        casmosOpenDeletedMessagesLog(window: context.window)
     }, setAccountPasscode: {
         casmosPresentSetAccountPasscode(context: context) {
             updateState { _ in reload() }
@@ -364,5 +359,52 @@ func CasmosSettingsController(context: AccountContext) -> InputDataController {
     }
 
     let controller = InputDataController(dataSignal: signal, title: "Casmos Settings", removeAfterDisappear: false, hasDone: false, identifier: "casmos")
+    controller.updateDatas = { data in
+        if let value = data[_id_message_filter]?.stringValue {
+            CasmosPreferences.messageFilterRaw = value
+        }
+        return .none
+    }
     return controller
+}
+
+private let casmosThemeApplyDisposable = MetaDisposable()
+private var casmosThemePending: ColorPalette?
+private var casmosThemePendingWallpaper = false
+
+func casmosCommitCustomTheme(context: AccountContext) {
+    casmosThemeApplyDisposable.set(nil)
+    guard let palette = casmosThemePending else {
+        return
+    }
+    let wallpaper = casmosThemePendingWallpaper
+    casmosThemePending = nil
+    casmosThemePendingWallpaper = false
+    _ = updateThemeInteractivetly(accountManager: context.sharedContext.accountManager, f: { settings in
+        var settings = settings.withUpdatedPalette(palette).withUpdatedCloudTheme(nil)
+        if wallpaper {
+            settings = settings.updateWallpaper { _ in
+                ThemeWallpaper(wallpaper: .color(palette.chatBackground.argb), associated: nil)
+            }
+        }
+        let defaultTheme = DefaultTheme(local: palette.parent, cloud: nil)
+        if palette.isDark {
+            settings = settings.withUpdatedDefaultDark(defaultTheme)
+        } else {
+            settings = settings.withUpdatedDefaultDay(defaultTheme)
+        }
+        return settings.saveDefaultAccent(color: PaletteAccentColor(palette.accent, palette.bubbleBackground_outgoing)).withUpdatedDefaultIsDark(palette.isDark).withSavedAssociatedTheme()
+    }).start()
+}
+
+func casmosQueueCustomTheme(context: AccountContext, palette: ColorPalette, wallpaper: Bool) {
+    casmosThemePending = palette
+    casmosThemePendingWallpaper = casmosThemePendingWallpaper || wallpaper
+    casmosThemeApplyDisposable.set((Signal<Void, NoError>.single(Void()) |> delay(0.12, queue: .mainQueue())).start(next: {
+        casmosCommitCustomTheme(context: context)
+    }))
+}
+
+func CasmosCustomThemeController(context: AccountContext) -> ViewController {
+    return CasmosThemeStudioController(context)
 }

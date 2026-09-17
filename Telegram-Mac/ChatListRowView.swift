@@ -29,6 +29,91 @@ private let badgeDiameter = floor(15.0 * 20.0 / 17.0)
 private let avatarBadgeDiameter: CGFloat = floor(floor(15.0 * 22.0 / 17.0))
 private let avatarTimerBadgeDiameter: CGFloat = floor(floor(15.0 * 24.0 / 17.0))
 
+// Fire icon: loading.io 5xrfpc (BY license). Static SVG; hover plays once.
+private enum CasmosStreakFire {
+    private static var cache: [UInt64: CGImage] = [:]
+
+    static func image(pointSize: CGFloat, color: UInt32) -> CGImage? {
+        let px = max(1, Int(pointSize.rounded()) * 2)
+        let key = (UInt64(px) << 32) | UInt64(color)
+        if let cached = cache[key] {
+            return cached
+        }
+        let size = NSMakeSize(CGFloat(px), CGFloat(px))
+        let drawn = NSImage(size: size, flipped: true) { rect in
+            NSColor(rgb: color).setFill()
+            casmosStreakFirePath(in: rect).fill()
+            return true
+        }
+        guard let cg = drawn._cgImage else {
+            return nil
+        }
+        cache[key] = cg
+        return cg
+    }
+
+    static func playOnce(on view: ImageView) {
+        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+            return
+        }
+        guard let layer = view.layer, layer.animation(forKey: "casmosStreakFire") == nil else {
+            return
+        }
+        if layer.anchorPoint != CGPoint(x: 0.5, y: 1) {
+            view.setAnchorPoint(anchorPoint: NSMakePoint(0.5, 1))
+        }
+        func transform(rot: CGFloat, sx: CGFloat, sy: CGFloat) -> NSValue {
+            var value = CATransform3DIdentity
+            value = CATransform3DRotate(value, rot, 0, 0, 1)
+            value = CATransform3DScale(value, sx, sy, 1)
+            return NSValue(caTransform3D: value)
+        }
+        let anim = CAKeyframeAnimation(keyPath: "transform")
+        anim.values = [
+            transform(rot: 0, sx: 1, sy: 1),
+            transform(rot: 0.07, sx: 0.96, sy: 1.14),
+            transform(rot: -0.05, sx: 1.03, sy: 1.02),
+            transform(rot: 0.03, sx: 0.98, sy: 1.09),
+            transform(rot: 0, sx: 1, sy: 1)
+        ]
+        anim.keyTimes = [0, 0.22, 0.48, 0.72, 1]
+        anim.duration = 0.38
+        anim.repeatCount = 1
+        anim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        anim.isRemovedOnCompletion = true
+        layer.add(anim, forKey: "casmosStreakFire")
+    }
+}
+
+private func casmosStreakFirePath(in rect: NSRect) -> NSBezierPath {
+    let s = min(rect.width, rect.height) / 100
+    func p(_ x: CGFloat, _ y: CGFloat) -> NSPoint {
+        NSMakePoint(rect.minX + x * s, rect.minY + y * s)
+    }
+    let path = NSBezierPath()
+    path.move(to: p(24.6, 79.4))
+    path.curve(to: p(21.8, 61.1), controlPoint1: p(21.4, 74), controlPoint2: p(20, 67.2))
+    path.curve(to: p(31.1, 46.4), controlPoint1: p(23.5, 55.5), controlPoint2: p(27.3, 50.7))
+    path.curve(to: p(42.6, 30.8), controlPoint1: p(35.3, 41.5), controlPoint2: p(40.0, 36.8))
+    path.curve(to: p(41.3, 7.5), controlPoint1: p(45.8, 23.4), controlPoint2: p(45.3, 14.5))
+    path.curve(to: p(49.2, 11.8), controlPoint1: p(43.5, 9.6), controlPoint2: p(46.5, 10.5))
+    path.curve(to: p(62.0, 25.2), controlPoint1: p(54.9, 14.5), controlPoint2: p(59.7, 19.3))
+    path.curve(to: p(60.8, 43.5), controlPoint1: p(64.3, 31.1), controlPoint2: p(64.0, 38.0))
+    path.curve(to: p(48.5, 61.3), controlPoint1: p(57.2, 49.8), controlPoint2: p(49.7, 53.7))
+    path.curve(to: p(51.8, 68.8), controlPoint1: p(48.1, 64.2), controlPoint2: p(49.1, 67.5))
+    path.curve(to: p(54.7, 69.4), controlPoint1: p(52.7, 69.2), controlPoint2: p(53.7, 69.4))
+    path.curve(to: p(64.2, 63.6), controlPoint1: p(58.5, 69.3), controlPoint2: p(62.0, 66.8))
+    path.curve(to: p(67.1, 46.5), controlPoint1: p(68.0, 58.3), controlPoint2: p(68.0, 52.7))
+    path.curve(to: p(71.8, 50.6), controlPoint1: p(68.8, 46.9), controlPoint2: p(70.7, 49.3))
+    path.curve(to: p(78.3, 73.8), controlPoint1: p(77.0, 56.5), controlPoint2: p(80.7, 66.0))
+    path.curve(to: p(69.0, 86.2), controlPoint1: p(76.7, 78.8), controlPoint2: p(73.2, 83.1))
+    path.curve(to: p(39.0, 90.6), controlPoint1: p(60.5, 92.5), controlPoint2: p(48.9, 94.2))
+    path.curve(to: p(24.6, 79.4), controlPoint1: p(33.0, 88.6), controlPoint2: p(27.8, 84.7))
+    path.close()
+    path.windingRule = .evenOdd
+    return path
+}
+
 
 private final class AvatarBadgeView: ImageView {
     enum OriginalContent: Equatable {
@@ -876,6 +961,9 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
     private var messageTextView:TextView? = nil
     private var chatNameTextView: InteractiveTextView? = nil
     private var dateTextView: TextView? = nil
+    private var streakFireView: ImageView? = nil
+    private var streakFireHoverPlayed = false
+    private var streakCountTextView: TextView? = nil
     private var displayNameView: InteractiveTextView? = nil
     private var monoforumMessagesView: TextView? = nil
 
@@ -931,7 +1019,6 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
     private let containerView: ChatListDraggingContainerView = ChatListDraggingContainerView(frame: NSZeroRect)
     private let contentView: View = View()
     private var leftHolder: View?
-    private var hoverTracking: NSTrackingArea?
 
     private var expandView: ChatListExpandView?
     
@@ -1106,8 +1193,8 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
             if item.isHighlighted && !item.isSelected {
                 return theme.chatList.activeDraggingBackgroundColor
             }
-            if mouseInside() && !item.isSelected {
-                return tguiThemeIsFrosted() ? NSColor.white.withAlphaComponent(0.08) : theme.chatList.activeDraggingBackgroundColor
+            if isHoverHighlighted && !item.isSelected {
+                return tguiThemeIsFrosted() ? NSColor.black.withAlphaComponent(0.32) : theme.chatList.activeDraggingBackgroundColor
             }
             if item.context.layout == .single, item.isSelected {
                 return theme.chatList.singleLayoutSelectedBackgroundColor
@@ -1317,24 +1404,26 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
         self.containerView.background = backdorColor
         self.expandView?.backgroundColor = theme.colors.grayBackground
         self.contentView.backgroundColor = backdorColor
+        if !isHoverHighlighted {
+            streakFireHoverPlayed = false
+        }
     }
     
     override func updateMouse(animated: Bool) {
         super.updateMouse(animated: animated)
         updateColors()
+        playStreakFireIfNeeded()
     }
-    
-    override func updateTrackingAreas() {
-        super.updateTrackingAreas()
-        if let trackingArea = hoverTracking {
-            removeTrackingArea(trackingArea)
+
+    private func playStreakFireIfNeeded() {
+        guard isHoverHighlighted, let view = streakFireView else {
+            return
         }
-        hoverTracking = nil
-        if window != nil, visibleRect != .zero {
-            let area = NSTrackingArea(rect: bounds, options: [.mouseEnteredAndExited, .mouseMoved, .activeInKeyWindow, .inVisibleRect], owner: self, userInfo: nil)
-            hoverTracking = area
-            addTrackingArea(area)
+        if streakFireHoverPlayed {
+            return
         }
+        streakFireHoverPlayed = true
+        CasmosStreakFire.playOnce(on: view)
     }
     
     
@@ -1547,6 +1636,58 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
              } else if let view = self.dateTextView {
                  performSubviewRemoval(view, animated: animated)
                  self.dateTextView = nil
+             }
+
+             if item.ctxShowsStreakFire {
+                 let side = item.ctxStreakFireSize
+                 let current: ImageView
+                 if let view = self.streakFireView {
+                     current = view
+                 } else {
+                     current = ImageView()
+                     current.isEventLess = true
+                     current.animates = false
+                     current.contentGravity = .resizeAspect
+                     current.layer?.masksToBounds = false
+                     self.streakFireView = current
+                     contentView.addSubview(current)
+                 }
+                 current.image = CasmosStreakFire.image(pointSize: side, color: CasmosStreaks.flameColor(item.chatStreakCount))
+                 current.setFrameSize(NSMakeSize(side, side))
+                 current.layer?.contentsScale = 2
+                 current.setAccessibilityElement(true)
+                 current.setAccessibilityRole(.image)
+                 current.setAccessibilityLabel("\(item.chatStreakCount) day streak")
+                 playStreakFireIfNeeded()
+             } else if let view = self.streakFireView {
+                 performSubviewRemoval(view, animated: animated)
+                 self.streakFireView = nil
+                 self.streakFireHoverPlayed = false
+             }
+
+             if let countLayout = item.ctxStreakCountLayout {
+                 let current: TextView
+                 if let view = self.streakCountTextView {
+                     current = view
+                 } else {
+                     current = TextView()
+                     current.userInteractionEnabled = false
+                     current.isSelectable = false
+                     current.isEventLess = true
+                     current.setAccessibilityElement(false)
+                     current.setAccessibilityHidden(true)
+                     self.streakCountTextView = current
+                     contentView.addSubview(current)
+                 }
+                 current.update(countLayout)
+                 current.setAccessibilityElement(false)
+                 current.setAccessibilityHidden(true)
+                 if let flame = self.streakFireView {
+                     contentView.addSubview(current, positioned: .above, relativeTo: flame)
+                 }
+             } else if let view = self.streakCountTextView {
+                 performSubviewRemoval(view, animated: animated)
+                 self.streakCountTextView = nil
              }
              
              let peer = item.renderedPeer?.chatOrMonoforumMainPeer?._asPeer() ?? item.peer
@@ -3067,6 +3208,33 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
                 statusControl.setFrameOrigin(NSMakePoint(addition + item.leftInset + displayNameView.frame.width + 2, displayNameView.frame.height - 8))
                 
                 addition += statusControl.frame.width + 4
+            }
+
+            if let streakFireView = self.streakFireView {
+                var right = contentView.frame.width - item.margin
+                if let dateTextView = self.dateTextView {
+                    right = dateTextView.frame.minX - 6
+                }
+                if let badgeView = self.badgeView {
+                    right = min(right, badgeView.frame.minX - 6)
+                }
+                if item.isPinned || item.isLastPinned, item.ctxBadgeNode == nil {
+                    right = min(right, contentView.frame.width - theme.icons.pinnedImage.backingSize.width - item.margin - 8)
+                }
+                var badgeWidth = streakFireView.frame.width
+                if let streakCountTextView = self.streakCountTextView {
+                    badgeWidth += 2 + streakCountTextView.frame.width
+                }
+                let x = right - badgeWidth
+                let y = floor((contentView.frame.height - streakFireView.frame.height) / 2)
+                streakFireView.setFrameOrigin(NSMakePoint(x, y))
+                if streakFireView.layer?.anchorPoint != CGPoint(x: 0.5, y: 1) {
+                    streakFireView.setAnchorPoint(anchorPoint: NSMakePoint(0.5, 1))
+                }
+                if let streakCountTextView = self.streakCountTextView {
+                    let cy = y + floor((streakFireView.frame.height - streakCountTextView.frame.height) / 2)
+                    streakCountTextView.setFrameOrigin(NSMakePoint(x + streakFireView.frame.width + 2, cy))
+                }
             }
             
             if let monoforumMessagesView {

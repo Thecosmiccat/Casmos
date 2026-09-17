@@ -388,6 +388,25 @@ private func appAppearanceEntries(appearance: Appearance, state: State, settings
                                                    LocalPaletteWithReference(palette: nightAccentPalette, cloud: nightAccentCloud),
                                                    LocalPaletteWithReference(palette: discordPalette, cloud: nil),
                                                    LocalPaletteWithReference(palette: frostedPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: pinkPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: pinkLightPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: blushPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: nordPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: draculaPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: mochaPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: tokyoNightPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: gruvboxPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: rosePinePalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: rosePineDawnPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: everforestPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: oneDarkPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: solarizedLightPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: kanagawaPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: coastalPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: winePalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: harborPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: royalPalette, cloud: nil),
+                                                   LocalPaletteWithReference(palette: sagePalette, cloud: nil),
                                                    LocalPaletteWithReference(palette: systemPalette, cloud: nil)]
 
         for (i, local) in locals.enumerated() {
@@ -425,6 +444,8 @@ private func appAppearanceEntries(appearance: Appearance, state: State, settings
             }
 
             return items
+        }, createTheme: {
+            arguments.context.bindings.rootNavigation().push(CasmosThemeStudioController(arguments.context))
         })
     }))
 

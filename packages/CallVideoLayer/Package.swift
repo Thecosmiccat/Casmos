@@ -17,6 +17,7 @@ let package = Package(
         // .package(url: /* package url */, from: "1.0.0"),
         .package(name: "SSignalKit", path: "../submodules/telegram-ios/submodules/SSignalKit"),
         .package(name: "MetalEngine", path: "../submodules/telegram-ios/submodules/MetalEngine"),
+        .package(name: "ColorPalette", path: "../ColorPalette"),
         .package(name: "TGUIKit", path: "../TGUIKit"),
     ],
     targets: [
@@ -26,6 +27,7 @@ let package = Package(
             name: "CallVideoLayer",
             dependencies: [.product(name: "SwiftSignalKit", package: "SSignalKit", condition: nil),
                            .product(name: "MetalEngine", package: "MetalEngine", condition: nil),
+                           .product(name: "ColorPalette", package: "ColorPalette", condition: nil),
                            .product(name: "TGUIKit", package: "TGUIKit", condition: nil)],
             path: "Sources/",
             resources: [.copy("CallScreenShaders.metal")])

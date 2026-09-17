@@ -51,13 +51,15 @@ final class UserInfoState : PeerInfoState {
     let suggestingPhotoState:PeerInfoUpdatingPhotoState?
     let businessHoursRevealed: Bool
     let businessHoursDisplayMyTimezone: Bool
-    init(editingState: UserInfoEditingState?, savingData: Bool, updatingPhotoState:PeerInfoUpdatingPhotoState?, suggestingPhotoState:PeerInfoUpdatingPhotoState?, businessHoursRevealed: Bool, businessHoursDisplayMyTimezone: Bool) {
+    let bannerEpoch: Int
+    init(editingState: UserInfoEditingState?, savingData: Bool, updatingPhotoState:PeerInfoUpdatingPhotoState?, suggestingPhotoState:PeerInfoUpdatingPhotoState?, businessHoursRevealed: Bool, businessHoursDisplayMyTimezone: Bool, bannerEpoch: Int = 0) {
         self.editingState = editingState
         self.savingData = savingData
         self.updatingPhotoState = updatingPhotoState
         self.suggestingPhotoState = suggestingPhotoState
         self.businessHoursRevealed = businessHoursRevealed
         self.businessHoursDisplayMyTimezone = businessHoursDisplayMyTimezone
+        self.bannerEpoch = bannerEpoch
     }
     
     override init() {
@@ -67,6 +69,7 @@ final class UserInfoState : PeerInfoState {
         self.suggestingPhotoState = nil
         self.businessHoursRevealed = false
         self.businessHoursDisplayMyTimezone = true
+        self.bannerEpoch = 0
     }
     
     func isEqual(to: PeerInfoState) -> Bool {
@@ -95,35 +98,41 @@ final class UserInfoState : PeerInfoState {
         if lhs.businessHoursDisplayMyTimezone != rhs.businessHoursDisplayMyTimezone {
             return false
         }
+        if lhs.bannerEpoch != rhs.bannerEpoch {
+            return false
+        }
         return true
     }
     
     func withUpdatedSavingData(_ savingData: Bool) -> UserInfoState {
-        return UserInfoState(editingState: self.editingState, savingData: savingData, updatingPhotoState: self.updatingPhotoState, suggestingPhotoState: self.suggestingPhotoState, businessHoursRevealed: self.businessHoursRevealed, businessHoursDisplayMyTimezone: self.businessHoursDisplayMyTimezone)
+        return UserInfoState(editingState: self.editingState, savingData: savingData, updatingPhotoState: self.updatingPhotoState, suggestingPhotoState: self.suggestingPhotoState, businessHoursRevealed: self.businessHoursRevealed, businessHoursDisplayMyTimezone: self.businessHoursDisplayMyTimezone, bannerEpoch: self.bannerEpoch)
     }
     
     func withUpdatedEditingState(_ editingState: UserInfoEditingState?) -> UserInfoState {
-        return UserInfoState(editingState: editingState, savingData: self.savingData, updatingPhotoState: self.updatingPhotoState, suggestingPhotoState: self.suggestingPhotoState, businessHoursRevealed: self.businessHoursRevealed, businessHoursDisplayMyTimezone: self.businessHoursDisplayMyTimezone)
+        return UserInfoState(editingState: editingState, savingData: self.savingData, updatingPhotoState: self.updatingPhotoState, suggestingPhotoState: self.suggestingPhotoState, businessHoursRevealed: self.businessHoursRevealed, businessHoursDisplayMyTimezone: self.businessHoursDisplayMyTimezone, bannerEpoch: self.bannerEpoch)
     }
     
     func withUpdatedUpdatingPhotoState(_ f: (PeerInfoUpdatingPhotoState?) -> PeerInfoUpdatingPhotoState?) -> UserInfoState {
-        return UserInfoState(editingState: self.editingState, savingData: self.savingData, updatingPhotoState: f(self.updatingPhotoState), suggestingPhotoState: self.suggestingPhotoState, businessHoursRevealed: self.businessHoursRevealed, businessHoursDisplayMyTimezone: self.businessHoursDisplayMyTimezone)
+        return UserInfoState(editingState: self.editingState, savingData: self.savingData, updatingPhotoState: f(self.updatingPhotoState), suggestingPhotoState: self.suggestingPhotoState, businessHoursRevealed: self.businessHoursRevealed, businessHoursDisplayMyTimezone: self.businessHoursDisplayMyTimezone, bannerEpoch: self.bannerEpoch)
     }
     func withoutUpdatingPhotoState() -> UserInfoState {
-        return UserInfoState(editingState: self.editingState, savingData: self.savingData, updatingPhotoState: nil, suggestingPhotoState: self.suggestingPhotoState, businessHoursRevealed: self.businessHoursRevealed, businessHoursDisplayMyTimezone: self.businessHoursDisplayMyTimezone)
+        return UserInfoState(editingState: self.editingState, savingData: self.savingData, updatingPhotoState: nil, suggestingPhotoState: self.suggestingPhotoState, businessHoursRevealed: self.businessHoursRevealed, businessHoursDisplayMyTimezone: self.businessHoursDisplayMyTimezone, bannerEpoch: self.bannerEpoch)
     }
     
     func withUpdatedSuggestingPhotoState(_ f: (PeerInfoUpdatingPhotoState?) -> PeerInfoUpdatingPhotoState?) -> UserInfoState {
-        return UserInfoState(editingState: self.editingState, savingData: self.savingData, updatingPhotoState: self.updatingPhotoState, suggestingPhotoState: f(self.updatingPhotoState), businessHoursRevealed: self.businessHoursRevealed, businessHoursDisplayMyTimezone: self.businessHoursDisplayMyTimezone)
+        return UserInfoState(editingState: self.editingState, savingData: self.savingData, updatingPhotoState: self.updatingPhotoState, suggestingPhotoState: f(self.updatingPhotoState), businessHoursRevealed: self.businessHoursRevealed, businessHoursDisplayMyTimezone: self.businessHoursDisplayMyTimezone, bannerEpoch: self.bannerEpoch)
     }
     func withoutSuggestingPhotoState() -> UserInfoState {
-        return UserInfoState(editingState: self.editingState, savingData: self.savingData, updatingPhotoState: self.updatingPhotoState, suggestingPhotoState: nil, businessHoursRevealed: self.businessHoursRevealed, businessHoursDisplayMyTimezone: self.businessHoursDisplayMyTimezone)
+        return UserInfoState(editingState: self.editingState, savingData: self.savingData, updatingPhotoState: self.updatingPhotoState, suggestingPhotoState: nil, businessHoursRevealed: self.businessHoursRevealed, businessHoursDisplayMyTimezone: self.businessHoursDisplayMyTimezone, bannerEpoch: self.bannerEpoch)
     }
     func withBusinessHoursRevealed(_ revealed: Bool) -> UserInfoState {
-        return UserInfoState(editingState: self.editingState, savingData: self.savingData, updatingPhotoState: self.updatingPhotoState, suggestingPhotoState: self.suggestingPhotoState, businessHoursRevealed: revealed, businessHoursDisplayMyTimezone: self.businessHoursDisplayMyTimezone)
+        return UserInfoState(editingState: self.editingState, savingData: self.savingData, updatingPhotoState: self.updatingPhotoState, suggestingPhotoState: self.suggestingPhotoState, businessHoursRevealed: revealed, businessHoursDisplayMyTimezone: self.businessHoursDisplayMyTimezone, bannerEpoch: self.bannerEpoch)
     }
     func withBusinessHoursTimeZoneUpdated(_ businessHoursDisplayMyTimezone: Bool) -> UserInfoState {
-        return UserInfoState(editingState: self.editingState, savingData: self.savingData, updatingPhotoState: self.updatingPhotoState, suggestingPhotoState: self.suggestingPhotoState, businessHoursRevealed: self.businessHoursRevealed, businessHoursDisplayMyTimezone: businessHoursDisplayMyTimezone)
+        return UserInfoState(editingState: self.editingState, savingData: self.savingData, updatingPhotoState: self.updatingPhotoState, suggestingPhotoState: self.suggestingPhotoState, businessHoursRevealed: self.businessHoursRevealed, businessHoursDisplayMyTimezone: businessHoursDisplayMyTimezone, bannerEpoch: self.bannerEpoch)
+    }
+    func withBumpedBannerEpoch() -> UserInfoState {
+        return UserInfoState(editingState: self.editingState, savingData: self.savingData, updatingPhotoState: self.updatingPhotoState, suggestingPhotoState: self.suggestingPhotoState, businessHoursRevealed: self.businessHoursRevealed, businessHoursDisplayMyTimezone: self.businessHoursDisplayMyTimezone, bannerEpoch: self.bannerEpoch + 1)
     }
 }
 
@@ -355,6 +364,12 @@ class UserInfoArguments : PeerInfoArguments {
         })
         
         
+    }
+    
+    func editProfileBanner() {
+        casmosPresentProfileBannerEditor(context: context, peerId: peerId.toInt64()) { [weak self] in
+            self?.updateState { $0.withBumpedBannerEpoch() }
+        }
     }
     
     func addContact() {
@@ -1130,6 +1145,8 @@ enum UserInfoEntry: PeerInfoEntry {
     case personalChannel(sectionId:Int, item: UserInfoPersonalChannel, viewType: GeneralViewType)
     case setFirstName(sectionId:Int, text: String, viewType: GeneralViewType)
     case setLastName(sectionId:Int, text: String, placeholder: String, viewType: GeneralViewType)
+    case setBanner(sectionId:Int, hasBanner: Bool, viewType: GeneralViewType)
+    case setBannerInfo(sectionId:Int, viewType: GeneralViewType)
     case about(sectionId:Int, text: String, launchApp: Bool, viewType: GeneralViewType)
     case aboutInfo(sectionId:Int, text: String, viewType: GeneralViewType)
     case botStarsBalance(sectionId:Int, text: String, viewType: GeneralViewType)
@@ -1189,6 +1206,10 @@ enum UserInfoEntry: PeerInfoEntry {
         case .setFirstName(_, _, let viewType):
             return viewType
         case .setLastName(_, _, _, let viewType):
+            return viewType
+        case .setBanner(_, _, let viewType):
+            return viewType
+        case .setBannerInfo(_, let viewType):
             return viewType
         case .about(_, _, _, let viewType):
             return viewType
@@ -1294,6 +1315,8 @@ enum UserInfoEntry: PeerInfoEntry {
         case let .personalChannel(sectionId, item, _): return .personalChannel(sectionId: sectionId, item: item, viewType: viewType)
         case let .setFirstName(sectionId, text, _): return .setFirstName(sectionId: sectionId, text: text, viewType: viewType)
         case let .setLastName(sectionId, text, placeholder, _): return .setLastName(sectionId: sectionId, text: text, placeholder: placeholder, viewType: viewType)
+        case let .setBanner(sectionId, hasBanner, _): return .setBanner(sectionId: sectionId, hasBanner: hasBanner, viewType: viewType)
+        case let .setBannerInfo(sectionId, _): return .setBannerInfo(sectionId: sectionId, viewType: viewType)
         case let .botStarsBalance(sectionId, text, _): return .botStarsBalance(sectionId: sectionId, text: text, viewType: viewType)
         case let .botTonBalance(sectionId, text, _): return .botTonBalance(sectionId: sectionId, text: text, viewType: viewType)
         case let .botPermissionsHeader(sectionId, text, _): return .botPermissionsHeader(sectionId: sectionId, text: text, viewType: viewType)
@@ -1430,6 +1453,20 @@ enum UserInfoEntry: PeerInfoEntry {
         case let .setLastName(sectionId, text, placeholder, viewType):
             switch entry {
             case .setLastName(sectionId, text, placeholder, viewType):
+                return true
+            default:
+                return false
+            }
+        case let .setBanner(sectionId, hasBanner, viewType):
+            switch entry {
+            case .setBanner(sectionId, hasBanner, viewType):
+                return true
+            default:
+                return false
+            }
+        case let .setBannerInfo(sectionId, viewType):
+            switch entry {
+            case .setBannerInfo(sectionId, viewType):
                 return true
             default:
                 return false
@@ -1819,62 +1856,66 @@ enum UserInfoEntry: PeerInfoEntry {
             return 121
         case .phoneNumber:
             return 122
-        case .birthday:
+        case .setBanner:
             return 123
-        case .peerId:
+        case .setBannerInfo:
             return 124
-        case .businessHours:
+        case .birthday:
             return 125
-        case .businessLocation:
+        case .peerId:
             return 126
-        case .sendMessage:
+        case .businessHours:
             return 127
-        case .botAddToGroup:
+        case .businessLocation:
             return 128
-        case .botAddToGroupInfo:
+        case .sendMessage:
             return 129
-        case .botShare:
+        case .botAddToGroup:
             return 130
-        case .botSettings:
+        case .botAddToGroupInfo:
             return 131
-        case .botHelp:
+        case .botShare:
             return 132
-        case .botPrivacy:
+        case .botSettings:
             return 133
-        case .shareContact:
+        case .botHelp:
             return 134
-        case .shareMyInfo:
+        case .botPrivacy:
             return 135
-        case .addContact:
+        case .shareContact:
             return 136
-        case .startSecretChat:
+        case .shareMyInfo:
             return 137
-        case .sharedMedia:
+        case .addContact:
             return 138
-        case .notifications:
+        case .startSecretChat:
             return 139
-        case .encryptionKey:
+        case .sharedMedia:
             return 140
-        case .groupInCommon:
+        case .notifications:
             return 141
+        case .encryptionKey:
+            return 142
+        case .groupInCommon:
+            return 143
         case let .setPhoto(_, _, type, _, _):
-            return 142 + type.rawValue
+            return 144 + type.rawValue
         case .resetPhoto:
-            return 146
-        case .setPhotoInfo:
-            return 147
-        case .block:
             return 148
-        case .reportReaction:
+        case .setPhotoInfo:
             return 149
-        case .deleteChat:
+        case .block:
             return 150
-        case .deleteContact:
+        case .reportReaction:
             return 151
-        case .verifiedInfo:
+        case .deleteChat:
             return 152
-        case .media:
+        case .deleteContact:
             return 153
+        case .verifiedInfo:
+            return 154
+        case .media:
+            return 155
         case let .section(id):
             return (id + 1) * 1000 - id
         }
@@ -1891,6 +1932,10 @@ enum UserInfoEntry: PeerInfoEntry {
         case let .setFirstName(sectionId, _, _):
             return (sectionId * 1000) + stableIndex
         case let .setLastName(sectionId, _, _, _):
+            return (sectionId * 1000) + stableIndex
+        case let .setBanner(sectionId, _, _):
+            return (sectionId * 1000) + stableIndex
+        case let .setBannerInfo(sectionId, _):
             return (sectionId * 1000) + stableIndex
         case let .botEditUsername(sectionId, _, _):
             return (sectionId * 1000) + stableIndex
@@ -2026,6 +2071,10 @@ enum UserInfoEntry: PeerInfoEntry {
             return InputDataRowItem(initialSize, stableId: stableId.hashValue, mode: .plain, error: nil, viewType: viewType, currentText: text, placeholder: nil, inputPlaceholder: placeholder, filter: { $0 }, updated: {
                 arguments.updateEditingNames(firstName: state.editingState?.editingFirstName, lastName: $0)
             }, limit: 255)
+        case let .setBanner(_, hasBanner, viewType):
+            return GeneralInteractedRowItem(initialSize, stableId: stableId.hashValue, name: strings().peerInfoProfileBanner, type: .nextContext(hasBanner ? strings().peerInfoProfileBannerChange : strings().peerInfoProfileBannerSet), viewType: viewType, action: arguments.editProfileBanner)
+        case .setBannerInfo(_, let viewType):
+            return GeneralTextRowItem(initialSize, stableId: stableId.hashValue, text: .plain(strings().peerInfoProfileBannerInfo), viewType: viewType)
         case let .botEditUsername(_, text, viewType):
             return GeneralInteractedRowItem(initialSize, stableId: stableId.hashValue, name: strings().peerInfoBotEditUsername, icon: theme.icons.peerInfoBotUsername, type: .nextContext("@\(text)"), viewType: viewType, action: arguments.openEditBotUsername)
         case let .botAffiliate(_, text, starRefProgram, viewType):
@@ -2338,6 +2387,9 @@ func userInfoEntries(view: PeerView, arguments: PeerInfoArguments, mediaTabsData
     if editing {
         headerBlock.append(.setFirstName(sectionId: sectionId, text: state.editingState?.editingFirstName ?? "", viewType: .singleItem))
         headerBlock.append(.setLastName(sectionId: sectionId, text: state.editingState?.editingLastName ?? "", placeholder: peerViewMainPeer(view)?.isBot == true ? strings().peerInfoDescriptionPlaceholder : strings().peerInfoLastNamePlaceholder, viewType: .singleItem))
+        let hasBanner = CasmosProfileBanners.exists(peerId: arguments.peerId.toInt64())
+        headerBlock.append(.setBanner(sectionId: sectionId, hasBanner: hasBanner, viewType: .singleItem))
+        headerBlock.append(.setBannerInfo(sectionId: sectionId, viewType: .textBottomItem))
     }
     
     applyBlock(headerBlock)
@@ -2352,6 +2404,9 @@ func userInfoEntries(view: PeerView, arguments: PeerInfoArguments, mediaTabsData
     if let peer = view.peers[view.peerId] {
         
         if let user = peerViewMainPeer(view) as? TelegramUser {
+            if user.botInfo == nil {
+                casmosFetchSharedBannerIfNeeded(context: arguments.context, peerId: user.id, about: (view.cachedData as? CachedUserData)?.about)
+            }
             
             var destructBlock:[UserInfoEntry] = []
             var photoBlock:[UserInfoEntry] = []
@@ -2385,7 +2440,10 @@ func userInfoEntries(view: PeerView, arguments: PeerInfoArguments, mediaTabsData
                                 
                             }
                         } else {
-                            infoBlock.append(UserInfoEntry.bio(sectionId: sectionId, text: about, PeerEquatable(peer), viewType: .singleItem))
+                            let shownAbout = CasmosProfileBanners.visibleAbout(about)
+                            if !shownAbout.isEmpty {
+                                infoBlock.append(UserInfoEntry.bio(sectionId: sectionId, text: shownAbout, PeerEquatable(peer), viewType: .singleItem))
+                            }
                         }
                     } else if cachedUserData.about == nil, let botInfo = peer.botInfo, botInfo.flags.contains(.hasWebApp) {
                         infoBlock.append(UserInfoEntry.about(sectionId: sectionId, text: "", launchApp: botInfo.flags.contains(.hasWebApp), viewType: .singleItem))
@@ -2413,6 +2471,9 @@ func userInfoEntries(view: PeerView, arguments: PeerInfoArguments, mediaTabsData
                         infoBlock.append(.userName(sectionId: sectionId, value: usernames, viewType: .singleItem))
                     }
                 }
+                let hasBanner = CasmosProfileBanners.exists(peerId: arguments.peerId.toInt64())
+                infoBlock.append(.setBanner(sectionId: sectionId, hasBanner: hasBanner, viewType: .singleItem))
+                infoBlock.append(.setBannerInfo(sectionId: sectionId, viewType: .textBottomItem))
                 
           
                 

@@ -52,7 +52,7 @@ enum EditSettingsEntryTag: ItemListItemTag {
 }
 
 
-private func valuesRequiringUpdate(state: EditInfoState, view: PeerView) -> ((fn: String, ln: String)?, about: String?) {
+private func valuesRequiringUpdate(state: EditInfoState, view: PeerView, aboutLimit: Int) -> ((fn: String, ln: String)?, about: String?) {
     if let peer = view.peers[view.peerId] as? TelegramUser {
         var names:(String, String)? = nil
         let pf = peer.firstName ?? ""
@@ -64,8 +64,9 @@ private func valuesRequiringUpdate(state: EditInfoState, view: PeerView) -> ((fn
         var about: String? = nil
         
         if let cachedData = view.cachedData as? CachedUserData {
-            if state.about != (cachedData.about ?? "") {
-                about = state.about
+            let next = CasmosProfileBanners.mergingAbout(visible: state.about, stored: cachedData.about ?? "", limit: aboutLimit)
+            if next != (cachedData.about ?? "") {
+                about = next
             }
         }
         
@@ -88,7 +89,8 @@ private final class EditInfoControllerArguments {
     let personalChannel:()->Void
     let openHours:()->Void
     let openLocation:()->Void
-    init(context: AccountContext, uploadNewPhoto:@escaping(Control)->Void, logout:@escaping()->Void, username: @escaping()->Void, changeNumber:@escaping()->Void, addAccount: @escaping() -> Void, userNameColor: @escaping()->Void, birthday:@escaping()->Void, openBirthdayPrivacy:@escaping()->Void, removeBirthday:@escaping()->Void, personalChannel:@escaping()->Void, openHours:@escaping()->Void, openLocation:@escaping()->Void) {
+    let editBanner:()->Void
+    init(context: AccountContext, uploadNewPhoto:@escaping(Control)->Void, logout:@escaping()->Void, username: @escaping()->Void, changeNumber:@escaping()->Void, addAccount: @escaping() -> Void, userNameColor: @escaping()->Void, birthday:@escaping()->Void, openBirthdayPrivacy:@escaping()->Void, removeBirthday:@escaping()->Void, personalChannel:@escaping()->Void, openHours:@escaping()->Void, openLocation:@escaping()->Void, editBanner:@escaping()->Void) {
         self.context = context
         self.logout = logout
         self.username = username
@@ -102,6 +104,7 @@ private final class EditInfoControllerArguments {
         self.personalChannel = personalChannel
         self.openHours = openHours
         self.openLocation = openLocation
+        self.editBanner = editBanner
     }
 }
 struct EditInfoState : Equatable {
@@ -115,7 +118,7 @@ struct EditInfoState : Equatable {
             return false
         }
         
-        return lhs.firstName == rhs.firstName && lhs.lastName == rhs.lastName && lhs.username == rhs.username && lhs.phone == rhs.phone && lhs.representation == rhs.representation && lhs.updatingPhotoState == rhs.updatingPhotoState && lhs.stateInited == rhs.stateInited && lhs.peerStatusSettings == rhs.peerStatusSettings
+        return lhs.firstName == rhs.firstName && lhs.lastName == rhs.lastName && lhs.username == rhs.username && lhs.phone == rhs.phone && lhs.representation == rhs.representation && lhs.updatingPhotoState == rhs.updatingPhotoState && lhs.stateInited == rhs.stateInited && lhs.peerStatusSettings == rhs.peerStatusSettings && lhs.bannerEpoch == rhs.bannerEpoch
     }
     
     let firstName: String
@@ -133,7 +136,8 @@ struct EditInfoState : Equatable {
     let personalChannel: EnginePeer?
     let hasBusinessHours: Bool
     let hasBusinessLocation: Bool
-    init(stateInited: Bool = false, firstName: String = "", lastName: String = "", about: String = "", username: String? = nil, phone: String? = nil, representation: TelegramMediaImageRepresentation? = nil, updatingPhotoState: PeerInfoUpdatingPhotoState? = nil, peer: Peer? = nil, peerStatusSettings: PeerStatusSettings? = nil, addToException: Bool = true, birthday: TelegramBirthday? = nil, personalChannel: EnginePeer? = nil, hasBusinessHours: Bool = false, hasBusinessLocation: Bool = false) {
+    let bannerEpoch: Int
+    init(stateInited: Bool = false, firstName: String = "", lastName: String = "", about: String = "", username: String? = nil, phone: String? = nil, representation: TelegramMediaImageRepresentation? = nil, updatingPhotoState: PeerInfoUpdatingPhotoState? = nil, peer: Peer? = nil, peerStatusSettings: PeerStatusSettings? = nil, addToException: Bool = true, birthday: TelegramBirthday? = nil, personalChannel: EnginePeer? = nil, hasBusinessHours: Bool = false, hasBusinessLocation: Bool = false, bannerEpoch: Int = 0) {
         self.firstName = firstName
         self.lastName = lastName
         self.about = about
@@ -149,6 +153,7 @@ struct EditInfoState : Equatable {
         self.personalChannel = personalChannel
         self.hasBusinessHours = hasBusinessHours
         self.hasBusinessLocation = hasBusinessLocation
+        self.bannerEpoch = bannerEpoch
     }
     
     init(_ peerView: PeerView) {
@@ -168,6 +173,11 @@ struct EditInfoState : Equatable {
         self.personalChannel = nil
         self.hasBusinessHours = false
         self.hasBusinessLocation = false
+        self.bannerEpoch = 0
+    }
+    
+    func withBumpedBannerEpoch() -> EditInfoState {
+        return EditInfoState(stateInited: self.stateInited, firstName: self.firstName, lastName: self.lastName, about: self.about, username: self.username, phone: self.phone, representation: self.representation, updatingPhotoState: self.updatingPhotoState, peer: self.peer, peerStatusSettings: self.peerStatusSettings, addToException: self.addToException, birthday: self.birthday, personalChannel: self.personalChannel, hasBusinessHours: self.hasBusinessHours, hasBusinessLocation: self.hasBusinessLocation, bannerEpoch: self.bannerEpoch + 1)
     }
     
     func withUpdatedInited(_ stateInited: Bool) -> EditInfoState {
@@ -188,7 +198,7 @@ struct EditInfoState : Equatable {
     func withUpdatedPeerView(_ peerView: PeerView) -> EditInfoState {
         let cachedData = peerView.cachedData as? CachedUserData
         let peer = peerView.peers[peerView.peerId] as? TelegramUser
-        let about = stateInited ? self.about : cachedData?.about ?? self.about
+        let about = stateInited ? self.about : CasmosProfileBanners.visibleAbout(cachedData?.about)
         let username = peer?.usernames.first(where: { $0.isActive })?.username
         let peerStatusSettings = cachedData?.peerStatusSettings
         let birthday = cachedData?.birthday
@@ -221,6 +231,7 @@ private let _id_birthday_remove = InputDataIdentifier("_id_birthday_remove")
 private let _id_personal_channel = InputDataIdentifier("_id_personal_channel")
 private let _id_business_hours = InputDataIdentifier("_id_business_hours")
 private let _id_business_location = InputDataIdentifier("_id_business_location")
+private let _id_banner = InputDataIdentifier("_id_banner")
 
 private func editInfoEntries(state: EditInfoState, arguments: EditInfoControllerArguments, activeAccounts: [AccountWithInfo], privacy: AccountPrivacySettings?, updateState:@escaping ((EditInfoState)->EditInfoState)->Void) -> [InputDataEntry] {
     var entries:[InputDataEntry] = []
@@ -245,7 +256,15 @@ private func editInfoEntries(state: EditInfoState, arguments: EditInfoController
     entries.append(.desc(sectionId: sectionId, index: index, text: .plain(strings().editAccountNameDesc), data: InputDataGeneralTextData(viewType: .textBottomItem)))
     index += 1
 
-    
+    entries.append(.sectionId(sectionId, type: .normal))
+    sectionId += 1
+
+    let hasBanner = CasmosProfileBanners.exists(peerId: arguments.context.peerId.toInt64())
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_banner, data: InputDataGeneralData(name: strings().peerInfoProfileBanner, color: theme.colors.text, icon: nil, type: .nextContext(hasBanner ? strings().peerInfoProfileBannerChange : strings().peerInfoProfileBannerSet), viewType: .singleItem, action: arguments.editBanner)))
+    index += 1
+    entries.append(.desc(sectionId: sectionId, index: index, text: .plain(strings().peerInfoProfileBannerInfo), data: InputDataGeneralTextData(viewType: .textBottomItem)))
+    index += 1
+
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
     
@@ -650,6 +669,10 @@ func EditAccountInfoController(context: AccountContext, focusOnItemTag: EditSett
         f(BusinessHoursController(context: context))
     }, openLocation: {
         f(BusinessLocationController(context: context))
+    }, editBanner: {
+        casmosPresentProfileBannerEditor(context: context, peerId: context.peerId.toInt64()) {
+            updateState { $0.withBumpedBannerEpoch() }
+        }
     })
     
     let controller = InputDataController(dataSignal: combineLatest(state.get() |> deliverOnPrepareQueue, appearanceSignal |> deliverOnPrepareQueue, context.sharedContext.activeAccountsWithInfo, context
@@ -689,7 +712,8 @@ func EditAccountInfoController(context: AccountContext, focusOnItemTag: EditSett
             
             if let peerView = peerView {
                 
-                let updates = valuesRequiringUpdate(state: current, view: peerView)
+                let aboutLimit = context.isPremium ? Int(context.premiumLimits.about_length_limit_premium) : Int(context.premiumLimits.about_length_limit_default)
+                let updates = valuesRequiringUpdate(state: current, view: peerView, aboutLimit: aboutLimit)
                 if let names = updates.0 {
                     
                     signals.append(context.engine.accountData.updateAccountPeerName(firstName: names.fn, lastName: names.ln))
@@ -719,7 +743,8 @@ func EditAccountInfoController(context: AccountContext, focusOnItemTag: EditSett
         return { f in
             let current = stateValue.modify {$0}
             if let peerView = peerView {
-                let updates = valuesRequiringUpdate(state: current, view: peerView)
+                let aboutLimit = context.isPremium ? Int(context.premiumLimits.about_length_limit_premium) : Int(context.premiumLimits.about_length_limit_default)
+                let updates = valuesRequiringUpdate(state: current, view: peerView, aboutLimit: aboutLimit)
                 f(.enabled(strings().navigationDone))
             } else {
                 f(.disabled(strings().navigationDone))

@@ -3,6 +3,9 @@ fastlane/report.xml
 xcuserdata
 xcuserstate
 .DS_Store
+.cursor/
+**/Config.local.json
+api-credentials.json
 core-xprojects/Mozjpeg/build
 core-xprojects/openssl/build
 core-xprojects/libwebp/build

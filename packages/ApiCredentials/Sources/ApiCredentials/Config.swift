@@ -1,12 +1,13 @@
 import Cocoa
 
 public final class ApiEnvironment {
-    /// Replace before building. Marker: CASMOS_PLACEHOLDER_API_ID
+    /// Git stays placeholders. Live keys: ~/Library/Application Support/Casmos/api-credentials.json
+    /// Marker: CASMOS_PLACEHOLDER_API_ID
     public static var apiId:Int32 {
-        return 0
+        return localTelegramAPI.apiId
     }
     public static var apiHash:String {
-        return "CASMOS_PLACEHOLDER_API_HASH"
+        return localTelegramAPI.apiHash
     }
     
     public static var bundleId: String {
@@ -116,6 +117,34 @@ public final class ApiEnvironment {
     public static var premiumProductId: String {
         return "org.telegram.telegramPremium.monthly"
     }
+
+    private struct LocalTelegramAPI {
+        let apiId: Int32
+        let apiHash: String
+    }
+
+    private static let localTelegramAPI: LocalTelegramAPI = {
+        let fallback = LocalTelegramAPI(apiId: 0, apiHash: "CASMOS_PLACEHOLDER_API_HASH")
+        let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
+            .appendingPathComponent("Casmos/api-credentials.json", isDirectory: false)
+        guard let url, let data = try? Data(contentsOf: url),
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return fallback
+        }
+        let apiId: Int32
+        if let value = obj["api_id"] as? Int {
+            apiId = Int32(value)
+        } else if let value = obj["api_id"] as? NSNumber {
+            apiId = value.int32Value
+        } else {
+            apiId = 0
+        }
+        let apiHash = obj["api_hash"] as? String ?? ""
+        if apiId == 0 || apiHash.isEmpty || apiHash == "CASMOS_PLACEHOLDER_API_HASH" {
+            return fallback
+        }
+        return LocalTelegramAPI(apiId: apiId, apiHash: apiHash)
+    }()
 }
 
 

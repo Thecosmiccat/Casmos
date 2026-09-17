@@ -416,8 +416,18 @@ class MainViewController: TelegramViewController {
         
         if unreadCount > 0 {
             items.append(ContextMenuItem(strings().chatListPopoverReadAll, handler: {
-                verifyAlert_button(for: context.window, information: strings().chatListPopoverConfirm, successHandler: { _ in
+                let readAll = {
                     _ = context.engine.messages.markAllChatsAsReadInteractively(items: [(.root, nil), (.archive, nil)]).start()
+                }
+                if CasmosPreferences.bool(forKey: CasmosPrefKey.Chat.skipReadAllConfirm) {
+                    readAll()
+                    return
+                }
+                verifyAlert(for: context.window, information: strings().chatListPopoverConfirm, option: strings().chatListPopoverDontShowAgain, optionIsSelected: false, successHandler: { result in
+                    if result == .thrid {
+                        CasmosPreferences.set(true, forKey: CasmosPrefKey.Chat.skipReadAllConfirm)
+                    }
+                    readAll()
                 })
             }, itemImage: MenuAnimation.menu_folder_read.value))
         }

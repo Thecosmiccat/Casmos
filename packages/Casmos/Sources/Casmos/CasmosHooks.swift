@@ -3,7 +3,7 @@ import Foundation
 /// Thin hooks over `CasmosPreferences` for layout, translate routing,
 /// skip-translate languages, formatting, inline playback, send-key,
 /// link confirm, passcode, file names, stories, own-profile identifiers,
-/// hide-account / panic, and logging.
+/// hide-account / panic, message filter, and logging.
 public enum CasmosHooks {
     /// Scale for the 208pt chat sticker box. Custom-emoji 112pt boxes stay unchanged.
     public static var stickerLayoutScale: Double {
@@ -79,6 +79,24 @@ public enum CasmosHooks {
         CasmosPreferences.bool(forKey: CasmosPrefKey.Chat.hideChannelBottomButtons)
     }
 
+    /// Incoming chat text that contains a saved keyword. Local hide only; does not delete.
+    public static func hidesIncomingText(_ text: String, incoming: Bool) -> Bool {
+        guard incoming else {
+            return false
+        }
+        let keywords = CasmosPreferences.messageFilterKeywords
+        guard !keywords.isEmpty, !text.isEmpty else {
+            return false
+        }
+        let folded = text.lowercased()
+        for keyword in keywords {
+            if folded.contains(keyword.lowercased()) {
+                return true
+            }
+        }
+        return false
+    }
+
     public static var confirmExternalLinks: Bool {
         CasmosPreferences.bool(forKey: CasmosPrefKey.General.confirmLinkOpens, default: true)
     }
@@ -121,11 +139,6 @@ public enum CasmosHooks {
     /// Hide phone and @username on your own profile UI. Default on.
     public static var hideOwnPhoneAndUsername: Bool {
         CasmosPreferences.bool(forKey: CasmosPrefKey.Privacy.hideOwnPhoneAndUsername)
-    }
-
-    /// Local deleted-message archive. Default off.
-    public static var keepDeletedMessages: Bool {
-        CasmosPreferences.bool(forKey: CasmosPrefKey.Privacy.keepDeletedMessages)
     }
 
     public static var verboseLogging: Bool {

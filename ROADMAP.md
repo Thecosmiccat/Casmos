@@ -4,7 +4,7 @@
 
 - Casmos identity: display name, bundle IDs, icon that is not the official paper plane
 - API credentials as `CASMOS_PLACEHOLDER_*` only
-- Casmos Settings shell: General, Appearance, Chat, Translator, Passcode, Experimental (`casmos.pref.*`)
+- Casmos Settings shell: General, Appearance, Chat, Passcode, Experimental (`casmos.pref.*`). Translator lives under Language → Translate Messages. Keep Deleted Messages is not a shipped feature.
 - Modular `packages/Casmos`
 - Official Sparkle and App Center update endpoints blanked
 - Mac Xcode build notes in INSTALL.md (free Apple ID, Gatekeeper, recursive submodules, placeholders until Jeffrey provides keys)
@@ -25,12 +25,13 @@
 - Verbose Logging: **off by default**; console and file logs when enabled (`casmos.pref.experimental.verboseLogging`).
 - Double-click action: `casmos.pref.chat.doubleTapAction` (`reply` default, plus none / reaction / edit / copy / forward / repeat / translate / details).
 - Hide channel bottom buttons: `casmos.pref.chat.hideChannelBottomButtons` collapses the Mute / Discuss input bar on broadcast channels. Mute and discussion stay in the chat header.
+- Message filter: `casmos.pref.chat.messageFilter` is a comma-separated keyword list. Incoming chat text that contains a keyword is hidden in the chat and list preview on this Mac. It does not delete messages.
 - Message menu: Repeat (resend content in the current chat), Forward without Quote (`hideNames`), Details (JSON snapshot). Translate remains on the context menu when translator is enabled.
 - Config export/import: Casmos Settings → Config writes/reads a JSON file of `casmos.pref.*` keys. Export may include a local DeepL key if one is set.
 
 ## P2 (this tree)
 
-- Do not translate: `casmos.pref.translator.doNotTranslate` is a comma-separated language-code list in Casmos Settings → Translator. Combined with Language settings. Empty Casmos + empty official lists skip the app language.
+- Do not translate: `casmos.pref.translator.doNotTranslate` is a comma-separated language-code list in Language → Translate Messages. Combined with the official Language skip list. Empty Casmos + empty official lists skip the app language.
 - Keep formatting: `casmos.pref.translator.keepFormatting` (default on). Yandex sends HTML (`format=html`) and restores bold / italic / underline / strike / code / links / spoilers / quotes. DeepL does the same via official `tag_handling` when a local key is set. Extra web fallback and DeepL-without-key stay plain. Poll and todo option entities stay plain.
 
 ## P3 (this tree)

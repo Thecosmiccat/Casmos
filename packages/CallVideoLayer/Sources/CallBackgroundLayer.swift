@@ -37,11 +37,29 @@ private func gatherPositions(_ list: [SIMD2<Float>]) -> [SIMD2<Float>] {
     return result
 }
 
-private func hexToFloat(_ hex: Int) -> SIMD4<Float> {
-    let red = Float((hex >> 16) & 0xFF) / 255.0
-    let green = Float((hex >> 8) & 0xFF) / 255.0
-    let blue = Float((hex >> 0) & 0xFF) / 255.0
-    return SIMD4<Float>(x: red, y: green, z: blue, w: 1.0)
+private func colorToFloat(_ color: NSColor) -> SIMD4<Float> {
+    let rgb = color.usingColorSpace(.deviceRGB) ?? color
+    return SIMD4<Float>(Float(rgb.redComponent), Float(rgb.greenComponent), Float(rgb.blueComponent), 1)
+}
+
+private func casmosCurrentPalette() -> ColorPalette {
+    return presentation.colors
+}
+
+public func casmosCallEffectColors(_ palette: ColorPalette = presentation.colors) -> [[NSColor]] {
+    let accent = palette.accent
+    let outgoing = palette.blendedOutgoingColors
+    let green = palette.greenUI
+    let red = palette.redUI
+    let mix: (NSColor, NSColor, CGFloat) -> NSColor = { a, b, f in
+        a.blended(withFraction: f, of: b) ?? a
+    }
+    return [
+        [accent, mix(accent, outgoing, 0.35), outgoing, mix(accent, .black, 0.28)],
+        [green, mix(green, accent, 0.4), accent, mix(green, .black, 0.22)],
+        [red, mix(red, accent, 0.4), mix(accent, red, 0.45), outgoing],
+        [palette.background, palette.listBackground, palette.grayBackground, palette.chatBackground]
+    ]
 }
 
 private struct ColorSet: Equatable, AnimationInterpolatable {
@@ -107,43 +125,35 @@ public final class CallBackgroundLayer: MetalEngineSubjectLayer, MetalEngineSubj
         }
     }
     
-    private let colorSets: [ColorSet]
+    private var colorSets: [ColorSet]
     private let colorTransition: AnimatedProperty<ColorSet>
     private var stateIndex: Int = 0
     private var isEnergySavingEnabled: Bool = false
     private let phaseAcceleration = AnimatedProperty<CGFloat>(0.0)
     
+    private static func colorSets(from palette: ColorPalette) -> [ColorSet] {
+        return casmosCallEffectColors(palette).map { set in
+            ColorSet(colors: set.map(colorToFloat))
+        }
+    }
+    
+    public func applyPalette(_ palette: ColorPalette) {
+        let next = CallBackgroundLayer.colorSets(from: palette)
+        if next == self.colorSets {
+            return
+        }
+        self.colorSets = next
+        self.colorTransition.set(to: next[self.stateIndex % next.count])
+        self.setNeedsUpdate()
+    }
+    
     public override init() {
         self.blurredLayer = MetalEngineSubjectLayer()
         self.externalBlurredLayer = MetalEngineSubjectLayer()
         
-        self.colorSets = [
-            ColorSet(colors: [
-                hexToFloat(0x568FD6),
-                hexToFloat(0x626ED5),
-                hexToFloat(0xA667D5),
-                hexToFloat(0x7664DA)
-            ]),
-            ColorSet(colors: [
-                hexToFloat(0xACBD65),
-                hexToFloat(0x459F8D),
-                hexToFloat(0x53A4D1),
-                hexToFloat(0x3E917A)
-            ]),
-            ColorSet(colors: [
-                hexToFloat(0xC0508D),
-                hexToFloat(0xF09536),
-                hexToFloat(0xCE5081),
-                hexToFloat(0xFC7C4C)
-            ]),
-            ColorSet(colors: [
-                hexToFloat(0x18222C),
-                hexToFloat(0x1D2935),
-                hexToFloat(0x22303E),
-                hexToFloat(0x263646)
-            ])
-        ]
-        self.colorTransition = AnimatedProperty<ColorSet>(colorSets[0])
+        let sets = CallBackgroundLayer.colorSets(from: casmosCurrentPalette())
+        self.colorSets = sets
+        self.colorTransition = AnimatedProperty<ColorSet>(sets[0])
         
         super.init()
         

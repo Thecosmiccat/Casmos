@@ -11,6 +11,7 @@ import TGUIKit
 import Postbox
 import TelegramCore
 import InAppSettings
+import Casmos
 
 enum ChatHistoryEntryId : Hashable {
     case message(Message)
@@ -703,6 +704,9 @@ func messageEntries(_ messagesEntries: [MessageHistoryEntry], location: ChatLoca
             default:
                 break
             }
+        }
+        if CasmosHooks.hidesIncomingText(entry.message.text, incoming: entry.message.flags.contains(.Incoming)) {
+            return false
         }
         return true
     }

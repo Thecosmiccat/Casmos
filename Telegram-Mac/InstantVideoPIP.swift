@@ -22,28 +22,51 @@ enum InstantVideoPIPCornerAlignment {
 
 class InstantVideoPIPView : GIFPlayerView {
     let playingProgressView: RadialProgressView = RadialProgressView(theme:RadialProgressTheme(backgroundColor: .clear, foregroundColor: NSColor.white.withAlphaComponent(0.8), lineWidth: 3), twist: false)
+    let close = ImageButton()
 
     override init() {
         super.init()
+        setupClose()
     }
     
     required init(frame frameRect: NSRect) {
         super.init()
         setFrameSize(NSMakeSize(200, 200))
         playingProgressView.userInteractionEnabled = false
+        setupClose()
+    }
+
+    private func setupClose() {
+        close.autohighlight = false
+        close.scaleOnClick = true
+        close.setFrameSize(NSMakeSize(24, 24))
+        close.set(image: theme.icons.gallery_pip_close, for: .Normal)
+        close.set(additionBackgroundColor: .blackTransparent, for: .Normal)
+        close.set(cornerRadius: .half, for: .Normal)
+        close.setAccessibilityLabel(strings().navigationClose)
+        addSubview(close)
+        layoutClose()
+    }
+
+    private func layoutClose() {
+        let s = close.frame.size
+        close.setFrameOrigin(NSMakePoint(frame.width - s.width - 32, 32))
     }
     
     override func viewDidMoveToWindow() {
         if let _ = window {
             playingProgressView.frame = bounds
             addSubview(playingProgressView)
+            addSubview(close)
+            layoutClose()
         } else {
             playingProgressView.removeFromSuperview()
         }
     }
-    
+
     override func setFrameSize(_ newSize: NSSize) {
         super.setFrameSize(newSize)
+        layoutClose()
     }
     
     required init?(coder: NSCoder) {
@@ -229,7 +252,15 @@ class InstantVideoPIP: GenericViewController<InstantVideoPIPView>, APDelegate {
             return .rejected
         }, with: self, for: .leftMouseUp, priority: .high)
         
+        genericView.close.set(handler: { [weak self] _ in
+            self?.stopAndDismiss()
+        }, for: .Click)
+
         window?.set(mouseHandler: { [weak self] (_) -> KeyHandlerResult in
+            if let strongSelf = self, strongSelf.genericView.close._mouseInside() {
+                strongSelf.stopAndDismiss()
+                return .invoked
+            }
             if let strongSelf = self, strongSelf.view._mouseInside() {
                 startDragPosition = strongSelf.window?.mouseLocationOutsideOfEventStream
                 startViewPosition = strongSelf.view.frame.origin
@@ -261,6 +292,11 @@ class InstantVideoPIP: GenericViewController<InstantVideoPIPView>, APDelegate {
         }, with: self, for: .leftMouseDragged, priority: .high)
     }
     
+    private func stopAndDismiss() {
+        hide()
+        context.sharedContext.endInlinePlayer(animated: true)
+    }
+
     func hide(_ animated:Bool = true) {
         isShown = false
         if let contentView = window?.contentView, genericView.superview != nil {
