@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <title>FAQ. Casmos</title>
+  <meta name="description" content="Answers about Casmos, privacy on this Mac, install, and this website.">
+  <link rel="icon" type="image/png" href="assets/casmos-cat.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="doc">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <img src="assets/casmos-cat.png" width="32" height="32" alt="">
+      Casmos
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="faq.html" aria-current="page">FAQ</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="https://github.com/Thecosmiccat/Casmos" rel="noopener noreferrer">Download</a>
+    </nav>
+  </header>
+
+  <main id="main" class="legal" tabindex="-1">
+    <h1>FAQ</h1>
+    <p class="updated">Short answers. The README in the repository is the longer source.</p>
+
+    <h2>What is Casmos?</h2>
+    <p>Casmos is an unofficial, open-source Telegram client for Mac. It is based on the Telegram for macOS source. Chat, themes, and accounts work like a normal Mac messenger, with extra local privacy toggles.</p>
+
+    <h2>Is Casmos made by Telegram?</h2>
+    <p>No. It is not affiliated with Telegram FZ-LLC and it does not use the official paper-plane logo.</p>
+
+    <h2>Does Casmos make me anonymous?</h2>
+    <p>No. Casmos is a low-leak client. Traffic still goes to Telegram's network. Privacy toggles hide things on this Mac. They do not hide you on the wire.</p>
+
+    <h2>What does hide mean?</h2>
+    <p>Hide means the local interface stops showing something. Hide Stories takes the stories strip and avatar rings off the chat list. Hide Phone and Username takes your number and @username off your own profile and Settings on this Mac. Message Filter hides matching incoming text in the chat and the list preview. Nothing in those toggles deletes the data on Telegram's servers.</p>
+
+    <h2>How do I install it?</h2>
+    <p>Build it from the public repository. See <a href="https://github.com/Thecosmiccat/Casmos" rel="noopener noreferrer">github.com/Thecosmiccat/Casmos</a> and the INSTALL file there. You need Xcode and your own Telegram API credentials.</p>
+
+    <h2>Why do I need my own API credentials?</h2>
+    <p>Casmos does not ship live <code>api_id</code> or <code>api_hash</code> values. Get them from my.telegram.org and put them in <code>~/Library/Application Support/Casmos/api-credentials.json</code> with mode 600. Do not commit live keys.</p>
+
+    <h2>What is the license?</h2>
+    <p>GNU General Public License, version 2.0. Upstream Telegram for macOS source stays under that license. Publish your changes if the GPL requires it.</p>
+
+    <h2>Are iOS, Linux, or Windows available?</h2>
+    <p>No. Those are marked Coming soon. They are not downloadable. Extra app icons are also Coming soon. The bundled Casmos icon is the one that ships.</p>
+
+    <h2>What is panic passcode?</h2>
+    <p>An account passcode locks that account. Hide This Account drops it from switchers until you type that passcode. Panic hides the accounts you include for this session. Hide This Account survives quit. Logout on Panic also signs those accounts out, and that option is off by default.</p>
+
+    <h2>Does Casmos update itself?</h2>
+    <p>No. Official Sparkle and App Center update endpoints are blank. Casmos does not ship in-app updates from osx.telegram.org or App Center.</p>
+
+    <h2>Where do I get help?</h2>
+    <p>Open an issue on <a href="https://github.com/Thecosmiccat/Casmos/issues" rel="noopener noreferrer">github.com/Thecosmiccat/Casmos/issues</a>.</p>
+  </main>
+
+  <footer class="site-footer">
+    <p>Not affiliated with Telegram. GPL-2.0. Open source.</p>
+    <nav class="legal-nav" aria-label="Footer">
+      <a href="faq.html" aria-current="page">FAQ</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms and Conditions</a>
+    </nav>
+  </footer>
+</body>
+</html>

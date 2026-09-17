@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <title>Privacy Policy. Casmos</title>
+  <meta name="description" content="How the Casmos website and the Casmos Mac app handle information.">
+  <link rel="icon" type="image/png" href="assets/casmos-cat.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="doc">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <img src="assets/casmos-cat.png" width="32" height="32" alt="">
+      Casmos
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="faq.html">FAQ</a>
+      <a href="privacy.html" aria-current="page">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="https://github.com/Thecosmiccat/Casmos" rel="noopener noreferrer">Download</a>
+    </nav>
+  </header>
+
+  <main id="main" class="legal" tabindex="-1">
+    <h1>Privacy Policy</h1>
+    <p class="updated">Effective 17 September 2026.</p>
+
+    <h2>Who this covers</h2>
+    <p>This policy covers the Casmos marketing website and the Casmos macOS app published at <a href="https://github.com/Thecosmiccat/Casmos" rel="noopener noreferrer">github.com/Thecosmiccat/Casmos</a>. Casmos is an unofficial, open-source Telegram client. It is not affiliated with Telegram FZ-LLC.</p>
+
+    <h2>This website</h2>
+    <p>These pages are static files. The site does not create accounts, does not run a first-party analytics product, and does not ask you for a name, email, or password.</p>
+
+    <h2>The Casmos app</h2>
+    <p>Casmos is a Telegram client. When you sign in and send or receive messages, that traffic goes to Telegram's network the same way it would in other Telegram clients. Casmos does not operate Telegram's servers and cannot make you anonymous on that network.</p>
+    <p>You supply your own Telegram API credentials. The running app reads them from a local file at <code>~/Library/Application Support/Casmos/api-credentials.json</code>. That file is not in the public git repository.</p>
+
+    <h2>What stays on your Mac</h2>
+    <p>Casmos Settings store <code>casmos.pref.*</code> keys on this Mac. Privacy toggles hide things in the local interface. They do not delete data on Telegram's servers and they do not hide you from the network.</p>
+    <ul>
+      <li>Hide Stories, Hide Phone and Username, Confirm External Links, Lock on Sleep, and Hide Content in App Switcher default on for a fresh install.</li>
+      <li>Message Filter hides matching incoming text in the chat and list preview on this Mac. It does not delete messages.</li>
+      <li>Chat streaks, compact chat list, monochrome folders, and local profile banners stay on this Mac.</li>
+      <li>An account passcode is stored as a PBKDF2 hash in the Keychain with <code>WhenUnlockedThisDeviceOnly</code>.</li>
+      <li>Hide This Account and panic passcode hide accounts in the local UI. Logout on Panic is off by default.</li>
+      <li>Verbose Logging is off by default. Casmos logs are not supposed to include message bodies, phone numbers, or <code>api_hash</code>.</li>
+    </ul>
+
+    <h2>Optional translators</h2>
+    <p>Translate Messages can use System, Extra (web fallback), Yandex (local), or DeepL. A DeepL key, if you set one, is stored in local preferences. Exporting Casmos preferences to JSON can include that key if it is set. Turn translators off if you do not want text sent to those engines.</p>
+
+    <h2>Children</h2>
+    <p>The website is general information about a messenger client. It is not directed at children under 13.</p>
+
+    <h2>Changes</h2>
+    <p>If this policy changes, the date at the top of this page will change.</p>
+
+    <h2>Contact</h2>
+    <p>Use the GitHub repository issues page: <a href="https://github.com/Thecosmiccat/Casmos/issues" rel="noopener noreferrer">github.com/Thecosmiccat/Casmos/issues</a>.</p>
+  </main>
+
+  <footer class="site-footer">
+    <p>Not affiliated with Telegram. GPL-2.0. Open source.</p>
+    <nav class="legal-nav" aria-label="Footer">
+      <a href="faq.html">FAQ</a>
+      <a href="privacy.html" aria-current="page">Privacy Policy</a>
+      <a href="terms.html">Terms and Conditions</a>
+    </nav>
+  </footer>
+</body>
+</html>

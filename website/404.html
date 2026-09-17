@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <title>404. Casmos</title>
+  <meta name="description" content="This page is not on Casmos.">
+  <link rel="icon" type="image/png" href="assets/casmos-cat.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="doc">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <img src="assets/casmos-cat.png" width="32" height="32" alt="">
+      Casmos
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="faq.html">FAQ</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="https://github.com/Thecosmiccat/Casmos" rel="noopener noreferrer">Download</a>
+    </nav>
+  </header>
+
+  <main id="main" class="lost" tabindex="-1">
+    <p class="lost-code" aria-hidden="true">404</p>
+    <h1 class="visually-hidden">Page not found</h1>
+    <p class="lost-copy">The page you are looking for might have been moved or does not exist.</p>
+    <div class="lost-actions">
+      <a class="cta" href="index.html">
+        <span class="cta-glass" aria-hidden="true"></span>
+        <span class="cta-frost" aria-hidden="true"></span>
+        <span class="cta-label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/></svg>
+          Go Home
+        </span>
+      </a>
+      <a class="cta cta-outline" href="faq.html">
+        <span class="cta-label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          FAQ
+        </span>
+      </a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Not affiliated with Telegram. GPL-2.0. Open source.</p>
+    <nav class="legal-nav" aria-label="Footer">
+      <a href="faq.html">FAQ</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms and Conditions</a>
+    </nav>
+  </footer>
+
+  <svg class="glass-defs" aria-hidden="true" focusable="false">
+    <filter id="casmos-glass" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05 0.05" numOctaves="1" seed="1" result="turbulence"/>
+      <feGaussianBlur in="turbulence" stdDeviation="2" result="blurredNoise"/>
+      <feDisplacementMap in="SourceGraphic" in2="blurredNoise" scale="70" xChannelSelector="R" yChannelSelector="B" result="displaced"/>
+      <feGaussianBlur in="displaced" stdDeviation="4" result="finalBlur"/>
+      <feComposite in="finalBlur" in2="finalBlur" operator="over"/>
+    </filter>
+  </svg>
+</body>
+</html>

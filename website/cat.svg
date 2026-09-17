@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="catTitle">
+  <title id="catTitle">Casmos cat</title>
+  <defs>
+    <filter id="eye-bloom" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="32"/>
+    </filter>
+  </defs>
+
+  <g fill="#333333">
+    <rect x="158" y="218" width="706" height="646" rx="200"/>
+    <path d="M158 420 C158 320 168 210 198 133 C208 126 222 138 248 168 C300 214 340 218 380 218 C300 218 200 280 158 420 Z"/>
+    <path d="M866 420 C866 320 856 210 820 133 C810 126 802 138 776 168 C724 214 684 218 644 218 C724 218 824 280 866 420 Z"/>
+  </g>
+
+  <g opacity="0.35" filter="url(#eye-bloom)">
+    <circle cx="339" cy="517" r="100" fill="#FFFFFF"/>
+    <circle cx="684" cy="517" r="100" fill="#FFFFFF"/>
+  </g>
+
+  <g fill="none" stroke="#FFFFFF" stroke-width="36">
+    <circle cx="339" cy="517" r="97"/>
+    <circle cx="684" cy="517" r="97"/>
+  </g>
+
+  <g fill="#000000">
+    <circle cx="339" cy="517" r="79"/>
+    <circle cx="684" cy="517" r="79"/>
+  </g>
+</svg>

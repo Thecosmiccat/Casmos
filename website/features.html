@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <title>Features. Casmos</title>
+  <meta name="description" content="Every Casmos Settings row, plus Language translator, streaks, banners, and the message menu.">
+  <link rel="icon" type="image/png" href="assets/casmos-cat.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas class="matrix-rain" aria-hidden="true"></canvas>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html">
+      <img src="assets/casmos-cat.png" width="32" height="32" alt="">
+      Casmos
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="features.html" aria-current="page">Features</a>
+      <a href="faq.html">FAQ</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="https://github.com/Thecosmiccat/Casmos" rel="noopener noreferrer">Download</a>
+    </nav>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section class="features">
+      <h1 class="band-title">All features</h1>
+      <p class="band-note">Casmos Settings, Language translator, and a few extras that are not a Settings row. Tap a card.</p>
+      <div id="feature-catalog"></div>
+    </section>
+  </main>
+
+  <dialog class="feature-dialog" aria-labelledby="dialog-title">
+    <form method="dialog">
+      <button class="dialog-close" type="submit" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </form>
+    <div class="dialog-split">
+      <div class="dialog-visual" id="dialog-visual"></div>
+      <div class="dialog-copy">
+        <p id="dialog-sub" class="feature-sub"></p>
+        <h3 id="dialog-title"></h3>
+        <p id="dialog-body"></p>
+      </div>
+    </div>
+  </dialog>
+
+  <footer class="site-footer">
+    <p>Not affiliated with Telegram. GPL-2.0. Open source.</p>
+    <nav class="legal-nav" aria-label="Footer">
+      <a href="faq.html">FAQ</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms and Conditions</a>
+    </nav>
+  </footer>
+
+  <script src="features.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

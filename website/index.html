@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <title>Casmos</title>
+  <meta name="description" content="Casmos is an unofficial open-source Telegram client for Mac. Privacy toggles hide things here, not on the wire.">
+  <link rel="icon" type="image/png" href="assets/casmos-cat.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas class="matrix-rain" aria-hidden="true"></canvas>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html" aria-current="page">
+      <img src="assets/casmos-cat.png" width="32" height="32" alt="">
+      Casmos
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="features.html">Features</a>
+      <a href="faq.html">FAQ</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="https://github.com/Thecosmiccat/Casmos" rel="noopener noreferrer">Download</a>
+    </nav>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section class="hero">
+      <img class="logo" src="assets/casmos-cat.png" width="1024" height="1024" alt="" fetchpriority="high">
+      <h1 class="mark" aria-label="CASMOS" data-roll="CASMOS"></h1>
+      <p class="lede">Hides things on this Mac. Not on the wire.</p>
+    </section>
+
+    <section class="features" aria-labelledby="features-heading">
+      <h2 id="features-heading" class="band-title">Features</h2>
+      <p class="band-note">Casmos Settings. Tap a card.</p>
+      <div class="feature-grid">
+        <button class="feature-card" type="button" data-title="Hide Stories" data-subtitle="Appearance. Default on" data-body="Removes the chat-list Stories strip and avatar story rings. On by default. Stories stay on Telegram.">
+          <span class="app-shot" aria-hidden="true">
+            <span class="app-shot-bar">Casmos Settings</span>
+            <span class="app-shot-head">APPEARANCE</span>
+            <span class="app-group">
+              <span class="app-row"><span>Custom Theme</span><span class="chev">›</span></span>
+              <span class="app-row"><span>Compact Chat List</span><span class="sw" aria-hidden="true"></span></span>
+              <span class="app-row"><span>Monochrome Folders</span><span class="sw" aria-hidden="true"></span></span>
+              <span class="app-row"><span>Hide Stories</span><span class="sw on" aria-hidden="true"></span></span>
+            </span>
+          </span>
+          <span class="feature-shade"></span>
+          <span class="feature-copy">
+            <span class="feature-sub">Appearance</span>
+            <span class="feature-name">Hide Stories</span>
+          </span>
+        </button>
+
+        <button class="feature-card" type="button" data-title="Hide Phone and Username" data-subtitle="General. Default on" data-body="Removes your number and @username from your own profile, Settings header, and Edit Account. Username and Change Number stay tappable.">
+          <span class="app-shot" aria-hidden="true">
+            <span class="app-shot-bar">Casmos Settings</span>
+            <span class="app-shot-head">GENERAL</span>
+            <span class="app-group">
+              <span class="app-row"><span>Keep Original File Names</span><span class="sw" aria-hidden="true"></span></span>
+              <span class="app-row"><span>Confirm External Links</span><span class="sw on" aria-hidden="true"></span></span>
+              <span class="app-row"><span>Hide Phone and Username</span><span class="sw on" aria-hidden="true"></span></span>
+            </span>
+          </span>
+          <span class="feature-shade"></span>
+          <span class="feature-copy">
+            <span class="feature-sub">General</span>
+            <span class="feature-name">Hide Phone and Username</span>
+          </span>
+        </button>
+
+        <button class="feature-card" type="button" data-title="Confirm External Links" data-subtitle="General. Default on" data-body="Prompts before opening http(s) URLs. On by default.">
+          <span class="app-shot" aria-hidden="true">
+            <span class="app-shot-bar">Casmos Settings</span>
+            <span class="app-shot-head">GENERAL</span>
+            <span class="app-group">
+              <span class="app-row"><span>Keep Original File Names</span><span class="sw" aria-hidden="true"></span></span>
+              <span class="app-row"><span>Confirm External Links</span><span class="sw on" aria-hidden="true"></span></span>
+              <span class="app-row"><span>Hide Phone and Username</span><span class="sw on" aria-hidden="true"></span></span>
+            </span>
+          </span>
+          <span class="feature-shade"></span>
+          <span class="feature-copy">
+            <span class="feature-sub">General</span>
+            <span class="feature-name">Confirm External Links</span>
+          </span>
+        </button>
+
+        <button class="feature-card" type="button" data-title="Passcode" data-subtitle="Passcode" data-body="Lock on Sleep and Hide Content in App Switcher are on by default. Set Account Passcode, Hide This Account, and Set Panic Passcode live here. Logout on Panic is off by default.">
+          <span class="app-shot" aria-hidden="true">
+            <span class="app-shot-bar">Casmos Settings</span>
+            <span class="app-shot-head">PASSCODE</span>
+            <span class="app-group">
+              <span class="app-row"><span>Lock on Sleep</span><span class="sw on" aria-hidden="true"></span></span>
+              <span class="app-row"><span>Hide Content in App Switcher</span><span class="sw on" aria-hidden="true"></span></span>
+              <span class="app-row"><span>Set Account Passcode</span><span class="chev">›</span></span>
+              <span class="app-row"><span>Set Panic Passcode</span><span class="chev">›</span></span>
+              <span class="app-row"><span>Logout on Panic</span><span class="sw" aria-hidden="true"></span></span>
+            </span>
+          </span>
+          <span class="feature-shade"></span>
+          <span class="feature-copy">
+            <span class="feature-sub">Passcode</span>
+            <span class="feature-name">Passcode, then panic</span>
+          </span>
+        </button>
+
+        <button class="feature-card" type="button" data-title="Message Filter" data-subtitle="Chat" data-body="Hides incoming text that contains a comma-separated keyword on this Mac only. It does not delete messages. Placeholder in Settings: spam, promo, keyword.">
+          <span class="app-shot" aria-hidden="true">
+            <span class="app-shot-bar">Casmos Settings</span>
+            <span class="app-shot-head">CHAT</span>
+            <span class="app-group">
+              <span class="app-row"><span>Send with Command-Return</span><span class="sw" aria-hidden="true"></span></span>
+              <span class="app-row"><span>Sticker Size</span><span class="meta">Medium ›</span></span>
+              <span class="app-row"><span>Double-Click Action</span><span class="meta">Reply ›</span></span>
+              <span class="app-row"><span>Hide Channel Bottom Buttons</span><span class="sw" aria-hidden="true"></span></span>
+              <span class="app-field">spam, promo, keyword</span>
+            </span>
+          </span>
+          <span class="feature-shade"></span>
+          <span class="feature-copy">
+            <span class="feature-sub">Chat</span>
+            <span class="feature-name">Message Filter</span>
+          </span>
+        </button>
+
+        <button class="feature-card" type="button" data-title="Themes" data-subtitle="Appearance" data-body="Custom Theme opens a full-page studio. Palettes: Pink, Pink Light, Nord, Dracula, Mocha, Tokyo Night, Gruvbox, Rosé Pine, Rosé Pine Dawn, Everforest, One Dark, Solarized Light, Kanagawa, Blush, Coastal, Wine, Harbor, Royal, Sage, plus the built-in day, dark, and system palettes. Extra app icons are Coming soon.">
+          <span class="app-shot" aria-hidden="true">
+            <span class="app-shot-bar">Casmos Settings</span>
+            <span class="app-shot-head">APPEARANCE</span>
+            <span class="app-group">
+              <span class="app-row"><span>Custom Theme</span><span class="chev">›</span></span>
+              <span class="app-swatches">
+                <span class="chip" title="Pink" style="background:#e23d8c"></span>
+                <span class="chip" title="Pink Light" style="background:#f4b6d2"></span>
+                <span class="chip" title="Nord" style="background:#2e3440"></span>
+                <span class="chip" title="Dracula" style="background:#282a36"></span>
+                <span class="chip" title="Mocha" style="background:#1e1e2e"></span>
+                <span class="chip" title="Tokyo Night" style="background:#1a1b26"></span>
+                <span class="chip" title="Gruvbox" style="background:#282828"></span>
+                <span class="chip" title="Rosé Pine" style="background:#191724"></span>
+                <span class="chip" title="Rosé Pine Dawn" style="background:#faf4ed"></span>
+                <span class="chip" title="Everforest" style="background:#2d353b"></span>
+                <span class="chip" title="One Dark" style="background:#282c34"></span>
+                <span class="chip" title="Solarized Light" style="background:#fdf6e3"></span>
+                <span class="chip" title="Kanagawa" style="background:#1f1f28"></span>
+                <span class="chip" title="Blush" style="background:#4a3038"></span>
+                <span class="chip" title="Coastal" style="background:#1c3340"></span>
+                <span class="chip" title="Wine" style="background:#3a1d28"></span>
+                <span class="chip" title="Harbor" style="background:#1a2838"></span>
+                <span class="chip" title="Royal" style="background:#24183a"></span>
+                <span class="chip" title="Sage" style="background:#243028"></span>
+                <span class="chip" title="Day" style="background:#f4f4f4"></span>
+                <span class="chip" title="Dark" style="background:#111111"></span>
+                <span class="chip" title="System" style="background:linear-gradient(90deg,#f4f4f4 50%,#111 50%)"></span>
+              </span>
+              <span class="app-swatch-names">Pink, Pink Light, Nord, Dracula, Mocha, Tokyo Night, Gruvbox, Rosé Pine, Rosé Pine Dawn, Everforest, One Dark, Solarized Light, Kanagawa, Blush, Coastal, Wine, Harbor, Royal, Sage, day, dark, system</span>
+            </span>
+          </span>
+          <span class="feature-shade"></span>
+          <span class="feature-copy">
+            <span class="feature-sub">Appearance</span>
+            <span class="feature-name">Twenty palettes</span>
+          </span>
+        </button>
+      </div>
+      <p class="features-more">
+        <a class="cta cta-outline" href="features.html">
+          <span class="cta-label">All features</span>
+        </a>
+      </p>
+    </section>
+
+    <section class="get" aria-labelledby="download-heading">
+      <h2 id="download-heading">Download for Mac.</h2>
+      <p class="download-caption">Command-Return sends, if you turn it on. Return still can.</p>
+      <div class="get-row">
+        <img class="grip" src="paw.svg" alt="" width="200" height="200">
+        <a class="cta" href="https://github.com/Thecosmiccat/Casmos" rel="noopener noreferrer">
+          <span class="cta-glass" aria-hidden="true"></span>
+          <span class="cta-frost" aria-hidden="true"></span>
+          <span class="cta-label">Download for Mac</span>
+        </a>
+        <img class="grip grip--flip" src="paw.svg" alt="" width="200" height="200">
+      </div>
+      <p class="soon-line">Coming soon: iOS, Linux, and Windows.</p>
+    </section>
+  </main>
+
+  <dialog class="feature-dialog" aria-labelledby="dialog-title">
+    <form method="dialog">
+      <button class="dialog-close" type="submit" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </form>
+    <div class="dialog-split">
+      <div class="dialog-visual" id="dialog-visual"></div>
+      <div class="dialog-copy">
+        <p id="dialog-sub" class="feature-sub"></p>
+        <h3 id="dialog-title"></h3>
+        <p id="dialog-body"></p>
+      </div>
+    </div>
+  </dialog>
+
+  <footer class="site-footer">
+    <p>Not affiliated with Telegram. GPL-2.0. Open source.</p>
+    <nav class="legal-nav" aria-label="Footer">
+      <a href="faq.html">FAQ</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms and Conditions</a>
+    </nav>
+  </footer>
+
+  <svg class="glass-defs" aria-hidden="true" focusable="false">
+    <filter id="casmos-glass" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05 0.05" numOctaves="1" seed="1" result="turbulence"/>
+      <feGaussianBlur in="turbulence" stdDeviation="2" result="blurredNoise"/>
+      <feDisplacementMap in="SourceGraphic" in2="blurredNoise" scale="70" xChannelSelector="R" yChannelSelector="B" result="displaced"/>
+      <feGaussianBlur in="displaced" stdDeviation="4" result="finalBlur"/>
+      <feComposite in="finalBlur" in2="finalBlur" operator="over"/>
+    </filter>
+  </svg>
+  <script src="app.js"></script>
+</body>
+</html>
