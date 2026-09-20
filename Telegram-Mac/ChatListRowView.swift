@@ -683,6 +683,9 @@ private class ChatListDraggingContainerView : View {
     }
     
     override public func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        if casmosPeerId(from: sender) != nil {
+            return []
+        }
         if let item = item, let peer = item.peer, peer.canSendMessage(false, threadData: item.mode.threadData), mouseInside() {
             activeDragging = true
             needsDisplay = true
@@ -1381,6 +1384,9 @@ class ChatListRowView: TableRowView, ViewDisplayDelegate, RevealTableView {
     }
     
     override public func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        if casmosPeerId(from: sender) != nil {
+            return []
+        }
         needsDisplay = true
         updateColors()
         return .generic

@@ -11,6 +11,7 @@ import Cocoa
 import SwiftSignalKit
 import Postbox
 import TelegramCore
+import Casmos
 
 
 class ChatListEmptyRowItem: TableRowItem {
@@ -204,7 +205,10 @@ private class ChatListEmptyRowView : TableRowView {
         
         
         let text: String
-        if case .filter = item.filter {
+        let casmosGroupEmpty = CasmosChatGroups.selected != .all && CasmosChatGroups.emptyCopy.isEmpty == false
+        if casmosGroupEmpty {
+            text = CasmosChatGroups.emptyCopy
+        } else if case .filter = item.filter {
             text = strings().chatListFilterEmpty
         } else {
             switch item.mode {

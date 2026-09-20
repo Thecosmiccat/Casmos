@@ -17,7 +17,7 @@
         rain.width = Math.floor(w * dpr);
         rain.height = Math.floor(h * dpr);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        drops = Array.from({ length: Math.max(1, Math.floor(w / fontSize)) }, () => Math.random() * -40);
+        drops = Array.from({ length: Math.max(1, Math.floor(w / fontSize)) }, () => Math.random() * (h / fontSize));
         ctx.fillStyle = "#000000";
         ctx.fillRect(0, 0, w, h);
       };
@@ -28,7 +28,7 @@
         ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
         ctx.fillRect(0, 0, w, h);
         ctx.font = `${fontSize}px ui-monospace, SFMono-Regular, Menlo, monospace`;
-        ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.42)";
         for (let i = 0; i < drops.length; i += 1) {
           ctx.fillText(chars[Math.floor(Math.random() * chars.length)] || "", i * fontSize, drops[i] * fontSize);
           if (drops[i] * fontSize > h && Math.random() > 0.975) drops[i] = 0;
@@ -37,7 +37,11 @@
       };
 
       size();
-      window.addEventListener("resize", size);
+      draw();
+      window.addEventListener("resize", () => {
+        size();
+        draw();
+      });
       timer = window.setInterval(() => {
         if (!document.hidden) draw();
       }, 80);

@@ -13,6 +13,7 @@ import Postbox
 import TelegramCore
 import InAppSettings
 import FetchManager
+import Casmos
 extension TelegramBirthday {
     var isToday: Bool {
         let date = Date()
@@ -1009,7 +1010,10 @@ class ChatListController : PeersListController {
                     prepare.append((current.item, UIChatAdditionalItem(item: current, index: i + update.list.groupItems.count)))
                 }
             }
-            var mapped: [UIChatListEntry] = prepare.map { item in
+            var mapped: [UIChatListEntry] = prepare.compactMap { item in
+                if mode == .plain, CasmosChatGroups.selected != .all, !CasmosChatGroups.isPeerVisible(item.0.renderedPeer.peerId.toInt64()) {
+                    return nil
+                }
                 let space: PeerActivitySpace
                 var generalStatus: ItemHideStatus? = nil
                 switch item.0.id {
@@ -1024,7 +1028,7 @@ class ChatListController : PeersListController {
                 return .chat(item.0, state.activities.activities[space] ?? [], item.1, filter: filterData.filter, generalStatus: generalStatus, selectedForum: state.selectedForum, appearMode: state.controllerAppear, hideContent: state.appear == .short, folders: state.filterData, canPreviewChat: additionalSettings.previewChats)
             }
             
-            if case .filter = filterData.filter, mapped.isEmpty {} else {
+            if case .filter = filterData.filter, mapped.isEmpty {} else if CasmosChatGroups.selected == .all {
                 if !update.list.hasLater {
                     let hideStatus: ItemHideStatus
                     if state.appear == .short || state.splitState == .minimisize {
@@ -1065,7 +1069,7 @@ class ChatListController : PeersListController {
             if let suspiciousSession = suspiciousSession.first, mode == .plain, state.splitState != .minimisize {
                 additionItems.append(.suspicious(suspiciousSession))
             }
-            if state.mode == .plain, !update.list.hasLater, state.splitState != .minimisize, state.filterData.filter == .allChats {
+            if state.mode == .plain, !update.list.hasLater, state.splitState != .minimisize, state.filterData.filter == .allChats, CasmosChatGroups.selected == .all {
                 if suggestions.contains(where: { $0 == .starsSubscriptionLowBalance }), let missingBalanceState {
                     if missingBalanceState.balance.value > 0, !missingBalanceState.subscriptions.isEmpty {
                         additionItems.append(.custom(UIChatListBuyStarsAction(context: context, state: missingBalanceState)))
@@ -1073,7 +1077,7 @@ class ChatListController : PeersListController {
                 }
             }
             
-            if state.mode == .plain, !update.list.hasLater, state.splitState != .minimisize, state.filterData.filter == .allChats {
+            if state.mode == .plain, !update.list.hasLater, state.splitState != .minimisize, state.filterData.filter == .allChats, CasmosChatGroups.selected == .all {
                 for suggestion in suggestions {
                     switch suggestion {
                     case let .link(id, url, title, subtitle):
@@ -1084,13 +1088,13 @@ class ChatListController : PeersListController {
                 }
             }
             
-            if state.mode == .plain, !update.list.hasLater, state.splitState != .minimisize, state.filterData.filter == .allChats {
+            if state.mode == .plain, !update.list.hasLater, state.splitState != .minimisize, state.filterData.filter == .allChats, CasmosChatGroups.selected == .all {
                 if suggestions.contains(.gracePremium) {
                     additionItems.append(.grace(true))
                 }
             }
                         
-            if state.mode == .plain, !update.list.hasLater, state.splitState != .minimisize, state.filterData.filter == .allChats {
+            if state.mode == .plain, !update.list.hasLater, state.splitState != .minimisize, state.filterData.filter == .allChats, CasmosChatGroups.selected == .all {
                 if suggestions.contains(.setupBirthday), myBirthday == nil {
                     additionItems.append(.birthdays([]))
                 } else {
@@ -1181,6 +1185,9 @@ class ChatListController : PeersListController {
         }, complete: { [weak self] from, to in
             self?.resortPinned(from, to)
         })
+        genericView.tableView.startRowDragging = { item, event, view in
+            casmosBeginChatGroupDrag(item: item, event: event, view: view)
+        }
         
         
         genericView.tableView.addScroll(listener: TableScrollListener(dispatchWhenVisibleRangeUpdated: false, { [weak self] scroll in

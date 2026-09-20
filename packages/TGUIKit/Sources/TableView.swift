@@ -606,12 +606,23 @@ class TGFlipableTableView : NSTableView, CALayerDelegate {
     override func mouseDragged(with event: NSEvent) {
         super.mouseDragged(with: event)
         
-        if let resortController = table?.resortController, beforeRange.length > 0, mouseDown {
-            if resortController.resortRange.indexIn(beforeRange.location) {
-                let point = self.convert(event.locationInWindow, from: nil)
-                let afterRange = self.rows(in: NSMakeRect(point.x, point.y, 1, 1))
-                if afterRange != beforeRange {
-                    self.table?.startResorting(beforeRange, point.offsetBy(dx: -offsetOfStartItem.x, dy: -offsetOfStartItem.y))
+        if mouseDown, beforeRange.length > 0, let table = table, table.resortController?.resortRow == nil {
+            let point = self.convert(event.locationInWindow, from: nil)
+            let moved = hypot(point.x - offsetOfStartItem.x, point.y - offsetOfStartItem.y) > 10
+            if moved, let handler = table.startRowDragging, beforeRange.location >= 0, beforeRange.location < table.count {
+                let item = table.item(at: beforeRange.location)
+                if let view = table.viewNecessary(at: beforeRange.location), handler(item, event, view) {
+                    mouseDown = false
+                    longDisposable.set(nil)
+                    return
+                }
+            }
+            if moved, let resortController = table.resortController, resortController.resortRange.indexIn(beforeRange.location) {
+                if point.y >= 0 && point.y <= bounds.height {
+                    let afterRange = self.rows(in: NSMakeRect(point.x, point.y, 1, 1))
+                    if afterRange != beforeRange {
+                        table.startResorting(beforeRange, point.offsetBy(dx: -offsetOfStartItem.x, dy: -offsetOfStartItem.y))
+                    }
                 }
             }
         }
@@ -624,10 +635,9 @@ class TGFlipableTableView : NSTableView, CALayerDelegate {
             let beforeRange = self.rows(in: NSMakeRect(point.x, point.y, 1, 1))
             self.beforeRange = beforeRange
             if beforeRange.length > 0 {
-                if let resortController = table?.resortController{
-                    if resortController.resortRange.indexIn(beforeRange.location) {
-                        self.offsetOfStartItem = point
-                    } else if let table = table, !table.alwaysOpenRowsOnMouseUp {
+                self.offsetOfStartItem = point
+                if let resortController = table?.resortController {
+                    if !resortController.resortRange.indexIn(beforeRange.location), let table = table, !table.alwaysOpenRowsOnMouseUp {
                         sdelegate?.selectRow(index: beforeRange.location)
                     }
                 } else if let table = table, !table.alwaysOpenRowsOnMouseUp {
@@ -834,6 +844,7 @@ open class TableView: ScrollView, NSTableViewDelegate,NSTableViewDataSource,Sele
     private var scrollListeners:[TableScrollListener] = []
     
     public var alwaysOpenRowsOnMouseUp: Bool = true
+    public var startRowDragging: ((TableRowItem, NSEvent, NSView) -> Bool)?
     
     public var autohide: TableAutohide?
     

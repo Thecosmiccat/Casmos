@@ -1674,6 +1674,7 @@
 		CA50A0060000000000000002 /* CasmosDockIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50A0060000000000000001 /* CasmosDockIcons.swift */; };
 		CA50A0070000000000000002 /* CasmosClientExtras.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50A0070000000000000001 /* CasmosClientExtras.swift */; };
 		CA50A0080000000000000002 /* CasmosThemeStudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50A0080000000000000001 /* CasmosThemeStudio.swift */; };
+		CA50A0090000000000000002 /* CasmosGroupsBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA50A0090000000000000001 /* CasmosGroupsBar.swift */; };
 		CA50A0010000000000000005 /* Casmos in Frameworks */ = {isa = PBXBuildFile; productRef = CA50A0010000000000000004 /* Casmos */; };
 		CA50A0040000000000000001 /* Casmos in Frameworks */ = {isa = PBXBuildFile; productRef = CA50A0040000000000000002 /* Casmos */; };
 /* End PBXBuildFile section */
@@ -3372,6 +3373,7 @@
 		CA50A0060000000000000001 /* CasmosDockIcons.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CasmosDockIcons.swift; sourceTree = "<group>"; };
 		CA50A0070000000000000001 /* CasmosClientExtras.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CasmosClientExtras.swift; sourceTree = "<group>"; };
 		CA50A0080000000000000001 /* CasmosThemeStudio.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CasmosThemeStudio.swift; sourceTree = "<group>"; };
+		CA50A0090000000000000001 /* CasmosGroupsBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CasmosGroupsBar.swift; sourceTree = "<group>"; };
 		CA50A0010000000000000003 /* Casmos */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Casmos; path = packages/Casmos; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -5362,6 +5364,7 @@
 				CA50A0060000000000000001 /* CasmosDockIcons.swift */,
 				CA50A0070000000000000001 /* CasmosClientExtras.swift */,
 				CA50A0080000000000000001 /* CasmosThemeStudio.swift */,
+				CA50A0090000000000000001 /* CasmosGroupsBar.swift */,
 				A767DD4023F2BB3200366F76 /* ShortcutListController.swift */,
 				27AAAD56299F5F9E00F70A9A /* LiteModeController.swift */,
 			);
@@ -8271,6 +8274,7 @@
 				CA50A0060000000000000002 /* CasmosDockIcons.swift in Sources */,
 				CA50A0070000000000000002 /* CasmosClientExtras.swift in Sources */,
 				CA50A0080000000000000002 /* CasmosThemeStudio.swift in Sources */,
+				CA50A0090000000000000002 /* CasmosGroupsBar.swift in Sources */,
 				27F4F1782844D91E00A3B4D4 /* EmojiesController.swift in Sources */,
 				C2271D9C1DACC027001792B6 /* SearchController.swift in Sources */,
 				27F2BBCF27BEA4A400A37463 /* Auth_AwaitingReset.swift in Sources */,

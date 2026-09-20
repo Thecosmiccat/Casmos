@@ -1079,6 +1079,9 @@ class PeerListContainerView : Control {
         if let foldersItem = foldersItem {
             y -= foldersItem.height
         }
+        if groupsBar != nil {
+            y -= CasmosGroupsBar.height
+        }
         return NSMakeRect(0, max(0, y), frame.width, frame.height - y)
     }
 
@@ -1138,6 +1141,7 @@ class PeerListContainerView : Control {
     
     private var foldersItem: ChatListRevealItem?
     private var foldersView: ChatListRevealView?
+    private var groupsBar: CasmosGroupsBar?
     
 
     
@@ -1180,6 +1184,26 @@ class PeerListContainerView : Control {
         } else {
             self.foldersItem = nil
         }
+
+        let showGroups = state.mode == .plain && !state.isContacts && state.splitState != .minimisize
+        if showGroups {
+            let current: CasmosGroupsBar
+            if let view = self.groupsBar {
+                current = view
+            } else {
+                current = CasmosGroupsBar(frame: NSMakeRect(0, 0, frame.width, CasmosGroupsBar.height))
+                containerView.addSubview(current, positioned: .below, relativeTo: statusContainer)
+                self.groupsBar = current
+                if animated {
+                    current.layer?.animateAlpha(from: 0, to: 1, duration: 0.2)
+                }
+            }
+            current.attach(context: arguments.context)
+        } else if let view = self.groupsBar {
+            performSubviewRemoval(view, animated: animated)
+            self.groupsBar = nil
+        }
+        self.needsLayout = true
 
         
         let hasCompose = (state.isContacts || state.mode.isSavedMessages || state.mode == .plain || (state.mode.groupId == .archive && state.splitState != .minimisize))
@@ -1848,6 +1872,13 @@ class PeerListContainerView : Control {
             
             view.updateLayout(size: size, transition: transition)
         }
+
+        if let view = groupsBar {
+            let foldersH = foldersItem?.height ?? 0
+            let controlSize = NSMakeSize(size.width, CasmosGroupsBar.height)
+            let rect = CGRect(origin: NSMakePoint(0, navigationHeight - foldersH - controlSize.height), size: controlSize)
+            transition.updateFrame(view: view, frame: rect)
+        }
         transition.updateAlpha(view: self.backgroundView, alpha: 1 - progress)
 
         self.updateScrollerInset(animated: transition.isAnimated)
@@ -1889,6 +1920,9 @@ class PeerListContainerView : Control {
             }
             if let foldersItem = self.foldersItem {
                 offset += foldersItem.height
+            }
+            if self.groupsBar != nil {
+                offset += CasmosGroupsBar.height
             }
         } else if state.splitState == .minimisize {
 //            if !state.filterData.sidebar {

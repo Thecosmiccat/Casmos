@@ -2188,6 +2188,16 @@ class ChatListRowItem: TableRowItem {
                 item.submenu = menu
                 secondGroup.append(item)
             }
+
+            if let peerId = peerId, !mode.savedMessages, groupId == .root {
+                let groupItem = ContextMenuItem("Add to Group", itemImage: MenuAnimation.menu_add_to_folder.value)
+                let groupMenu = ContextMenu()
+                for item in casmosChatGroupMenuItems(peerId: peerId, context: context) {
+                    groupMenu.addItem(item)
+                }
+                groupItem.submenu = groupMenu
+                secondGroup.append(groupItem)
+            }
             
             let blocks:[[ContextMenuItem]] = [zeroGroup, firstGroup,
                                               secondGroup,
