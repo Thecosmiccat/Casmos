@@ -922,6 +922,16 @@ class ChatListController : PeersListController {
         }))
 
         
+        let groupsTabSignal: Signal<CasmosChatGroupTab, NoError> = Signal { subscriber in
+            subscriber.putNext(CasmosChatGroups.selected)
+            let observer = NotificationCenter.default.addObserver(forName: CasmosChatGroups.didChangeNotification, object: nil, queue: .main) { _ in
+                subscriber.putNext(CasmosChatGroups.selected)
+            }
+            return ActionDisposable {
+                NotificationCenter.default.removeObserver(observer)
+            }
+        }
+
         let chatHistoryView: Signal<(ChatListViewUpdate, FilterData, Bool, ChatFolderUpdates?), NoError> = filterSignal |> mapToSignal { data in
             
             let signal = combineLatest(context.engine.peers.subscribedChatFolderUpdates(folderId: data.filter.id), chatListViewForLocation(chatListLocation: mode.location, location: data.request, filter: data.filter, account: context.account))
@@ -978,7 +988,7 @@ class ChatListController : PeersListController {
             return view.values[PreferencesKeys.appConfiguration]?.get(AppConfiguration.self) ?? AppConfiguration.defaultValue
         }
         
-        let list:Signal<TableUpdateTransition, NoError> = combineLatest(queue: prepareQueue, chatHistoryView, appearanceSignal, stateUpdater, appNotificationSettings(accountManager: context.sharedContext.accountManager), additionalSettings(accountManager: context.sharedContext.accountManager), chatListFilterItems(engine: context.engine, accountManager: context.sharedContext.accountManager), storyState, suspiciousSession, suggestions, birthdays, myBirthday, context.starsContext.state, subState, appConfiguration) |> mapToQueue { value, appearance, state, inAppSettings, additionalSettings, filtersCounter, storyState, suspiciousSession, suggestions, birthdays, myBirthday, starsSubscriptionsState, missingBalanceState, appConfiguration -> Signal<TableUpdateTransition, NoError> in
+        let list:Signal<TableUpdateTransition, NoError> = combineLatest(queue: prepareQueue, combineLatest(chatHistoryView, groupsTabSignal) |> map { view, _ in view }, appearanceSignal, stateUpdater, appNotificationSettings(accountManager: context.sharedContext.accountManager), additionalSettings(accountManager: context.sharedContext.accountManager), chatListFilterItems(engine: context.engine, accountManager: context.sharedContext.accountManager), storyState, suspiciousSession, suggestions, birthdays, myBirthday, context.starsContext.state, subState, appConfiguration) |> mapToQueue { value, appearance, state, inAppSettings, additionalSettings, filtersCounter, storyState, suspiciousSession, suggestions, birthdays, myBirthday, starsSubscriptionsState, missingBalanceState, appConfiguration -> Signal<TableUpdateTransition, NoError> in
                                 
             let filterData = value.1
             let folderUpdates = value.3

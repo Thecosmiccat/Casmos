@@ -421,7 +421,7 @@ final class CasmosGroupsBar: View {
         setAccessibilityElement(true)
         setAccessibilityRole(.tabGroup)
         setAccessibilityLabel("Chat groups")
-        observer = NotificationCenter.default.addObserver(forName: CasmosPreferences.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+        observer = NotificationCenter.default.addObserver(forName: CasmosChatGroups.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
             self?.reload()
         }
         reload()

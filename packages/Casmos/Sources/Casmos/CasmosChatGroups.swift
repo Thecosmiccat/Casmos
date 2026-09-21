@@ -45,9 +45,14 @@ public enum CasmosChatGroupTab: Equatable {
 public enum CasmosChatGroups {
     public static let barHeight: CGFloat = 40
     public static let nameLimit = 24
+    public static let didChangeNotification = Notification.Name("casmos.chat.groups.didChange")
 
     private static let groupsKey = "casmos.pref.chat.groups"
     private static let selectedKey = "casmos.pref.chat.groupsSelected"
+
+    private static func notifyDidChange() {
+        NotificationCenter.default.post(name: didChangeNotification, object: nil)
+    }
 
     public static var groups: [CasmosChatGroup] {
         get {
@@ -60,7 +65,7 @@ public enum CasmosChatGroups {
         set {
             let encoded = (try? JSONEncoder().encode(newValue)) ?? Data()
             UserDefaults.standard.set(encoded, forKey: groupsKey)
-            CasmosPreferences.notifyDidChange()
+            notifyDidChange()
         }
     }
 
@@ -74,7 +79,11 @@ public enum CasmosChatGroups {
             return tab
         }
         set {
-            CasmosPreferences.set(newValue.storageValue, forKey: selectedKey)
+            if newValue == selected {
+                return
+            }
+            CasmosPreferences.set(newValue.storageValue, forKey: selectedKey, notify: false)
+            notifyDidChange()
         }
     }
 
