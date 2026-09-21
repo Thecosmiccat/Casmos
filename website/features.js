@@ -156,6 +156,19 @@
       title: "Chat",
       items: [
         {
+          name: "Chat Groups",
+          sub: "Chat list",
+          subtitle: "Chat list. This Mac only",
+          body: "Tabs above the chat list: All, the groups you name, and Ungrouped. Drag a chat onto a tab to add it, or onto Ungrouped to take it out. Right-click a chat and choose Add to Group. Deleting a group leaves the chats in All. Stored on this Mac. These are not Telegram folders.",
+          bar: "Chats",
+          head: "GROUPS",
+          rows: [
+            ["All", "Selected"],
+            ["Friends", "Drop a chat"],
+            ["Ungrouped", "Not in a group"],
+          ],
+        },
+        {
           name: "Send with Command-Return",
           sub: "Chat",
           subtitle: "Chat",
@@ -201,17 +214,6 @@
           rows: [
             ["Double-Click Action", "Reply ›"],
             ["Hide Channel Bottom Buttons", "off"],
-          ],
-        },
-        {
-          name: "Keep Deleted Messages",
-          sub: "Chat",
-          subtitle: "Chat. Default off",
-          body: "Keeps messages this Mac already downloaded after someone else deletes them, including while Casmos is in the background. Those bubbles show Deleted. Messages you delete, secret chats, and auto-delete timers still go. A message that never reached this Mac cannot be recovered.",
-          head: "CHAT",
-          rows: [
-            ["Hide Channel Bottom Buttons", "off"],
-            ["Keep Deleted Messages", "off"],
           ],
         },
         {
@@ -486,7 +488,7 @@
   const shotFor = (item) => {
     const shot = node("span", "app-shot");
     shot.setAttribute("aria-hidden", "true");
-    shot.append(text("span", "app-shot-bar", "Casmos Settings"), text("span", "app-shot-head", item.head));
+    shot.append(text("span", "app-shot-bar", item.bar || "Casmos Settings"), text("span", "app-shot-head", item.head));
     const group = node("span", "app-group");
 
     if (item.theme) {
