@@ -155,37 +155,15 @@ private func casmosTabPlusImage(color: NSColor) -> CGImage {
     }
 }
 
-private func casmosChromeTabPath(in rect: CGRect, ear: CGFloat, radius: CGFloat) -> CGPath {
-    let path = CGMutablePath()
-    let bottom: CGFloat = 0
-    let top = max(radius + 1, rect.height - 3)
-    let left = rect.minX + ear
-    let right = rect.maxX - ear
-    let r = min(radius, min(max(2, (right - left) / 2), max(2, top - bottom)))
-    path.move(to: CGPoint(x: rect.minX, y: bottom))
-    path.addCurve(to: CGPoint(x: left, y: ear), control1: CGPoint(x: rect.minX + ear * 0.55, y: bottom), control2: CGPoint(x: left, y: bottom))
-    path.addLine(to: CGPoint(x: left, y: top - r))
-    path.addArc(tangent1End: CGPoint(x: left, y: top), tangent2End: CGPoint(x: left + r, y: top), radius: r)
-    path.addLine(to: CGPoint(x: right - r, y: top))
-    path.addArc(tangent1End: CGPoint(x: right, y: top), tangent2End: CGPoint(x: right, y: top - r), radius: r)
-    path.addLine(to: CGPoint(x: right, y: ear))
-    path.addCurve(to: CGPoint(x: rect.maxX, y: bottom), control1: CGPoint(x: right, y: bottom), control2: CGPoint(x: rect.maxX - ear * 0.55, y: bottom))
-    path.closeSubpath()
-    return path
-}
+private final class CasmosGroupTabView: Control {
+    static let pillHeight: CGFloat = 28
+    static let cornerRadius: CGFloat = 8
 
-private final class CasmosChromeTabView: Control {
-    static let overlap: CGFloat = 6
-    static let ear: CGFloat = 6
-
-    private let shapeLayer = CAShapeLayer()
     private let iconView = ImageView()
     private let titleView = TextView()
     private let closeButton = ImageButton()
-    private let separator = View()
     private(set) var model: CasmosGroupTabModel = .all
     private var isActive: Bool = false
-    private var showsSeparator: Bool = true
     private var isDropTarget: Bool = false
     private var titleWidth: CGFloat = 32
     var onSelect: (() -> Void)?
@@ -196,18 +174,10 @@ private final class CasmosChromeTabView: Control {
     required init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         registerForDraggedTypes([casmosChatPeerPasteboardType])
-        set(background: .clear, for: .Normal)
-        set(background: .clear, for: .Hover)
-        set(background: .clear, for: .Highlight)
-        layer?.masksToBounds = false
-        layer?.addSublayer(shapeLayer)
-        shapeLayer.zPosition = -1
-        shapeLayer.isGeometryFlipped = false
-        shapeLayer.masksToBounds = false
+        layer?.cornerRadius = Self.cornerRadius
         addSubview(iconView)
         addSubview(titleView)
         addSubview(closeButton)
-        addSubview(separator)
         iconView.isEventLess = true
         titleView.userInteractionEnabled = false
         titleView.isSelectable = false
@@ -239,14 +209,13 @@ private final class CasmosChromeTabView: Control {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func update(model: CasmosGroupTabModel, active: Bool, showsDivider: Bool) {
+    func update(model: CasmosGroupTabModel, active: Bool) {
         self.model = model
         self.isActive = active
-        self.showsSeparator = showsDivider && !active
         let color = active ? theme.colors.text : theme.colors.grayText
         iconView.image = casmosTabGlyph(model, color: color)
         iconView.setFrameSize(NSMakeSize(14, 14))
-        let layout = TextViewLayout(.initialize(string: model.title, color: color, font: .normal(.text)), maximumNumberOfLines: 1, truncationType: .end)
+        let layout = TextViewLayout(.initialize(string: model.title, color: color, font: active ? .medium(.text) : .normal(.text)), maximumNumberOfLines: 1, truncationType: .end)
         layout.measure(width: .greatestFiniteMagnitude)
         titleWidth = layout.layoutSize.width
         titleView.update(layout)
@@ -255,11 +224,9 @@ private final class CasmosChromeTabView: Control {
         closeButton.isHidden = !canClose
         if canClose {
             closeButton.set(image: casmosTabCloseImage(color: color), for: .Normal)
-            closeButton.sizeToFit(NSZeroSize, NSMakeSize(18, 18), thatFit: true)
+            closeButton.sizeToFit(NSZeroSize, NSMakeSize(16, 16), thatFit: true)
             closeButton.setAccessibilityLabel("Close \(model.title)")
         }
-        separator.backgroundColor = theme.colors.grayText.withAlphaComponent(0.35)
-        separator.isHidden = !showsSeparator
         setAccessibilityLabel(model.title)
         setAccessibilityValue(active ? "selected" : nil)
         switch model {
@@ -270,8 +237,23 @@ private final class CasmosChromeTabView: Control {
         case .group:
             setAccessibilityHelp("Drop a chat here to add it to \(model.title)")
         }
+        applyFill()
         needsLayout = true
-        needsDisplay = true
+    }
+
+    private func applyFill() {
+        let fill: NSColor
+        if isDropTarget {
+            fill = theme.colors.accent.withAlphaComponent(0.22)
+        } else if isActive {
+            fill = theme.colors.grayForeground
+        } else {
+            fill = .clear
+        }
+        let hover = isActive || isDropTarget ? fill : theme.colors.grayForeground.withAlphaComponent(0.55)
+        set(background: fill, for: .Normal)
+        set(background: hover, for: .Hover)
+        set(background: hover, for: .Highlight)
     }
 
     private var acceptsDrop: Bool {
@@ -288,8 +270,7 @@ private final class CasmosChromeTabView: Control {
             return
         }
         isDropTarget = value
-        needsLayout = true
-        needsDisplay = true
+        applyFill()
     }
 
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
@@ -322,34 +303,23 @@ private final class CasmosChromeTabView: Control {
     }
 
     func fittedWidth() -> CGFloat {
-        let closeW: CGFloat = closeButton.isHidden ? 0 : 18
-        return Self.ear + 6 + 14 + 6 + ceil(titleWidth) + closeW + 6 + Self.ear
+        let closeW: CGFloat = closeButton.isHidden ? 0 : 16
+        return 8 + 14 + 5 + ceil(titleWidth) + (closeButton.isHidden ? 0 : 2 + closeW) + 8
     }
 
     override func layout() {
         super.layout()
-        let ear = Self.ear
-        let inset: CGFloat = 6
-        let closeW: CGFloat = closeButton.isHidden ? 0 : 18
-        iconView.setFrameOrigin(NSMakePoint(ear + inset, floorToScreenPixels(backingScaleFactor, (frame.height - 14) / 2)))
-        let titleX = iconView.frame.maxX + 6
-        let titleMax = max(20, frame.width - ear - inset - closeW - titleX)
+        let inset: CGFloat = 8
+        iconView.setFrameOrigin(NSMakePoint(inset, floorToScreenPixels(backingScaleFactor, (frame.height - 14) / 2)))
+        let titleX = iconView.frame.maxX + 5
+        let closeW: CGFloat = closeButton.isHidden ? 0 : closeButton.frame.width
+        let titleMax = max(20, frame.width - inset - (closeW > 0 ? closeW + 2 : 0) - titleX)
         titleView.textLayout?.measure(width: titleMax)
         titleView.update(titleView.textLayout)
         titleView.setFrameSize(titleView.textLayout?.layoutSize ?? .zero)
         titleView.setFrameOrigin(NSMakePoint(titleX, floorToScreenPixels(backingScaleFactor, (frame.height - titleView.frame.height) / 2)))
         if !closeButton.isHidden {
-            closeButton.centerY(x: frame.width - ear - inset - closeButton.frame.width)
-        }
-        separator.frame = NSMakeRect(ear, floorToScreenPixels(backingScaleFactor, (frame.height - 14) / 2), .borderSize, 14)
-        shapeLayer.frame = bounds
-        shapeLayer.path = casmosChromeTabPath(in: bounds, ear: ear, radius: 8)
-        if isDropTarget {
-            shapeLayer.fillColor = theme.colors.accent.withAlphaComponent(0.28).cgColor
-        } else if isActive {
-            shapeLayer.fillColor = theme.colors.background.cgColor
-        } else {
-            shapeLayer.fillColor = NSColor.clear.cgColor
+            closeButton.centerY(x: frame.width - inset - closeButton.frame.width)
         }
     }
 }
@@ -369,7 +339,7 @@ private final class CasmosGroupsPlusButton: ImageButton {
 
     private func setDropTarget(_ value: Bool) {
         isDropTarget = value
-        layer?.backgroundColor = value ? theme.colors.grayText.withAlphaComponent(0.22).cgColor : NSColor.clear.cgColor
+        layer?.backgroundColor = value ? theme.colors.grayForeground.withAlphaComponent(0.55).cgColor : NSColor.clear.cgColor
     }
 
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
@@ -410,7 +380,8 @@ final class CasmosGroupsBar: View {
     private let plusButton = CasmosGroupsPlusButton(frame: NSMakeRect(0, 0, 28, 28))
     private let fadeView = View()
     private let fadeLayer = CAGradientLayer()
-    private var tabs: [CasmosChromeTabView] = []
+    private let hairline = View()
+    private var tabs: [CasmosGroupTabView] = []
     private weak var context: AccountContext?
     private var observer: NSObjectProtocol?
     private var pendingScrollToSelected = false
@@ -438,7 +409,11 @@ final class CasmosGroupsBar: View {
             return true
         }
         plusButton.setAccessibilityHelp("Drop a chat here to create a group")
+        plusButton.layer?.cornerRadius = CasmosGroupTabView.cornerRadius
         addSubview(plusButton)
+        hairline.userInteractionEnabled = false
+        hairline.isEventLess = true
+        addSubview(hairline)
         fadeView.userInteractionEnabled = false
         fadeView.isEventLess = true
         fadeView.layer?.addSublayer(fadeLayer)
@@ -484,29 +459,30 @@ final class CasmosGroupsBar: View {
             models.append(.ungrouped)
         }
         let selected = CasmosChatGroups.selected
-        let key = selected.storageValue + "|" + CasmosChatGroups.groups.map { "\($0.id)=\($0.name)" }.joined(separator: ",") + "|\(theme.colors.background.hashValue)"
+        let key = selected.storageValue + "|" + CasmosChatGroups.groups.map { "\($0.id)=\($0.name)" }.joined(separator: ",") + "|\(theme.colors.background.hashValue)|\(theme.colors.grayForeground.hashValue)"
         if key == reloadKey, tabs.count == models.count {
             return
         }
         reloadKey = key
-        backgroundColor = theme.colors.background.darker(amount: 0.14)
+        backgroundColor = theme.colors.background
+        hairline.backgroundColor = theme.colors.border
         plusButton.set(image: casmosTabPlusImage(color: theme.colors.grayText), for: .Normal)
         plusButton.set(background: .clear, for: .Normal)
-        plusButton.set(background: theme.colors.grayText.withAlphaComponent(0.14), for: .Hover)
-        plusButton.layer?.cornerRadius = 6
+        plusButton.set(background: theme.colors.grayForeground.withAlphaComponent(0.55), for: .Hover)
+        plusButton.layer?.cornerRadius = CasmosGroupTabView.cornerRadius
         plusButton.sizeToFit(NSZeroSize, NSMakeSize(28, 28), thatFit: true)
 
         while tabs.count > models.count {
             tabs.removeLast().removeFromSuperview()
         }
         while tabs.count < models.count {
-            let tab = CasmosChromeTabView(frame: .zero)
+            let tab = CasmosGroupTabView(frame: .zero)
             documentView.addSubview(tab)
             tabs.append(tab)
         }
 
-        for (index, model) in models.enumerated() {
-            let tab = tabs[index]
+        for (i, model) in models.enumerated() {
+            let tab = tabs[i]
             let active: Bool
             switch (selected, model) {
             case (.all, .all), (.ungrouped, .ungrouped):
@@ -516,26 +492,7 @@ final class CasmosGroupsBar: View {
             default:
                 active = false
             }
-            let nextIsActive: Bool
-            if index + 1 < models.count {
-                let next = models[index + 1]
-                switch (selected, next) {
-                case (.all, .all), (.ungrouped, .ungrouped):
-                    nextIsActive = true
-                case let (.group(id), .group(group)):
-                    nextIsActive = id == group.id
-                default:
-                    nextIsActive = false
-                }
-            } else {
-                nextIsActive = false
-            }
-            tab.update(model: model, active: active, showsDivider: index > 0 && !active && !nextIsActive)
-            if active {
-                tab.layer?.zPosition = 10
-            } else {
-                tab.layer?.zPosition = CGFloat(index)
-            }
+            tab.update(model: model, active: active)
             tab.onSelect = { [weak self] in
                 self?.select(model)
             }
@@ -554,34 +511,37 @@ final class CasmosGroupsBar: View {
     }
 
     private func layoutTabs() {
-        let overlap = CasmosChromeTabView.overlap
         let plusSize = plusButton.frame.size == .zero ? NSMakeSize(28, 28) : plusButton.frame.size
-        var x: CGFloat = 4
+        let pillH = CasmosGroupTabView.pillHeight
+        let y = floorToScreenPixels(backingScaleFactor, (frame.height - pillH) / 2)
+        var x: CGFloat = 8
         for tab in tabs {
             let width = tab.fittedWidth()
-            tab.frame = NSMakeRect(x, 0, width, frame.height)
-            x += width - overlap
+            tab.frame = NSMakeRect(x, y, width, pillH)
+            x += width + 4
         }
-        let contentWidth = max(x + overlap + 6, 1)
+        let contentWidth = max(x + 4, 1)
         documentView.frame = NSMakeRect(0, 0, contentWidth, frame.height)
         let plusX: CGFloat
         if contentWidth + plusSize.width + 8 > frame.width, frame.width > 40 {
-            plusX = max(8, frame.width - plusSize.width - 6)
+            plusX = max(8, frame.width - plusSize.width - 8)
         } else {
-            plusX = contentWidth + 2
+            plusX = contentWidth
         }
         plusButton.frame = NSMakeRect(plusX, floorToScreenPixels(backingScaleFactor, (frame.height - plusSize.height) / 2), plusSize.width, plusSize.height)
         plusButton.layer?.zPosition = 20
-        scrollView.frame = NSMakeRect(0, 0, max(0, plusButton.frame.minX - 2), frame.height)
+        scrollView.frame = NSMakeRect(0, 0, max(0, plusButton.frame.minX - 4), frame.height)
         let overflowing = documentView.frame.width > scrollView.frame.width + 1
         fadeView.isHidden = !overflowing
         fadeView.frame = NSMakeRect(max(0, plusButton.frame.minX - 18), 0, 18, frame.height)
         fadeView.layer?.zPosition = 19
         fadeLayer.frame = fadeView.bounds
-        let barColor = theme.colors.background.darker(amount: 0.14)
+        let barColor = theme.colors.background
         fadeLayer.colors = [barColor.withAlphaComponent(0).cgColor, barColor.cgColor]
         fadeLayer.startPoint = CGPoint(x: 0, y: 0.5)
         fadeLayer.endPoint = CGPoint(x: 1, y: 0.5)
+        hairline.frame = NSMakeRect(0, frame.height - .borderSize, frame.width, .borderSize)
+        hairline.layer?.zPosition = 21
         if pendingScrollToSelected {
             pendingScrollToSelected = false
             scrollSelectedIntoView()
