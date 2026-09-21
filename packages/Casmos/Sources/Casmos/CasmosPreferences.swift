@@ -22,7 +22,7 @@ public enum CasmosPrefKey {
     public enum Privacy {
         /// Hide phone and @username on your own profile UI. Default on.
         public static let hideOwnPhoneAndUsername = "casmos.pref.privacy.hideOwnPhoneAndUsername"
-        /// Unused leftover key. Keep Deleted is not a shipped feature.
+        /// Keep messages others delete, locally. Default off.
         public static let keepDeletedMessages = "casmos.pref.privacy.keepDeletedMessages"
     }
 

@@ -42,6 +42,7 @@ Chat, themes, and accounts work like a normal Mac messenger. Casmos Settings (Ge
 - **Sticker size** — small / medium / large (scales the 208pt chat sticker box; custom emoji stays 112pt)
 - **Double-click action** — reply (default), none, reaction, edit, copy, forward, repeat, translate, details
 - **Hide Channel Bottom Buttons** — collapses Mute / Discuss on broadcast channels; those stay in the header
+- **Keep Deleted Messages** — off by default. Keeps messages this Mac already downloaded after someone else deletes them, including while Casmos is in the background. Those bubbles show **Deleted**. Messages you delete, secret chats, and auto-delete timers still go. A message that never reached this Mac cannot be recovered
 - **Message Filter** — comma-separated keywords hide matching incoming text in the chat and list preview on this Mac only (not deleted)
 - **Message menu** — Repeat (resend in the current chat), Forward without Quote, Details (JSON snapshot)
 - **Chat streaks** — local 1:1 flame on the chat list when you sent and received that day; not uploaded
@@ -97,7 +98,6 @@ Language → Translate Messages.
 | Extra app / Dock icons | **Coming Soon**. Bundled Casmos icon only |
 | Touch ID Reveals Hidden Accounts | **NOT WIRED** on Macs without biometrics. With Touch ID it stays off until LocalAuthentication succeeds |
 | Cold-start lock | Accepts the app passcode only. Panic / hide are **NOT WIRED** there |
-| Keep Deleted Messages | Not shipped (leftover key only) |
 | Share extension / Focus Intents persistence | **NOT WIRED** without application-groups on unsigned local builds |
 | In-app updates | Endpoints blank on purpose |
 

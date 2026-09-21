@@ -141,6 +141,11 @@ public enum CasmosHooks {
         CasmosPreferences.bool(forKey: CasmosPrefKey.Privacy.hideOwnPhoneAndUsername)
     }
 
+    /// Keep messages others delete on this Mac. Off by default.
+    public static var keepDeletedMessages: Bool {
+        CasmosPreferences.bool(forKey: CasmosPrefKey.Privacy.keepDeletedMessages)
+    }
+
     public static var verboseLogging: Bool {
         CasmosPreferences.bool(forKey: CasmosPrefKey.Experimental.verboseLogging, default: false)
     }

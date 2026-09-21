@@ -6,7 +6,7 @@
 	url = https://gitlab.com/overtake/Sparkle.git
 [submodule "submodules/telegram-ios"]
 	path = submodules/telegram-ios
-	url = https://github.com/overtake/Telegram-iOS.git
+	url = https://github.com/Thecosmiccat/Telegram-iOS.git
 [submodule "submodules/rlottie"]
 	path = submodules/rlottie
 	url = https://github.com/overtake/rlottie.git

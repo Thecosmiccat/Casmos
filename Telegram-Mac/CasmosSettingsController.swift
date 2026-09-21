@@ -81,6 +81,7 @@ private struct CasmosSettingsState: Equatable {
     var stickerSize: String
     var doubleTapAction: String
     var hideChannelBottomButtons: Bool
+    var keepDeletedMessages: Bool
     var messageFilter: String
     var autoLockOnSleep: Bool
     var hideContentInAppSwitcher: Bool
@@ -106,6 +107,7 @@ private struct CasmosSettingsState: Equatable {
             stickerSize: CasmosPreferences.stickerSize.rawValue,
             doubleTapAction: CasmosPreferences.doubleTapAction.displayName,
             hideChannelBottomButtons: CasmosPreferences.bool(forKey: CasmosPrefKey.Chat.hideChannelBottomButtons),
+            keepDeletedMessages: CasmosPreferences.bool(forKey: CasmosPrefKey.Privacy.keepDeletedMessages),
             messageFilter: CasmosPreferences.messageFilterRaw,
             autoLockOnSleep: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.autoLockOnSleep, default: true),
             hideContentInAppSwitcher: CasmosPreferences.bool(forKey: CasmosPrefKey.Passcode.hideContentInAppSwitcher, default: true),
@@ -133,6 +135,7 @@ private let _id_cmd_enter = InputDataIdentifier("casmos.pref.chat.sendWithComman
 private let _id_sticker_size = InputDataIdentifier("casmos.pref.chat.stickerSize")
 private let _id_double_tap = InputDataIdentifier("casmos.pref.chat.doubleTapAction")
 private let _id_hide_channel_buttons = InputDataIdentifier("casmos.pref.chat.hideChannelBottomButtons")
+private let _id_keep_deleted = InputDataIdentifier("casmos.pref.privacy.keepDeletedMessages")
 private let _id_message_filter = InputDataIdentifier("casmos.pref.chat.messageFilter")
 private let _id_export = InputDataIdentifier("casmos.pref.config.export")
 private let _id_import = InputDataIdentifier("casmos.pref.config.import")
@@ -202,9 +205,10 @@ private func casmosSettingsEntries(state: CasmosSettingsState, arguments: Casmos
     entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_double_tap, data: .init(name: "Double-Click Action", color: theme.colors.text, type: .nextContext(state.doubleTapAction), viewType: .innerItem, action: arguments.cycleDoubleTap)))
     index += 1
     toggleRow(id: _id_hide_channel_buttons, name: "Hide Channel Bottom Buttons", value: state.hideChannelBottomButtons, key: CasmosPrefKey.Chat.hideChannelBottomButtons, viewType: .innerItem)
+    toggleRow(id: _id_keep_deleted, name: "Keep Deleted Messages", value: state.keepDeletedMessages, key: CasmosPrefKey.Privacy.keepDeletedMessages, viewType: .innerItem)
     entries.append(.input(sectionId: sectionId, index: index, value: .string(state.messageFilter), error: nil, identifier: _id_message_filter, mode: .plain, data: .init(viewType: .lastItem), placeholder: nil, inputPlaceholder: "spam, promo, keyword", filter: { $0 }, limit: 500))
     index += 1
-    footer("Command-Return sends when enabled. Sticker size scales the 208pt chat sticker box. Double-Click Action runs on a bubble (default Reply). Hide Channel Bottom Buttons collapses the Mute / Discuss bar; mute and discussion stay in the chat header. Message Filter hides incoming text that contains a comma-separated keyword on this Mac only. It does not delete messages.")
+    footer("Command-Return sends when enabled. Sticker size scales the 208pt chat sticker box. Double-Click Action runs on a bubble (default Reply). Hide Channel Bottom Buttons collapses the Mute / Discuss bar; mute and discussion stay in the chat header. Keep Deleted Messages keeps chats this Mac already downloaded after someone else deletes them, including while Casmos is in the background. It labels those bubbles Deleted. Messages you delete, secret chats, and auto-delete timers still go. A message that never reached this Mac cannot be recovered. Message Filter hides incoming text that contains a comma-separated keyword on this Mac only. It does not delete messages.")
 
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1

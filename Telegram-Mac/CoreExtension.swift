@@ -990,6 +990,10 @@ public extension Message {
         }
         return nil
     }
+
+    var casmosKeptDeleted: Bool {
+        attributes.contains(where: { $0 is CasmosDeletedMessageAttribute })
+    }
     
     var autoremoveAttribute:AutoremoveTimeoutMessageAttribute? {
         for attr in attributes {
