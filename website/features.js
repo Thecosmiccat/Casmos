@@ -217,6 +217,17 @@
           ],
         },
         {
+          name: "Keep Deleted Messages",
+          sub: "Chat",
+          subtitle: "Chat. Default off",
+          body: "Keeps messages this Mac already downloaded after someone else deletes them, including while Casmos is in the background. Those bubbles show Deleted. Messages you delete, secret chats, and auto-delete timers still go. A message that never reached this Mac cannot be recovered.",
+          head: "CHAT",
+          rows: [
+            ["Hide Channel Bottom Buttons", "off"],
+            ["Keep Deleted Messages", "off"],
+          ],
+        },
+        {
           name: "Message Filter",
           sub: "Chat",
           subtitle: "Chat",
