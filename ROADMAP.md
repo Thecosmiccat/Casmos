@@ -7,7 +7,7 @@
 - Casmos Settings shell: General, Appearance, Chat, Passcode, Experimental (`casmos.pref.*`). Translator lives under Language → Translate Messages. Keep Deleted Messages is a Chat toggle (off by default).
 - Modular `packages/Casmos`
 - Official Sparkle and App Center update endpoints blanked
-- Mac Xcode build notes in INSTALL.md (free Apple ID, Gatekeeper, recursive submodules, placeholders until Jeffrey provides keys)
+- Mac Xcode build notes in INSTALL.md (free Apple ID, Gatekeeper, recursive submodules, placeholder API credentials)
 - Send with Command-Return
 - Confirm external links, lock on sleep, hide content in App Switcher — **on by default** (`casmos.pref.general.confirmLinkOpens`, `casmos.pref.passcode.autoLockOnSleep`, `casmos.pref.passcode.hideContentInAppSwitcher`)
 - Hide phone and @username on your own profile UI — **on by default** (`casmos.pref.privacy.hideOwnPhoneAndUsername`)
@@ -28,7 +28,7 @@
 - Message filter: `casmos.pref.chat.messageFilter` is a comma-separated keyword list. Incoming chat text that contains a keyword is hidden in the chat and list preview on this Mac. It does not delete messages.
 - Keep deleted messages: `casmos.pref.privacy.keepDeletedMessages` (off by default). Incoming deletes stay in the local history and show **Deleted**. Interactive deletes, secret chats, and auto-delete timers still remove. History that never reached this Mac cannot be recovered.
 - Message menu: Repeat (resend content in the current chat), Forward without Quote (`hideNames`), Details (JSON snapshot). Translate remains on the context menu when translator is enabled.
-- Config export/import: Casmos Settings → Config writes/reads a JSON file of `casmos.pref.*` keys. Export may include a local DeepL key if one is set.
+- Config export/import: Casmos Settings → Config writes/reads a JSON file of `casmos.pref.*` keys. The local DeepL key is left out of the export.
 
 ## P2 (this tree)
 
@@ -41,6 +41,6 @@
 - Panic passcode: hides included accounts for this session. Hide This Account stays after quit. Logout on Panic (`casmos.pref.passcode.logoutOnPanic`) also signs those accounts out and stays **off** by default.
 - Touch ID reveal: `casmos.pref.passcode.useTouchIdForAccounts` stays **off** until LocalAuthentication biometrics succeed. Without Touch ID / Face ID the row is **NOT WIRED** (not a fake on toggle). Cold-start lock only accepts the app passcode (**NOT WIRED** for panic / hide).
 
-## Later (needs Jeffrey / live API — not in this overnight branch)
+## Later (needs a signed release — not in this tree)
 - A signed Mac build with real `api_id` / `api_hash` / Team ID (placeholders stay in this tree)
 - Workers AI / Cloudflare transcription (no free anonymous path; not stubbed in this tree)

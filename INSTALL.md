@@ -6,7 +6,7 @@ You need a Mac with a recent Xcode. This Linux environment does not compile the 
 
 A **free Apple ID** is enough for a local debug build (Xcode Personal Team). You do not need a paid Apple Developer Program membership to compile and run on your own Mac.
 
-`api_id` / `api_hash` stay placeholders in this tree until Jeffrey provides them. Do not invent or commit keys. DeepL is **not** required for a basic run.
+`api_id` / `api_hash` stay placeholders in this tree. Do not invent or commit keys. DeepL is **not** required for a basic run.
 
 ## 1. Clone with nested submodules
 
@@ -153,9 +153,11 @@ This Linux environment cannot compile the Mac app.
 
 In-app Sparkle / App Center feeds that pointed at osx.telegram.org, mac-updates.telegram.org, and api.appcenter.ms are disabled. Do not restore those official endpoints for a Casmos build.
 
+To ship an update people can install from Casmos → Check for Updates: set `MARKETING_VERSION` to the next version (`1.0.0`, then `1.0.1`), rebuild, install `Casmos.app`, then run `scripts/publish-mac-update.sh`. That creates a GitHub Release tagged `v1.0.0` with `Casmos.zip`. The update dialog says that version. A normal git push does not update installed apps. The test release tagged `274298` is a build number, not a v1 release.
+
 ## Fork notes from upstream
 
-1. Use your own API ID (Jeffrey’s keys in this project; do not use Telegram’s).
+1. Use your own API ID from [my.telegram.org](https://my.telegram.org). Do not use Telegram’s.
 2. Do not call the app Telegram.
 3. Do not use the official white paper-plane logo.
 4. Follow Telegram’s [security guidelines](https://core.telegram.org/mtproto/security_guidelines).
