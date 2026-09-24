@@ -91,15 +91,6 @@ Language → Translate Messages.
 - **Verbose Logging** — off by default; console and log files when on (no message bodies / phone / `api_hash` in Casmos logs)
 - **Export / Import Preferences** — JSON of `casmos.pref.*` (export may include a local DeepL key if you set one)
 
-## Coming Soon / not shipped
-
-| | |
-| --- | --- |
-| Extra app / Dock icons | **Coming Soon**. Bundled Casmos icon only |
-| Touch ID Reveals Hidden Accounts | **NOT WIRED** on Macs without biometrics. With Touch ID it stays off until LocalAuthentication succeeds |
-| Cold-start lock | Accepts the app passcode only. Panic / hide are **NOT WIRED** there |
-| Share extension / Focus Intents persistence | **NOT WIRED** without application-groups on unsigned local builds |
-| In-app updates | Endpoints blank on purpose |
 
 See [ROADMAP.md](ROADMAP.md) for leftover later work.
 
